@@ -217,6 +217,10 @@ IStoragePlugin* AwsS3StoragePluginFactory::CreateStoragePlugin(const OrthancPlug
     return nullptr;
   }
 
+  std::string endpoint = pluginSection.GetStringValue("Endpoint", "");
+  unsigned int connectTimeout = pluginSection.GetUnsignedIntegerValue("ConnectTimeout", 30);
+  unsigned int requestTimeout = pluginSection.GetUnsignedIntegerValue("RequestTimeout", 1200);
+
   try
   {
     Aws::SDKOptions options;
@@ -225,6 +229,15 @@ IStoragePlugin* AwsS3StoragePluginFactory::CreateStoragePlugin(const OrthancPlug
     Aws::Auth::AWSCredentials credentials(accessKey.c_str(), secretKey.c_str());
     Aws::Client::ClientConfiguration configuration;
     configuration.region = region.c_str();
+    configuration.scheme = Aws::Http::Scheme::HTTPS;
+    configuration.connectTimeoutMs = connectTimeout * 1000;
+    configuration.requestTimeoutMs  = requestTimeout * 1000;
+
+    if (!endpoint.empty())
+    {
+      configuration.endpointOverride = endpoint.c_str();
+    }
+
     Aws::S3::S3Client client(credentials, configuration);
 
     OrthancPlugins::LogInfo("AWS S3 storage initialized");
