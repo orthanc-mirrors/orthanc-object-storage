@@ -189,6 +189,11 @@ extern "C"
 
     plugin.reset(StoragePluginFactory::CreateStoragePlugin(orthancConfig));
 
+    if (plugin.get() == nullptr)
+    {
+      return -1;
+    }
+
     static const char* const ENCRYPTION_SECTION = "StorageEncryption";
 
     if (orthancConfig.IsSection(ENCRYPTION_SECTION))

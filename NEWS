@@ -1,6 +1,11 @@
 Pending changes in the mainline
 ===============================
 
+* Prevent Orthanc to start if plugin fails to start
+
+2020-07-15 - v 0.9.1
+====================
+
 * AWS: added 3 configurations: Endpoint, ConnectionTimeout, RequestTimeout
 
 2020-07-03 - v 0.9.0
