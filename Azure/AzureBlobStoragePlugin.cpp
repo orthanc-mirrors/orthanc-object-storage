@@ -21,6 +21,7 @@
 #include <was/storage_account.h>
 #include <was/blob.h>
 #include <boost/lexical_cast.hpp>
+#include <boost/algorithm/string.hpp>
 #include "cpprest/rawptrstream.h"
 
 
@@ -170,6 +171,8 @@ IStoragePlugin* AzureBlobStoragePluginFactory::CreateStoragePlugin(const Orthanc
       return nullptr;
     }
 
+    boost::trim(connectionString); // without that, if there's an EOL in the string, it fails with "provided uri is invalid"
+    boost::trim(containerName);
   }
   else if (orthancConfig.IsSection("BlobStorage")) // backward compatibility with the old plugin:
   {
