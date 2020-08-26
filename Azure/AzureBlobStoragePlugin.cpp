@@ -211,10 +211,16 @@ IStoragePlugin* AzureBlobStoragePluginFactory::CreateStoragePlugin(const Orthanc
 
   try
   {
+    OrthancPlugins::LogInfo("Connecting to Azure storage ...");
+
     as::cloud_storage_account storageAccount = as::cloud_storage_account::parse(connectionString);
+    OrthancPlugins::LogInfo("Storage account created");
 
     as::cloud_blob_client blobClient = storageAccount.create_cloud_blob_client();
+    OrthancPlugins::LogInfo("Blob client created");
+
     as::cloud_blob_container blobContainer = blobClient.get_container_reference(containerName);
+    OrthancPlugins::LogInfo("Accessing blob container");
 
     // Return value is true if the container did not exist and was successfully created.
     bool containerCreated = blobContainer.create_if_not_exists();
