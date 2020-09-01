@@ -21,7 +21,7 @@
 #include <cryptopp/secblock.h>
 #include "cryptopp/osrng.h"
 #include <boost/thread/mutex.hpp>
-#include "Core/MultiThreading/Semaphore.h"
+#include <MultiThreading/Semaphore.h>
 
 class EncryptionException : public std::runtime_error
 {

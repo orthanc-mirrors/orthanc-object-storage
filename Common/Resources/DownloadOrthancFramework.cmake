@@ -4,29 +4,18 @@
 # Copyright (C) 2017-2020 Osimis S.A., Belgium
 #
 # This program is free software: you can redistribute it and/or
-# modify it under the terms of the GNU General Public License as
-# published by the Free Software Foundation, either version 3 of the
-# License, or (at your option) any later version.
+# modify it under the terms of the GNU Lesser General Public License
+# as published by the Free Software Foundation, either version 3 of
+# the License, or (at your option) any later version.
 #
-# In addition, as a special exception, the copyright holders of this
-# program give permission to link the code of its release with the
-# OpenSSL project's "OpenSSL" library (or with modified versions of it
-# that use the same license as the "OpenSSL" library), and distribute
-# the linked executables. You must obey the GNU General Public License
-# in all respects for all of the code used other than "OpenSSL". If you
-# modify file(s) with this exception, you may extend this exception to
-# your version of the file(s), but you are not obligated to do so. If
-# you do not wish to do so, delete this exception statement from your
-# version. If you delete this exception statement from all source files
-# in the program, then also delete it here.
-# 
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-# General Public License for more details.
+# Lesser General Public License for more details.
 #
-# You should have received a copy of the GNU General Public License
-# along with this program. If not, see <http://www.gnu.org/licenses/>.
+# You should have received a copy of the GNU Lesser General Public
+# License along with this program. If not, see
+# <http://www.gnu.org/licenses/>.
 
 
 
@@ -35,11 +24,12 @@
 ##
 
 if (NOT DEFINED ORTHANC_FRAMEWORK_SOURCE OR
-    (NOT ORTHANC_FRAMEWORK_SOURCE STREQUAL "hg" AND
+    (NOT ORTHANC_FRAMEWORK_SOURCE STREQUAL "system" AND
+     NOT ORTHANC_FRAMEWORK_SOURCE STREQUAL "hg" AND
      NOT ORTHANC_FRAMEWORK_SOURCE STREQUAL "web" AND
      NOT ORTHANC_FRAMEWORK_SOURCE STREQUAL "archive" AND
      NOT ORTHANC_FRAMEWORK_SOURCE STREQUAL "path"))
-  message(FATAL_ERROR "The variable ORTHANC_FRAMEWORK_SOURCE must be set to \"hg\", \"web\", \"archive\" or \"path\"")
+  message(FATAL_ERROR "The variable ORTHANC_FRAMEWORK_SOURCE must be set to \"system\", \"hg\", \"web\", \"archive\" or \"path\"")
 endif()
 
 
@@ -118,6 +108,12 @@ if (ORTHANC_FRAMEWORK_SOURCE STREQUAL "hg" OR
         set(ORTHANC_FRAMEWORK_MD5 "3971f5de96ba71dc9d3f3690afeaa7c0")
       elseif (ORTHANC_FRAMEWORK_VERSION STREQUAL "1.7.0")
         set(ORTHANC_FRAMEWORK_MD5 "ce5f689e852b01d3672bd3d2f952a5ef")
+      elseif (ORTHANC_FRAMEWORK_VERSION STREQUAL "1.7.1")
+        set(ORTHANC_FRAMEWORK_MD5 "3c171217f930abe80246997bdbcaf7cc")
+      elseif (ORTHANC_FRAMEWORK_VERSION STREQUAL "1.7.2")
+        set(ORTHANC_FRAMEWORK_MD5 "328f94dcbd78c169655a13f7ad58a2c2")
+      elseif (ORTHANC_FRAMEWORK_VERSION STREQUAL "1.7.3")
+        set(ORTHANC_FRAMEWORK_MD5 "3f1ba9502ec7c5449971d3b56087bcde")
 
       # Below this point are development snapshots that were used to
       # release some plugin, before an official release of the Orthanc
@@ -132,7 +128,8 @@ if (ORTHANC_FRAMEWORK_SOURCE STREQUAL "hg" OR
       endif()
     endif()
   endif()
-else()
+
+elseif (ORTHANC_FRAMEWORK_SOURCE STREQUAL "path")
   message("Using the Orthanc framework from a path of the filesystem. Assuming mainline version.")
   set(ORTHANC_FRAMEWORK_MAJOR 999)
   set(ORTHANC_FRAMEWORK_MINOR 999)
@@ -182,19 +179,14 @@ endif()
 ##
 
 if (ORTHANC_FRAMEWORK_SOURCE STREQUAL "path")
-  if (NOT DEFINED ORTHANC_FRAMEWORK_ROOT)
+  if (NOT DEFINED ORTHANC_FRAMEWORK_ROOT OR
+      ORTHANC_FRAMEWORK_ROOT STREQUAL "")
     message(FATAL_ERROR "The variable ORTHANC_FRAMEWORK_ROOT must provide the path to the sources of Orthanc")
   endif()
   
   if (NOT EXISTS ${ORTHANC_FRAMEWORK_ROOT})
     message(FATAL_ERROR "Non-existing directory: ${ORTHANC_FRAMEWORK_ROOT}")
   endif()
-  
-  if (NOT EXISTS ${ORTHANC_FRAMEWORK_ROOT}/Resources/CMake/OrthancFrameworkParameters.cmake)
-    message(FATAL_ERROR "Directory not containing the source code of Orthanc: ${ORTHANC_FRAMEWORK_ROOT}")
-  endif()
-  
-  set(ORTHANC_ROOT ${ORTHANC_FRAMEWORK_ROOT})
 endif()
 
 
@@ -251,7 +243,8 @@ endif()
 ##
 
 if (ORTHANC_FRAMEWORK_SOURCE STREQUAL "archive")
-  if (NOT DEFINED ORTHANC_FRAMEWORK_ARCHIVE)
+  if (NOT DEFINED ORTHANC_FRAMEWORK_ARCHIVE OR
+      ORTHANC_FRAMEWORK_ARCHIVE STREQUAL "")
     message(FATAL_ERROR "The variable ORTHANC_FRAMEWORK_ARCHIVE must provide the path to the sources of Orthanc")
   endif()
 endif()
@@ -370,3 +363,206 @@ if (ORTHANC_FRAMEWORK_SOURCE STREQUAL "archive" OR
   endif()
 endif()
 
+
+
+##
+## Determine the path to the sources of the Orthanc framework
+##
+
+if (ORTHANC_FRAMEWORK_SOURCE STREQUAL "archive" OR
+    ORTHANC_FRAMEWORK_SOURCE STREQUAL "hg" OR
+    ORTHANC_FRAMEWORK_SOURCE STREQUAL "web")
+  if (NOT DEFINED ORTHANC_ROOT OR
+      NOT DEFINED ORTHANC_FRAMEWORK_MAJOR OR
+      NOT DEFINED ORTHANC_FRAMEWORK_MINOR OR
+      NOT DEFINED ORTHANC_FRAMEWORK_REVISION)
+    message(FATAL_ERROR "Internal error in the DownloadOrthancFramework.cmake file")
+  endif()
+
+  unset(ORTHANC_FRAMEWORK_ROOT CACHE)
+
+  if ("${ORTHANC_FRAMEWORK_MAJOR}.${ORTHANC_FRAMEWORK_MINOR}.${ORTHANC_FRAMEWORK_REVISION}" VERSION_LESS "1.7.2")
+    set(ORTHANC_FRAMEWORK_ROOT "${ORTHANC_ROOT}/Core" CACHE
+      STRING "Path to the Orthanc framework source directory")
+    set(ENABLE_PLUGINS_VERSION_SCRIPT OFF)
+  else()
+    set(ORTHANC_FRAMEWORK_ROOT "${ORTHANC_ROOT}/OrthancFramework/Sources" CACHE
+      STRING "Path to the Orthanc framework source directory")
+  endif()
+
+  unset(ORTHANC_ROOT)
+endif()
+
+if (NOT ORTHANC_FRAMEWORK_SOURCE STREQUAL "system")
+  if (NOT EXISTS ${ORTHANC_FRAMEWORK_ROOT}/OrthancException.h OR
+      NOT EXISTS ${ORTHANC_FRAMEWORK_ROOT}/../Resources/CMake/OrthancFrameworkParameters.cmake)
+    message(FATAL_ERROR "Directory not containing the source code of the Orthanc framework: ${ORTHANC_FRAMEWORK_ROOT}")
+  endif()
+endif()
+
+
+
+##
+## Case of the Orthanc framework installed as a shared library in a
+## GNU/Linux distribution (typically Debian). New in Orthanc 1.7.2.
+##
+
+if (ORTHANC_FRAMEWORK_SOURCE STREQUAL "system")
+  set(ORTHANC_FRAMEWORK_LIBDIR "" CACHE PATH "")
+
+  if (CMAKE_SYSTEM_NAME STREQUAL "Windows" AND
+      CMAKE_COMPILER_IS_GNUCXX) # MinGW
+    set(DYNAMIC_MINGW_STDLIB ON)   # Disable static linking against libc (to throw exceptions)
+    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -static-libstdc++")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libstdc++")
+  endif()
+  
+  include(CheckIncludeFile)
+  include(CheckIncludeFileCXX)
+  include(FindPythonInterp)
+  include(${CMAKE_CURRENT_LIST_DIR}/Compiler.cmake)
+  include(${CMAKE_CURRENT_LIST_DIR}/DownloadPackage.cmake)
+  include(${CMAKE_CURRENT_LIST_DIR}/AutoGeneratedCode.cmake)
+  set(EMBED_RESOURCES_PYTHON ${CMAKE_CURRENT_LIST_DIR}/EmbedResources.py)
+
+  if ("${CMAKE_SYSTEM_NAME}" STREQUAL "Windows" OR
+      ORTHANC_FRAMEWORK_STATIC)
+    include_directories(${ORTHANC_FRAMEWORK_ROOT}/..)
+  else()
+    # Look for mandatory dependency JsonCpp (cf. JsonCppConfiguration.cmake)
+    find_path(JSONCPP_INCLUDE_DIR json/reader.h
+      /usr/include/jsoncpp
+      /usr/local/include/jsoncpp
+      )
+
+    message("JsonCpp include dir: ${JSONCPP_INCLUDE_DIR}")
+    include_directories(${JSONCPP_INCLUDE_DIR})
+    link_libraries(jsoncpp)
+
+    CHECK_INCLUDE_FILE_CXX(${JSONCPP_INCLUDE_DIR}/json/reader.h HAVE_JSONCPP_H)
+    if (NOT HAVE_JSONCPP_H)
+      message(FATAL_ERROR "Please install the libjsoncpp-dev package")
+    endif()
+
+    # Switch to the C++11 standard if the version of JsonCpp is 1.y.z
+    # (same as variable JSONCPP_CXX11 in the source code of Orthanc)
+    if (EXISTS ${JSONCPP_INCLUDE_DIR}/json/version.h)
+      file(STRINGS
+        "${JSONCPP_INCLUDE_DIR}/json/version.h" 
+        JSONCPP_VERSION_MAJOR1 REGEX
+        ".*define JSONCPP_VERSION_MAJOR.*")
+
+      if (NOT JSONCPP_VERSION_MAJOR1)
+        message(FATAL_ERROR "Unable to extract the major version of JsonCpp")
+      endif()
+      
+      string(REGEX REPLACE
+        ".*JSONCPP_VERSION_MAJOR.*([0-9]+)$" "\\1" 
+        JSONCPP_VERSION_MAJOR ${JSONCPP_VERSION_MAJOR1})
+      message("JsonCpp major version: ${JSONCPP_VERSION_MAJOR}")
+
+      if (JSONCPP_VERSION_MAJOR GREATER 0)
+        message("Switching to C++11 standard, as version of JsonCpp is >= 1.0.0")
+        if (CMAKE_COMPILER_IS_GNUCXX)
+          set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11")
+        elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+          set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+        endif()
+      endif()
+    else()
+      message("Unable to detect the major version of JsonCpp, assuming < 1.0.0")
+    endif()
+
+    # Look for mandatory dependency Boost (cf. BoostConfiguration.cmake)
+    include(FindBoost)
+    find_package(Boost COMPONENTS filesystem thread system date_time regex ${ORTHANC_BOOST_COMPONENTS})
+
+    if (NOT Boost_FOUND)
+      message(FATAL_ERROR "Unable to locate Boost on this system")
+    endif()
+    
+    include_directories(${Boost_INCLUDE_DIRS})
+    link_libraries(${Boost_LIBRARIES})
+
+    # Optional component - Lua
+    if (ENABLE_LUA)
+      include(FindLua)
+
+      if (NOT LUA_FOUND)
+        message(FATAL_ERROR "Please install the liblua-dev package")
+      endif()
+
+      include_directories(${LUA_INCLUDE_DIR})
+      link_libraries(${LUA_LIBRARIES})
+    endif()
+
+    # Optional component - SQLite
+    if (ENABLE_SQLITE)    
+      CHECK_INCLUDE_FILE(sqlite3.h HAVE_SQLITE_H)
+      if (NOT HAVE_SQLITE_H)
+        message(FATAL_ERROR "Please install the libsqlite3-dev package")
+      endif()
+      link_libraries(sqlite3)
+    endif()
+
+    # Optional component - Pugixml
+    if (ENABLE_PUGIXML)
+      CHECK_INCLUDE_FILE_CXX(pugixml.hpp HAVE_PUGIXML_H)
+      if (NOT HAVE_PUGIXML_H)
+        message(FATAL_ERROR "Please install the libpugixml-dev package")
+      endif()      
+      link_libraries(pugixml)
+    endif()
+
+    # Optional component - DCMTK
+    if (ENABLE_DCMTK)
+      include(FindDCMTK)
+      include_directories(${DCMTK_INCLUDE_DIRS})
+      link_libraries(${DCMTK_LIBRARIES})
+    endif()
+  endif()
+
+  # Look for Orthanc framework shared library
+  include(CheckCXXSymbolExists)
+
+  if ("${CMAKE_SYSTEM_NAME}" STREQUAL "Windows")
+    set(ORTHANC_FRAMEWORK_INCLUDE_DIR ${ORTHANC_FRAMEWORK_ROOT})
+  else()
+    find_path(ORTHANC_FRAMEWORK_INCLUDE_DIR OrthancFramework.h
+      /usr/include/orthanc-framework
+      /usr/local/include/orthanc-framework
+      ${ORTHANC_FRAMEWORK_ROOT}
+      )
+  endif()
+
+  if (${ORTHANC_FRAMEWORK_INCLUDE_DIR} STREQUAL "ORTHANC_FRAMEWORK_INCLUDE_DIR-NOTFOUND")
+    message(FATAL_ERROR "Cannot locate the OrthancFramework.h header")
+  endif()
+  
+  message("Orthanc framework include dir: ${ORTHANC_FRAMEWORK_INCLUDE_DIR}")
+  include_directories(${ORTHANC_FRAMEWORK_INCLUDE_DIR})
+  
+  if ("${ORTHANC_FRAMEWORK_LIBDIR}" STREQUAL "")
+    set(ORTHANC_FRAMEWORK_LIBRARIES OrthancFramework)
+  else()
+    if (MSVC)
+      set(Suffix ".lib")
+      set(Prefix "")
+    else()
+      list(GET CMAKE_FIND_LIBRARY_PREFIXES 0 Prefix)
+      list(GET CMAKE_FIND_LIBRARY_SUFFIXES 0 Suffix)
+    endif()
+    set(ORTHANC_FRAMEWORK_LIBRARIES ${ORTHANC_FRAMEWORK_LIBDIR}/${Prefix}OrthancFramework${Suffix})
+  endif()
+
+  set(CMAKE_REQUIRED_INCLUDES "${ORTHANC_FRAMEWORK_INCLUDE_DIR}")
+  set(CMAKE_REQUIRED_LIBRARIES "${ORTHANC_FRAMEWORK_LIBRARIES}")
+  
+  check_cxx_symbol_exists("Orthanc::InitializeFramework" "OrthancFramework.h" HAVE_ORTHANC_FRAMEWORK)
+  if (NOT HAVE_ORTHANC_FRAMEWORK)
+    message(FATAL_ERROR "Cannot find the Orthanc framework")
+  endif()
+
+  unset(CMAKE_REQUIRED_INCLUDES)
+  unset(CMAKE_REQUIRED_LIBRARIES)
+endif()

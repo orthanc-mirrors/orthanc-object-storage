@@ -27,9 +27,9 @@
 
 // Create aliases to make the code easier to read.
 namespace as = azure::storage;
+static const char* const PLUGIN_SECTION = "AzureBlobStorage";
 
-
-class AzureBlobStoragePlugin : public IStoragePlugin
+class AzureBlobStoragePlugin : public BaseStoragePlugin
 {
 public:
 
@@ -40,13 +40,12 @@ public:
 //  AzureBlobStoragePlugin(const std::string& connectionString,
 //                         const std::string& containerName
 //                        );
-  AzureBlobStoragePlugin(const as::cloud_blob_client& blobClient, const as::cloud_blob_container& blobContainer);
+  AzureBlobStoragePlugin(const as::cloud_blob_client& blobClient, const as::cloud_blob_container& blobContainer, bool enableLegacyStorageStructure);
 
   virtual IWriter* GetWriterForObject(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled);
   virtual IReader* GetReaderForObject(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled);
   virtual void DeleteObject(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled);
-private:
-  virtual std::string GetPath(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled);
+  virtual const char* GetConfigurationSectionName() {return PLUGIN_SECTION;};
 };
 
 
@@ -152,12 +151,17 @@ IStoragePlugin* AzureBlobStoragePluginFactory::CreateStoragePlugin(const Orthanc
 {
   std::string connectionString;
   std::string containerName;
+  bool enableLegacyStorageStructure;
 
-  static const char* const PLUGIN_SECTION = "AzureBlobStorage";
   if (orthancConfig.IsSection(PLUGIN_SECTION))
   {
     OrthancPlugins::OrthancConfiguration pluginSection;
     orthancConfig.GetSection(pluginSection, PLUGIN_SECTION);
+
+    if (!BaseStoragePlugin::ReadCommonConfiguration(enableLegacyStorageStructure, pluginSection))
+    {
+      return nullptr;
+    }
 
     if (!pluginSection.LookupStringValue(connectionString, "ConnectionString"))
     {
@@ -235,7 +239,7 @@ IStoragePlugin* AzureBlobStoragePluginFactory::CreateStoragePlugin(const Orthanc
 
     OrthancPlugins::LogInfo("Blob storage initialized");
 
-    return new AzureBlobStoragePlugin(blobClient, blobContainer);
+    return new AzureBlobStoragePlugin(blobClient, blobContainer, enableLegacyStorageStructure);
   }
   catch (const std::exception& e)
   {
@@ -245,8 +249,9 @@ IStoragePlugin* AzureBlobStoragePluginFactory::CreateStoragePlugin(const Orthanc
 
 }
 
-AzureBlobStoragePlugin::AzureBlobStoragePlugin(const as::cloud_blob_client& blobClient, const as::cloud_blob_container& blobContainer) //const std::string &containerName) //, google::cloud::storage::Client& mainClient)
-  : blobClient_(blobClient),
+AzureBlobStoragePlugin::AzureBlobStoragePlugin(const as::cloud_blob_client& blobClient, const as::cloud_blob_container& blobContainer, bool enableLegacyStorageStructure)
+  : BaseStoragePlugin(enableLegacyStorageStructure),
+    blobClient_(blobClient),
     blobContainer_(blobContainer)
 {
 
@@ -276,28 +281,4 @@ void AzureBlobStoragePlugin::DeleteObject(const char* uuid, OrthancPluginContent
   {
     throw StoragePluginException("AzureBlobStorage: error while deleting file " + std::string(path) + ": " + ex.what());
   }
-}
-
-std::string AzureBlobStoragePlugin::GetPath(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled)
-{
-  std::string path = std::string(uuid);
-
-  if (type == OrthancPluginContentType_Dicom)
-  {
-    path += ".dcm";
-  }
-  else if (type == OrthancPluginContentType_DicomAsJson)
-  {
-    path += ".json";
-  }
-  else
-  {
-    path += ".unk";
-  }
-
-  if (encryptionEnabled)
-  {
-    path += ".enc";
-  }
-  return path;
 }

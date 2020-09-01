@@ -32,8 +32,9 @@
 #include <fstream>
 
 const char* ALLOCATION_TAG = "OrthancS3";
+static const char* const PLUGIN_SECTION = "AwsS3Storage";
 
-class AwsS3StoragePlugin : public IStoragePlugin
+class AwsS3StoragePlugin : public BaseStoragePlugin
 {
 public:
 
@@ -42,13 +43,12 @@ public:
 
 public:
 
-  AwsS3StoragePlugin(const Aws::S3::S3Client& client, const std::string& bucketName);
+  AwsS3StoragePlugin(const Aws::S3::S3Client& client, const std::string& bucketName, bool enableLegacyStorageStructure);
 
   virtual IWriter* GetWriterForObject(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled);
   virtual IReader* GetReaderForObject(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled);
   virtual void DeleteObject(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled);
-private:
-  virtual std::string GetPath(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled);
+  virtual const char* GetConfigurationSectionName() {return PLUGIN_SECTION;};
 };
 
 
@@ -178,7 +178,8 @@ const char* AwsS3StoragePluginFactory::GetStoragePluginName()
 
 IStoragePlugin* AwsS3StoragePluginFactory::CreateStoragePlugin(const OrthancPlugins::OrthancConfiguration& orthancConfig)
 {
-  static const char* const PLUGIN_SECTION = "AwsS3Storage";
+  bool enableLegacyStorageStructure;
+
   if (!orthancConfig.IsSection(PLUGIN_SECTION))
   {
     OrthancPlugins::LogWarning(std::string(GetStoragePluginName()) + " plugin, section missing.  Plugin is not enabled.");
@@ -187,6 +188,11 @@ IStoragePlugin* AwsS3StoragePluginFactory::CreateStoragePlugin(const OrthancPlug
 
   OrthancPlugins::OrthancConfiguration pluginSection;
   orthancConfig.GetSection(pluginSection, PLUGIN_SECTION);
+
+  if (!BaseStoragePlugin::ReadCommonConfiguration(enableLegacyStorageStructure, pluginSection))
+  {
+    return nullptr;
+  }
 
   std::string bucketName;
   std::string region;
@@ -242,7 +248,7 @@ IStoragePlugin* AwsS3StoragePluginFactory::CreateStoragePlugin(const OrthancPlug
 
     OrthancPlugins::LogInfo("AWS S3 storage initialized");
 
-    return new AwsS3StoragePlugin(client, bucketName);
+    return new AwsS3StoragePlugin(client, bucketName, enableLegacyStorageStructure);
   }
   catch (const std::exception& e)
   {
@@ -252,8 +258,9 @@ IStoragePlugin* AwsS3StoragePluginFactory::CreateStoragePlugin(const OrthancPlug
 
 }
 
-AwsS3StoragePlugin::AwsS3StoragePlugin(const Aws::S3::S3Client& client, const std::string& bucketName)
-  : client_(client),
+AwsS3StoragePlugin::AwsS3StoragePlugin(const Aws::S3::S3Client& client, const std::string& bucketName, bool enableLegacyStorageStructure)
+  : BaseStoragePlugin(enableLegacyStorageStructure),
+    client_(client),
     bucketName_(bucketName)
 {
 
@@ -284,28 +291,4 @@ void AwsS3StoragePlugin::DeleteObject(const char* uuid, OrthancPluginContentType
     throw StoragePluginException(std::string("error while deleting file ") + path + ": " + result.GetError().GetExceptionName().c_str() + " " + result.GetError().GetMessage().c_str());
   }
 
-}
-
-std::string AwsS3StoragePlugin::GetPath(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled)
-{
-  std::string path = std::string(uuid);
-
-  if (type == OrthancPluginContentType_Dicom)
-  {
-    path += ".dcm";
-  }
-  else if (type == OrthancPluginContentType_DicomAsJson)
-  {
-    path += ".json";
-  }
-  else
-  {
-    path += ".unk";
-  }
-
-  if (encryptionEnabled)
-  {
-    path += ".enc";
-  }
-  return path;
 }

@@ -18,7 +18,7 @@
 
 #pragma once
 
-#include "../Common/IStoragePlugin.h"
+#include "../Common/BaseStoragePlugin.h"
 
 #include "google/cloud/storage/client.h"
 
@@ -30,7 +30,7 @@ public:
 };
 
 
-class GoogleStoragePlugin : public IStoragePlugin
+class GoogleStoragePlugin : public BaseStoragePlugin
 {
 public:
 
@@ -40,12 +40,12 @@ public:
 public:
 
   GoogleStoragePlugin(const std::string& bucketName,
-                      google::cloud::storage::Client& mainClient
+                      google::cloud::storage::Client& mainClient,
+                      bool enableLegacyStorageStructure
                       );
 
   virtual IWriter* GetWriterForObject(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled);
   virtual IReader* GetReaderForObject(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled);
   virtual void DeleteObject(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled);
-private:
-  virtual std::string GetPath(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled);
+  virtual const char* GetConfigurationSectionName();
 };

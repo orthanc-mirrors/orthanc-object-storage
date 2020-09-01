@@ -10,14 +10,16 @@ Here's a sample configuration file of the `StorageEncryption` section of the plu
 
 ```
 {
-    "StorageEncryption" : {
-        "Enable": true,
-        "MasterKey": [3, "/path/to/master.key"], // key id - path to the base64 encoded key
-        "PreviousMasterKeys" : [
-            [ 1, "/path/to/previous1.key"],
-            [ 2, "/path/to/previous2.key"]
-        ],
-        "MaxConcurrentInputSize" : 1024   // size in MB 
+    "GoogleCloudStorage" : {
+        "StorageEncryption" : {
+            "Enable": true,
+            "MasterKey": [3, "/path/to/master.key"], // key id - path to the base64 encoded key
+            "PreviousMasterKeys" : [
+                [ 1, "/path/to/previous1.key"],
+                [ 2, "/path/to/previous2.key"]
+            ],
+            "MaxConcurrentInputSize" : 1024   // size in MB 
+        }
     }
 }
 ```
@@ -29,14 +31,17 @@ Here's a sample configuration file of the `StorageEncryption` section of the plu
 * `hg clone ...`
 * `mkdir -p build/google`
 * `cd build/google` 
-* `cmake -DCMAKE_TOOLCHAIN_FILE=[vcpkg root]\scripts\buildsystems\vcpkg.cmake ../../orthanc-object-storage/google`
+* `cmake -DCMAKE_TOOLCHAIN_FILE=[vcpkg root]\scripts\buildsystems\vcpkg.cmake ../../orthanc-object-storage/Google`
 
 ### Google plugin configuration ###
 
 ```
     "GoogleCloudStorage" : {
-        "ServiceAccountFile": "/.../googleServiceAccountFile.json",
-        "BucketName": "test-orthanc-storage-plugin"
+        "ServiceAccountFile" : "/.../googleServiceAccountFile.json",
+        "BucketName": "test-orthanc-storage-plugin",
+        "StorageEncryption" : {...},
+        "StorageStructure" : "flat",
+        "MigrationFromFileSystemEnabled" : false
     }
 
 ```
@@ -60,7 +65,10 @@ Here's a sample configuration file of the `StorageEncryption` section of the plu
 ```
     "AzureBlobStorage" : {
     	"ConnectionString": "DefaultEndpointsProtocol=https;AccountName=xxxxxxxxx;AccountKey=yyyyyyyy===;EndpointSuffix=core.windows.net",
-    	"ContainerName" : "test-orthanc-storage-plugin"
+    	"ContainerName" : "test-orthanc-storage-plugin",
+        "StorageEncryption" : {...},
+        "StorageStructure" : "flat",
+        "MigrationFromFileSystemEnabled" : false
     }
 ```
 
@@ -103,6 +111,9 @@ make install
         "SecretKey" : "RhYYYY",
         "Endpoint": "",                 // optional: custom endpoint
         "ConnectionTimeout": 30,        // optional: connection timeout in seconds
-        "RequestTimeout": 1200          // optional: request timeout in seconds (max time to upload/download a file)
+        "RequestTimeout": 1200,         // optional: request timeout in seconds (max time to upload/download a file)
+        "StorageEncryption" : {...},
+        "StorageStructure" : "flat",
+        "MigrationFromFileSystemEnabled" : false
     }
 ```

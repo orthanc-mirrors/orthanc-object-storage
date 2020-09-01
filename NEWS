@@ -1,6 +1,15 @@
 Pending changes in the mainline
 ===============================
 
+2020-09-01 - v 1.0.0
+====================
+
+* BREAKING CHANGE: the "StorageEncryption" configuration section is now a subsection of the "AwsS3Storage"
+Azure: now removing spaces and CR at the end of the connectionString since it prevented the plugin to initialize.
+* Added "MigrationFromFileSystemEnabled" configuration
+* Added "StorageStructure" configuration (flat-legacy)
+
+
 2020-08-26 - v 0.9.3
 ====================
 

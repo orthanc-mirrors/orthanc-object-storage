@@ -34,14 +34,43 @@
 #include <string>
 
 #include <iostream>
+#include <boost/filesystem.hpp>
+#include <boost/filesystem/fstream.hpp>
+
 #include "../Common/EncryptionHelpers.h"
 #include "../Common/EncryptionConfigurator.h"
+#include <SystemToolbox.h>
 
 static std::unique_ptr<IStoragePlugin> plugin;
 
 static std::unique_ptr<EncryptionHelpers> crypto;
 static bool cryptoEnabled = false;
+static std::string fileSystemRootPath;
+static bool migrationFromFileSystemEnabled = false;
 
+// class to free memory allocated by malloc if an exception occurs
+// This is to avoid an issue in which the blob storage read method
+// crashed if the buffer was allocated through:
+//   auto buffer = std::unique_ptr<void, void(*)(void*)>{malloc(static_cast<uint64_t>(*size)), free};
+
+class ScopedFree
+{
+  void* buffer_;
+public:
+  ScopedFree(void* buffer)
+  : buffer_(buffer)
+  {
+  }
+  ~ScopedFree()
+  {
+    free(buffer_);
+  }
+
+  void Release() // abandon ownership
+  {
+    buffer_ = nullptr;
+  }
+};
 
 static OrthancPluginErrorCode StorageCreate(const char* uuid,
                                             const void* content,
@@ -110,6 +139,8 @@ static OrthancPluginErrorCode StorageRead(void** content,
     }
 
     *content = malloc(static_cast<uint64_t>(*size));
+    ScopedFree freeContent(*content);
+
     if (*content == nullptr)
     {
       OrthancPlugins::LogError(std::string(StoragePluginFactory::GetStoragePluginName()) + ": error while reading object " + std::string(uuid) + ", cannot allocate memory of size " + boost::lexical_cast<std::string>(*size) + " bytes");
@@ -135,15 +166,52 @@ static OrthancPluginErrorCode StorageRead(void** content,
     {
       reader->Read(*(reinterpret_cast<char**>(content)), fileSize);
     }
+
+    // transmit ownership to content
+    freeContent.Release();
   }
   catch (StoragePluginException& ex)
   {
-    OrthancPlugins::LogError(std::string(StoragePluginFactory::GetStoragePluginName()) + ": error while creating object " + std::string(uuid) + ": " + ex.what());
-    return OrthancPluginErrorCode_StorageAreaPlugin;
+    if (migrationFromFileSystemEnabled)
+    {
+      try
+      {
+        OrthancPlugins::LogWarning(std::string(StoragePluginFactory::GetStoragePluginName()) + ": error while reading object " + std::string(uuid) + ": " + ex.what() + ", will now try to read it from legacy orthanc storage");
+        std::string path = BaseStoragePlugin::GetOrthancFileSystemPath(uuid, fileSystemRootPath);
+
+        std::string stringBuffer;
+        Orthanc::SystemToolbox::ReadFile(stringBuffer, path);
+
+        *content = malloc(static_cast<uint64_t>(stringBuffer.size()));
+        ScopedFree freeContent(*content);
+
+        if (*content == nullptr)
+        {
+          OrthancPlugins::LogError(std::string(StoragePluginFactory::GetStoragePluginName()) + ": error while reading object " + std::string(uuid) + ", cannot allocate memory of size " + boost::lexical_cast<std::string>(*size) + " bytes");
+          return OrthancPluginErrorCode_StorageAreaPlugin;
+        }
+        *size = stringBuffer.size();
+        memcpy(*content, stringBuffer.data(), stringBuffer.size());
+
+        // transmit ownership to content
+        freeContent.Release();
+
+        return OrthancPluginErrorCode_Success;
+      }
+      catch(Orthanc::OrthancException& e)
+      {
+        OrthancPlugins::LogError(std::string(StoragePluginFactory::GetStoragePluginName()) + ": error while reading object " + std::string(uuid) + ": " + std::string(e.What()));
+        return OrthancPluginErrorCode_StorageAreaPlugin;
+      }
+    }
+    else
+    {
+      OrthancPlugins::LogError(std::string(StoragePluginFactory::GetStoragePluginName()) + ": error while reading object " + std::string(uuid) + ": " + ex.what());
+      return OrthancPluginErrorCode_StorageAreaPlugin;
+    }
   }
 
   return OrthancPluginErrorCode_Success;
-
 }
 
 
@@ -156,8 +224,51 @@ static OrthancPluginErrorCode StorageRemove(const char* uuid,
   }
   catch (StoragePluginException& ex)
   {
-    OrthancPlugins::LogError(std::string(StoragePluginFactory::GetStoragePluginName()) + ": error while deleting object " + std::string(uuid) + ": " + ex.what());
-    return OrthancPluginErrorCode_StorageAreaPlugin;
+    if (migrationFromFileSystemEnabled)
+    {
+      try
+      {
+        OrthancPlugins::LogWarning(std::string(StoragePluginFactory::GetStoragePluginName()) + ": error while deleting object " + std::string(uuid) + ": " + ex.what() + ", will now try to delete it from legacy orthanc storage");
+        namespace fs = boost::filesystem;
+
+        fs::path path = BaseStoragePlugin::GetOrthancFileSystemPath(uuid, fileSystemRootPath);
+
+        try
+        {
+          fs::remove(path);
+        }
+        catch (...)
+        {
+          // Ignore the error
+        }
+
+        // Remove the two parent directories, ignoring the error code if
+        // these directories are not empty
+
+        try
+        {
+          boost::system::error_code err;
+          fs::remove(path.parent_path(), err);
+          fs::remove(path.parent_path().parent_path(), err);
+        }
+        catch (...)
+        {
+          // Ignore the error
+        }
+
+        return OrthancPluginErrorCode_Success;
+      }
+      catch(Orthanc::OrthancException& e)
+      {
+        OrthancPlugins::LogError(std::string(StoragePluginFactory::GetStoragePluginName()) + ": error while deleting object " + std::string(uuid) + ": " + std::string(e.What()));
+        return OrthancPluginErrorCode_StorageAreaPlugin;
+      }
+    }
+    else
+    {
+      OrthancPlugins::LogError(std::string(StoragePluginFactory::GetStoragePluginName()) + ": error while deleting object " + std::string(uuid) + ": " + ex.what());
+      return OrthancPluginErrorCode_StorageAreaPlugin;
+    }
   }
 
   return OrthancPluginErrorCode_Success;
@@ -169,6 +280,8 @@ extern "C"
   ORTHANC_PLUGINS_API int32_t OrthancPluginInitialize(OrthancPluginContext* context)
   {
     OrthancPlugins::SetGlobalContext(context);
+
+    Orthanc::Logging::InitializePluginContext(context);
 
     OrthancPlugins::OrthancConfiguration orthancConfig;
 
@@ -194,19 +307,39 @@ extern "C"
       return -1;
     }
 
+    const char* pluginSectionName = plugin->GetConfigurationSectionName();
     static const char* const ENCRYPTION_SECTION = "StorageEncryption";
 
-    if (orthancConfig.IsSection(ENCRYPTION_SECTION))
+    if (orthancConfig.IsSection(pluginSectionName))
     {
-      OrthancPlugins::OrthancConfiguration cryptoSection;
-      orthancConfig.GetSection(cryptoSection, ENCRYPTION_SECTION);
+      OrthancPlugins::OrthancConfiguration pluginSection;
+      orthancConfig.GetSection(pluginSection, pluginSectionName);
 
-      crypto.reset(EncryptionConfigurator::CreateEncryptionHelpers(cryptoSection));
-      cryptoEnabled = crypto.get() != nullptr;
-    }
-    else
-    {
-      OrthancPlugins::LogWarning(std::string(StoragePluginFactory::GetStoragePluginName()) + ": client-side encryption is disabled");
+      migrationFromFileSystemEnabled = pluginSection.GetBooleanValue("MigrationFromFileSystemEnabled", false);
+
+      if (migrationFromFileSystemEnabled)
+      {
+        fileSystemRootPath = orthancConfig.GetStringValue("StorageDirectory", "OrthancStorageNotDefined");
+        OrthancPlugins::LogWarning(std::string(StoragePluginFactory::GetStoragePluginName()) + ": migration from file system enabled, source: " + fileSystemRootPath);
+      }
+
+      if (pluginSection.IsSection(ENCRYPTION_SECTION))
+      {
+        OrthancPlugins::OrthancConfiguration cryptoSection;
+        pluginSection.GetSection(cryptoSection, ENCRYPTION_SECTION);
+
+        crypto.reset(EncryptionConfigurator::CreateEncryptionHelpers(cryptoSection));
+        cryptoEnabled = crypto.get() != nullptr;
+      }
+
+      if (cryptoEnabled)
+      {
+        OrthancPlugins::LogWarning(std::string(StoragePluginFactory::GetStoragePluginName()) + ": client-side encryption is enabled");
+      }
+      else
+      {
+        OrthancPlugins::LogWarning(std::string(StoragePluginFactory::GetStoragePluginName()) + ": client-side encryption is disabled");
+      }
     }
 
     OrthancPluginRegisterStorageArea(context, StorageCreate, StorageRead, StorageRemove);

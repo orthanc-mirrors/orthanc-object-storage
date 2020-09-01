@@ -18,7 +18,7 @@
 
 #pragma once
 
-#include "../Common/IStoragePlugin.h"
+#include "../Common/BaseStoragePlugin.h"
 
 class AzureBlobStoragePluginFactory
 {

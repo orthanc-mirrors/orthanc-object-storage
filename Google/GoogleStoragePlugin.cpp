@@ -22,6 +22,12 @@
 
 // Create aliases to make the code easier to read.
 namespace gcs = google::cloud::storage;
+static const char* const PLUGIN_SECTION = "GoogleCloudStorage";
+
+const char* GoogleStoragePlugin::GetConfigurationSectionName() 
+{
+  return PLUGIN_SECTION;
+}
 
 class Writer : public IStoragePlugin::IWriter
 {
@@ -125,7 +131,8 @@ const char* GoogleStoragePluginFactory::GetStoragePluginName()
 
 IStoragePlugin* GoogleStoragePluginFactory::CreateStoragePlugin(const OrthancPlugins::OrthancConfiguration& orthancConfig)
 {
-  static const char* const PLUGIN_SECTION = "GoogleCloudStorage";
+  bool enableLegacyStorageStructure;
+
   if (!orthancConfig.IsSection(PLUGIN_SECTION))
   {
     OrthancPlugins::LogWarning(std::string(GetStoragePluginName()) + " plugin, section missing.  Plugin is not enabled.");
@@ -134,6 +141,11 @@ IStoragePlugin* GoogleStoragePluginFactory::CreateStoragePlugin(const OrthancPlu
 
   OrthancPlugins::OrthancConfiguration pluginSection;
   orthancConfig.GetSection(pluginSection, PLUGIN_SECTION);
+
+  if (!BaseStoragePlugin::ReadCommonConfiguration(enableLegacyStorageStructure, pluginSection))
+  {
+    return nullptr;
+  }
 
   std::string pathToGoogleCredentials;
 
@@ -167,11 +179,12 @@ IStoragePlugin* GoogleStoragePluginFactory::CreateStoragePlugin(const OrthancPlu
     return nullptr;
   }
 
-  return new GoogleStoragePlugin(googleBucketName, mainClient.value());
+  return new GoogleStoragePlugin(googleBucketName, mainClient.value(), enableLegacyStorageStructure);
 }
 
-GoogleStoragePlugin::GoogleStoragePlugin(const std::string &bucketName, google::cloud::storage::Client& mainClient)
-  : bucketName_(bucketName),
+GoogleStoragePlugin::GoogleStoragePlugin(const std::string &bucketName, google::cloud::storage::Client& mainClient, bool enableLegacyStorageStructure)
+  : BaseStoragePlugin(enableLegacyStorageStructure),
+    bucketName_(bucketName),
     mainClient_(mainClient)
 {
 
@@ -200,28 +213,4 @@ void GoogleStoragePlugin::DeleteObject(const char* uuid, OrthancPluginContentTyp
     throw StoragePluginException("GoogleCloudStorage: error while deleting file " + std::string(path) + ": " + deletionStatus.message());
   }
 
-}
-
-std::string GoogleStoragePlugin::GetPath(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled)
-{
-  std::string path = std::string(uuid);
-
-  if (type == OrthancPluginContentType_Dicom)
-  {
-    path += ".dcm";
-  }
-  else if (type == OrthancPluginContentType_DicomAsJson)
-  {
-    path += ".json";
-  }
-  else
-  {
-    path += ".unk";
-  }
-
-  if (encryptionEnabled)
-  {
-    path += ".enc";
-  }
-  return path;
 }
