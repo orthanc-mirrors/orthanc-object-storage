@@ -1,6 +1,12 @@
 Pending changes in the mainline
 ===============================
 
+2020-09-02 - v 1.0.1
+====================
+
+* Internal change: fix compilation to avoid exposing internal symbols which caused a crash at Orthanc startup
+
+
 2020-09-01 - v 1.0.0
 ====================
 

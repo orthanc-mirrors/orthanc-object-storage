@@ -19,7 +19,7 @@ set(ENABLE_GOOGLE_TEST ON)
 set(ORTHANC_FRAMEWORK_PLUGIN ON)
 
 include(${ORTHANC_FRAMEWORK_ROOT}/../Resources/CMake/OrthancFrameworkConfiguration.cmake)
-
+include(${ORTHANC_FRAMEWORK_ROOT}/../../OrthancServer/Plugins/Samples/Common/OrthancPluginsExports.cmake)
 
 add_definitions(
     -DHAS_ORTHANC_EXCEPTION=1
