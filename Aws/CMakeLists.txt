@@ -4,7 +4,7 @@ option(BUILD_SHARED_LIBS "Build shared libraries" ON)
 
 project(OrthancAwsS3Storage)
 
-set(PLUGIN_VERSION "mainline")
+set(PLUGIN_VERSION "1.0.1")
 
 include(CheckIncludeFileCXX)
 
