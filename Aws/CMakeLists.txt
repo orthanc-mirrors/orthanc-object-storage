@@ -11,6 +11,7 @@ include(CheckIncludeFileCXX)
 set(ORTHANC_FRAMEWORK_SOURCE "hg" CACHE STRING "orthanc source")
 set(ORTHANC_FRAMEWORK_VERSION "1.7.3" CACHE STRING "orthanc framework version")
 set(USE_VCPKG_PACKAGES ON CACHE BOOL "Use vcpkg to link against crypto++ and AWS SDK")
+set(STATIC_AWS_CLIENT ON CACHE BOOL "Statically link against AWS client library (only if USE_VCPKG_PACKAGES=OFF)")
 set(ALLOW_DOWNLOADS ON)
 
 # Download and setup the Orthanc framework
@@ -69,6 +70,12 @@ else()
   ## Building the C++ SDK for Amazon AWS
   ## WARNING: This is *not* compatible with Ninja (yet)
   ##
+  if (STATIC_AWS_CLIENT)
+    set(Flags -DBUILD_SHARED_LIBS=OFF)  # Create static library
+  else()
+    set(Flags -DBUILD_SHARED_LIBS=ON)
+  endif()
+  
   include(ExternalProject)
   externalproject_add(AwsSdkCpp
     GIT_REPOSITORY https://github.com/aws/aws-sdk-cpp
@@ -78,6 +85,7 @@ else()
     -DBUILD_ONLY=s3   #-DBUILD_ONLY=s3;transfer
     -DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE}
     -DENABLE_TESTING=OFF
+    ${Flags}
 
     UPDATE_COMMAND ""    # Don't run "cmake" on AWS each time "make/ninja" is run
     INSTALL_COMMAND ""   # No install
@@ -90,10 +98,22 @@ else()
     )
 
   ExternalProject_Get_Property(AwsSdkCpp BINARY_DIR)
-  set(AWSSDK_LINK_LIBRARIES
-    ${BINARY_DIR}/aws-cpp-sdk-core/libaws-cpp-sdk-core.so
-    ${BINARY_DIR}/aws-cpp-sdk-s3/libaws-cpp-sdk-s3.so
-    )
+  if (STATIC_AWS_CLIENT)
+    set(AWSSDK_LINK_LIBRARIES
+      ${BINARY_DIR}/aws-cpp-sdk-s3/libaws-cpp-sdk-s3.a
+      ${BINARY_DIR}/aws-cpp-sdk-core/libaws-cpp-sdk-core.a
+      ${BINARY_DIR}/.deps/install/lib/libaws-c-event-stream.a
+      ${BINARY_DIR}/.deps/install/lib/libaws-checksums.a
+      ${BINARY_DIR}/.deps/install/lib/libaws-c-common.a
+      curl
+      crypto
+      )
+  else()
+    set(AWSSDK_LINK_LIBRARIES
+      ${BINARY_DIR}/aws-cpp-sdk-core/libaws-cpp-sdk-core.so
+      ${BINARY_DIR}/aws-cpp-sdk-s3/libaws-cpp-sdk-s3.so
+      )
+  endif()
 endif()
 
 
