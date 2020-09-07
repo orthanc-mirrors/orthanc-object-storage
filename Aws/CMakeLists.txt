@@ -19,6 +19,9 @@ include(${ORTHANC_FRAMEWORK_ROOT}/../Resources/CMake/OrthancFrameworkParameters.
 
 set(ENABLE_GOOGLE_TEST ON)
 set(ORTHANC_FRAMEWORK_PLUGIN ON)
+set(ENABLE_MODULE_IMAGES OFF)
+set(ENABLE_MODULE_JOBS OFF)
+set(ENABLE_MODULE_DICOM OFF)
 
 include(${ORTHANC_FRAMEWORK_ROOT}/../Resources/CMake/OrthancFrameworkConfiguration.cmake)
 include(${ORTHANC_FRAMEWORK_ROOT}/../../OrthancServer/Plugins/Samples/Common/OrthancPluginsExports.cmake)

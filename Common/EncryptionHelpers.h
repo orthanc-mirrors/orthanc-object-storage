@@ -100,7 +100,7 @@ private:
 
 public:
 
-  static std::string ToHexString(const CryptoPP::byte* block, size_t size);
+  static std::string ToHexString(const byte* block, size_t size);
   static std::string ToHexString(const std::string& block);
   static std::string ToHexString(const CryptoPP::SecByteBlock& block);
   static std::string ToString(const CryptoPP::SecByteBlock& block);
