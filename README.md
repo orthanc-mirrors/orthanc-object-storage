@@ -39,6 +39,7 @@ Here's a sample configuration file of the `StorageEncryption` section of the plu
     "GoogleCloudStorage" : {
         "ServiceAccountFile" : "/.../googleServiceAccountFile.json",
         "BucketName": "test-orthanc-storage-plugin",
+        "RootPath": "",                 // optional: folder in which files are stored (ex: my/path/to/myfolder)
         "StorageEncryption" : {...},
         "StorageStructure" : "flat",
         "MigrationFromFileSystemEnabled" : false
@@ -66,6 +67,7 @@ Here's a sample configuration file of the `StorageEncryption` section of the plu
     "AzureBlobStorage" : {
     	"ConnectionString": "DefaultEndpointsProtocol=https;AccountName=xxxxxxxxx;AccountKey=yyyyyyyy===;EndpointSuffix=core.windows.net",
     	"ContainerName" : "test-orthanc-storage-plugin",
+        "RootPath": "",                 // optional: folder in which files are stored (ex: my/path/to/myfolder)
         "StorageEncryption" : {...},
         "StorageStructure" : "flat",
         "MigrationFromFileSystemEnabled" : false
@@ -112,8 +114,9 @@ make install
         "Endpoint": "",                 // optional: custom endpoint
         "ConnectionTimeout": 30,        // optional: connection timeout in seconds
         "RequestTimeout": 1200,         // optional: request timeout in seconds (max time to upload/download a file)
-        "StorageEncryption" : {...},
-        "StorageStructure" : "flat",
-        "MigrationFromFileSystemEnabled" : false
+        "RootPath": "",                 // optional: folder in which files are stored (ex: my/path/to/myfolder)
+        "StorageEncryption" : {...},    // optional
+        "StorageStructure" : "flat",    // optional
+        "MigrationFromFileSystemEnabled" : false // optional
     }
 ```
