@@ -275,7 +275,7 @@ void EncryptionHelpers::EncryptInternal(std::string& output, const char* data, s
   try
   {
     GCM<AES>::Encryption e;
-    e.SetKeyWithIV(dataKey, dataKey.size(), iv, sizeof(iv));
+    e.SetKeyWithIV(dataKey, dataKey.size(), iv, iv.size());
 
     // the output text starts with the unencrypted prefix
     output = prefix;
@@ -323,7 +323,7 @@ void EncryptionHelpers::DecryptInternal(char* output, const char* data, size_t s
 //  std::cout << ToHexString(iv) << std::endl;
 
   GCM<AES>::Decryption d;
-  d.SetKeyWithIV(dataKey, sizeof(dataKey), iv, sizeof(iv));
+  d.SetKeyWithIV(dataKey, dataKey.size(), iv, iv.size());
 
   try {
     AuthenticatedDecryptionFilter df(d, NULL,
