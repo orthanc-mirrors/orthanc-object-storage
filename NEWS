@@ -1,6 +1,10 @@
 Pending changes in the mainline
 ===============================
 
+* Allow compilation of the AWS S3 plugin without vcpkg
+* Added "VirtualAddressing" configuration option in the AWS S3 plugin (for compatibility with minio)
+
+
 2020-09-07 - v 1.1.0
 ====================
 

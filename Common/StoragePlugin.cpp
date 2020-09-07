@@ -301,52 +301,60 @@ extern "C"
       return -1;
     }
 
-    plugin.reset(StoragePluginFactory::CreateStoragePlugin(orthancConfig));
-
-    if (plugin.get() == nullptr)
+    try
     {
+      plugin.reset(StoragePluginFactory::CreateStoragePlugin(orthancConfig));
+
+      if (plugin.get() == nullptr)
+      {
+        return -1;
+      }
+
+      const char* pluginSectionName = plugin->GetConfigurationSectionName();
+      static const char* const ENCRYPTION_SECTION = "StorageEncryption";
+
+      if (orthancConfig.IsSection(pluginSectionName))
+      {
+        OrthancPlugins::OrthancConfiguration pluginSection;
+        orthancConfig.GetSection(pluginSection, pluginSectionName);
+
+        migrationFromFileSystemEnabled = pluginSection.GetBooleanValue("MigrationFromFileSystemEnabled", false);
+
+        if (migrationFromFileSystemEnabled)
+        {
+          fileSystemRootPath = orthancConfig.GetStringValue("StorageDirectory", "OrthancStorageNotDefined");
+          OrthancPlugins::LogWarning(std::string(StoragePluginFactory::GetStoragePluginName()) + ": migration from file system enabled, source: " + fileSystemRootPath);
+        }
+
+        objectsRootPath = pluginSection.GetStringValue("RootPath", std::string());
+        plugin->SetRootPath(objectsRootPath);
+
+        if (pluginSection.IsSection(ENCRYPTION_SECTION))
+        {
+          OrthancPlugins::OrthancConfiguration cryptoSection;
+          pluginSection.GetSection(cryptoSection, ENCRYPTION_SECTION);
+
+          crypto.reset(EncryptionConfigurator::CreateEncryptionHelpers(cryptoSection));
+          cryptoEnabled = crypto.get() != nullptr;
+        }
+
+        if (cryptoEnabled)
+        {
+          OrthancPlugins::LogWarning(std::string(StoragePluginFactory::GetStoragePluginName()) + ": client-side encryption is enabled");
+        }
+        else
+        {
+          OrthancPlugins::LogWarning(std::string(StoragePluginFactory::GetStoragePluginName()) + ": client-side encryption is disabled");
+        }
+      }
+
+      OrthancPluginRegisterStorageArea(context, StorageCreate, StorageRead, StorageRemove);
+    }
+    catch (Orthanc::OrthancException& e)
+    {
+      LOG(ERROR) << "Exception while creating the object storage plugin: " << e.What();
       return -1;
     }
-
-    const char* pluginSectionName = plugin->GetConfigurationSectionName();
-    static const char* const ENCRYPTION_SECTION = "StorageEncryption";
-
-    if (orthancConfig.IsSection(pluginSectionName))
-    {
-      OrthancPlugins::OrthancConfiguration pluginSection;
-      orthancConfig.GetSection(pluginSection, pluginSectionName);
-
-      migrationFromFileSystemEnabled = pluginSection.GetBooleanValue("MigrationFromFileSystemEnabled", false);
-
-      if (migrationFromFileSystemEnabled)
-      {
-        fileSystemRootPath = orthancConfig.GetStringValue("StorageDirectory", "OrthancStorageNotDefined");
-        OrthancPlugins::LogWarning(std::string(StoragePluginFactory::GetStoragePluginName()) + ": migration from file system enabled, source: " + fileSystemRootPath);
-      }
-
-      objectsRootPath = pluginSection.GetStringValue("RootPath", std::string());
-      plugin->SetRootPath(objectsRootPath);
-
-      if (pluginSection.IsSection(ENCRYPTION_SECTION))
-      {
-        OrthancPlugins::OrthancConfiguration cryptoSection;
-        pluginSection.GetSection(cryptoSection, ENCRYPTION_SECTION);
-
-        crypto.reset(EncryptionConfigurator::CreateEncryptionHelpers(cryptoSection));
-        cryptoEnabled = crypto.get() != nullptr;
-      }
-
-      if (cryptoEnabled)
-      {
-        OrthancPlugins::LogWarning(std::string(StoragePluginFactory::GetStoragePluginName()) + ": client-side encryption is enabled");
-      }
-      else
-      {
-        OrthancPlugins::LogWarning(std::string(StoragePluginFactory::GetStoragePluginName()) + ": client-side encryption is disabled");
-      }
-    }
-
-    OrthancPluginRegisterStorageArea(context, StorageCreate, StorageRead, StorageRemove);
 
     return 0;
   }
