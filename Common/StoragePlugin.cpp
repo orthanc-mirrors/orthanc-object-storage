@@ -47,6 +47,7 @@ static std::unique_ptr<EncryptionHelpers> crypto;
 static bool cryptoEnabled = false;
 static std::string fileSystemRootPath;
 static bool migrationFromFileSystemEnabled = false;
+static std::string objectsRootPath;
 
 // class to free memory allocated by malloc if an exception occurs
 // This is to avoid an issue in which the blob storage read method
@@ -322,6 +323,9 @@ extern "C"
         fileSystemRootPath = orthancConfig.GetStringValue("StorageDirectory", "OrthancStorageNotDefined");
         OrthancPlugins::LogWarning(std::string(StoragePluginFactory::GetStoragePluginName()) + ": migration from file system enabled, source: " + fileSystemRootPath);
       }
+
+      objectsRootPath = pluginSection.GetStringValue("RootPath", std::string());
+      plugin->SetRootPath(objectsRootPath);
 
       if (pluginSection.IsSection(ENCRYPTION_SECTION))
       {

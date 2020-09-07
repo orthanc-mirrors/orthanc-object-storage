@@ -19,30 +19,33 @@ std::string BaseStoragePlugin::GetPath(const char* uuid, OrthancPluginContentTyp
 {
   if (enableLegacyStorageStructure_)
   {
-    return GetOrthancFileSystemPath(uuid, std::string()); // there's no "root" path in an object store
+    return GetOrthancFileSystemPath(uuid, rootPath_);
   }
   else
   {
-    std::string path = std::string(uuid);
+    boost::filesystem::path path = rootPath_;
+    std::string filename = std::string(uuid);
 
     if (type == OrthancPluginContentType_Dicom)
     {
-      path += ".dcm";
+      filename += ".dcm";
     }
     else if (type == OrthancPluginContentType_DicomAsJson)
     {
-      path += ".json";
+      filename += ".json";
     }
     else
     {
-      path += ".unk";
+      filename += ".unk";
     }
 
     if (encryptionEnabled)
     {
-      path += ".enc";
+      filename += ".enc";
     }
-    return path;
+    path /= filename;
+
+    return path.string();
   }
 }
 

@@ -66,6 +66,7 @@ public:
   };
 
 public:
+  virtual void SetRootPath(const std::string& rootPath) = 0;
 
   virtual IWriter* GetWriterForObject(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled) = 0;
   virtual IReader* GetReaderForObject(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled) = 0;

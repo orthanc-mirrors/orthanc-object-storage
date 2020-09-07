@@ -4,7 +4,8 @@
 
 class BaseStoragePlugin : public IStoragePlugin
 {
-  bool enableLegacyStorageStructure_;
+  bool        enableLegacyStorageStructure_;
+  std::string rootPath_;
 
 protected:
 
@@ -15,6 +16,11 @@ protected:
   std::string GetPath(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled);
 
 public:
+  virtual void SetRootPath(const std::string& rootPath)
+  {
+    rootPath_ = rootPath;
+  }
+
   static std::string GetPath(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled, bool legacyFileStructure, const std::string& rootFolder);
   static std::string GetOrthancFileSystemPath(const std::string& uuid, const std::string& fileSystemRootPath);
 
