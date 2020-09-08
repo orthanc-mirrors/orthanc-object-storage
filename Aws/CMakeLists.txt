@@ -108,6 +108,11 @@ else()
       curl
       crypto
       )
+    if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+      list(APPEND AWSSDK_LINK_LIBRARIES
+        gcc   # for "undefined reference to `__cpu_model'" on Ubuntu 16.04
+        )
+    endif()
   else()
     set(AWSSDK_LINK_LIBRARIES
       ${BINARY_DIR}/aws-cpp-sdk-core/libaws-cpp-sdk-core.so
