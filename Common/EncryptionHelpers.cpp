@@ -21,17 +21,19 @@
 
 #include <boost/lexical_cast.hpp>
 #include <iostream>
-#include "cryptopp/cryptlib.h"
-#include "cryptopp/modes.h"
-#include "cryptopp/hex.h"
-#include "cryptopp/gcm.h"
-#include "cryptopp/files.h"
+
+#include <cryptopp/cryptlib.h>
+#include <cryptopp/modes.h>
+#include <cryptopp/hex.h>
+#include <cryptopp/gcm.h>
+#include <cryptopp/files.h>
+#include <cryptopp/filters.h>
 
 const std::string EncryptionHelpers::HEADER_VERSION = "A1";
 
 using namespace  CryptoPP;
 
-std::string EncryptionHelpers::ToHexString(const byte* block, size_t size)
+std::string EncryptionHelpers::ToHexString(const void* block, size_t size)
 {
   std::string blockAsString = std::string(reinterpret_cast<const char*>(block), size);
 
