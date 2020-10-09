@@ -325,6 +325,13 @@ extern "C"
       }
 
       objectsRootPath = pluginSection.GetStringValue("RootPath", std::string());
+
+      if (objectsRootPath.size() >= 1 && objectsRootPath[0] == '/')
+      {
+        OrthancPlugins::LogError(std::string(StoragePluginFactory::GetStoragePluginName()) + ": The RootPath shall not start with a '/': " + objectsRootPath);
+        return -1;
+      }
+
       plugin->SetRootPath(objectsRootPath);
 
       if (pluginSection.IsSection(ENCRYPTION_SECTION))
