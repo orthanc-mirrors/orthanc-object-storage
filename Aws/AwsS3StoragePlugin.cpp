@@ -130,14 +130,17 @@ public:
       {
         return objectList[0].GetSize();
       }
-      throw StoragePluginException(std::string("error while reading file ") + path_ + ": multiple objet with same name !");
+      else if (objectList.size() > 1)
+      {
+        throw StoragePluginException(std::string("error while reading file ") + path_ + ": multiple objet with same name !");
+      }
+      throw StoragePluginException(std::string("error while reading file ") + path_ + ": object not found !");
     }
     else
     {
       throw StoragePluginException(std::string("error while reading file ") + path_ + ": " + result.GetError().GetExceptionName().c_str() + " " + result.GetError().GetMessage().c_str());
     }
   }
-
   virtual void Read(char* data, size_t size)
   {
     Aws::S3::Model::GetObjectRequest getObjectRequest;
