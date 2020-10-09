@@ -19,7 +19,7 @@
 
 #include <memory.h>
 #include <cryptopp/secblock.h>
-#include "cryptopp/osrng.h"
+#include <cryptopp/osrng.h>
 #include <boost/thread/mutex.hpp>
 #include <MultiThreading/Semaphore.h>
 
@@ -100,7 +100,7 @@ private:
 
 public:
 
-  static std::string ToHexString(const CryptoPP::byte* block, size_t size);
+  static std::string ToHexString(const void* block, size_t size);
   static std::string ToHexString(const std::string& block);
   static std::string ToHexString(const CryptoPP::SecByteBlock& block);
   static std::string ToString(const CryptoPP::SecByteBlock& block);

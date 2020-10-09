@@ -32,8 +32,8 @@ TEST(EncryptionHelpers, GenerateKey)
 
   ASSERT_NE(key1, key2);
 
-  ASSERT_EQ(32, key1.size()); // right now, we work with 256bits key
-  ASSERT_EQ(32*2, EncryptionHelpers::ToHexString(key1).size());
+  ASSERT_EQ(32u, key1.size()); // right now, we work with 256bits key
+  ASSERT_EQ(32u * 2u, EncryptionHelpers::ToHexString(key1).size());
 }
 
 TEST(EncryptionHelpers, EncryptDecryptSimpleText)

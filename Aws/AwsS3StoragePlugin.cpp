@@ -229,7 +229,8 @@ IStoragePlugin* AwsS3StoragePluginFactory::CreateStoragePlugin(const OrthancPlug
   std::string endpoint = pluginSection.GetStringValue("Endpoint", "");
   unsigned int connectTimeout = pluginSection.GetUnsignedIntegerValue("ConnectTimeout", 30);
   unsigned int requestTimeout = pluginSection.GetUnsignedIntegerValue("RequestTimeout", 1200);
-
+  bool virtualAddressing = pluginSection.GetBooleanValue("VirtualAddressing", true);
+  
   try
   {
     Aws::SDKOptions options;
@@ -241,13 +242,14 @@ IStoragePlugin* AwsS3StoragePluginFactory::CreateStoragePlugin(const OrthancPlug
     configuration.scheme = Aws::Http::Scheme::HTTPS;
     configuration.connectTimeoutMs = connectTimeout * 1000;
     configuration.requestTimeoutMs  = requestTimeout * 1000;
+    configuration.httpRequestTimeoutMs = requestTimeout * 1000;
 
     if (!endpoint.empty())
     {
       configuration.endpointOverride = endpoint.c_str();
     }
 
-    Aws::S3::S3Client client(credentials, configuration);
+    Aws::S3::S3Client client(credentials, configuration, Aws::Client::AWSAuthV4Signer::PayloadSigningPolicy::Never, virtualAddressing);
 
     OrthancPlugins::LogInfo("AWS S3 storage initialized");
 
