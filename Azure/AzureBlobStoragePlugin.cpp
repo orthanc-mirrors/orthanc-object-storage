@@ -72,7 +72,7 @@ public:
     try
     {
       concurrency::streams::istream inputStream = concurrency::streams::rawptr_stream<uint8_t>::open_istream(reinterpret_cast<const uint8_t*>(data), size);
-      azure::storage::cloud_block_blob blob = container_.get_block_blob_reference(path_);
+      azure::storage::cloud_block_blob blob = container_.get_block_blob_reference(utility::conversions::to_string_t(path_));
       blob.upload_from_stream(inputStream);
       inputStream.close().wait();
     }
@@ -99,7 +99,7 @@ public:
   {
     try
     {
-      block_ = container_.get_block_blob_reference(path_);
+      block_ = container_.get_block_blob_reference(utility::conversions::to_string_t(path_));
       block_.download_attributes(); // to retrieve the properties
     }
     catch (std::exception& ex)
@@ -220,13 +220,13 @@ IStoragePlugin* AzureBlobStoragePluginFactory::CreateStoragePlugin(const Orthanc
   {
     OrthancPlugins::LogInfo("Connecting to Azure storage ...");
 
-    as::cloud_storage_account storageAccount = as::cloud_storage_account::parse(connectionString);
+    as::cloud_storage_account storageAccount = as::cloud_storage_account::parse(utility::conversions::to_string_t(connectionString));
     OrthancPlugins::LogInfo("Storage account created");
 
     as::cloud_blob_client blobClient = storageAccount.create_cloud_blob_client();
     OrthancPlugins::LogInfo("Blob client created");
 
-    as::cloud_blob_container blobContainer = blobClient.get_container_reference(containerName);
+    as::cloud_blob_container blobContainer = blobClient.get_container_reference(utility::conversions::to_string_t(containerName));
     OrthancPlugins::LogInfo("Accessing blob container");
 
     // Return value is true if the container did not exist and was successfully created.
@@ -273,7 +273,7 @@ void AzureBlobStoragePlugin::DeleteObject(const char* uuid, OrthancPluginContent
 
   try
   {
-    as::cloud_block_blob blockBlob = blobContainer_.get_block_blob_reference(path);
+    as::cloud_block_blob blockBlob = blobContainer_.get_block_blob_reference(utility::conversions::to_string_t(path));
 
     blockBlob.delete_blob();
   }
