@@ -39,6 +39,8 @@
 
 #include "../Common/EncryptionHelpers.h"
 #include "../Common/EncryptionConfigurator.h"
+
+#include <Logging.h>
 #include <SystemToolbox.h>
 
 static std::unique_ptr<IStoragePlugin> plugin;
