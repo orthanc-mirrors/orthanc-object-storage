@@ -55,11 +55,26 @@ Here's a sample configuration file of the `StorageEncryption` section of the plu
 
 ### Compile Azure plugin ###
 
+On Linux:
+
 * `./vcpkg install cpprestsdk`
+* `./vcpkg install cryptopp`
 * `hg clone ...`
 * `mkdir -p build/azure`
 * `cd build/azure` 
 * `cmake -DCMAKE_TOOLCHAIN_FILE=[vcpkg root]\scripts\buildsystems\vcpkg.cmake ../../orthanc-object-storage/Azure`
+
+On Windows:
+
+* `.\vcpkg.exe install cpprestsdk:x64-windows-static`
+* `.\vcpkg.exe install azure-storage-cpp:x64-windows-static`
+* `.\vcpkg.exe install cryptopp:x64-windows-static`
+* `hg clone ...`
+* `mkdir -p build/azure`
+* `cd build/azure` 
+* `cmake -DCMAKE_TOOLCHAIN_FILE=[vcpkg root]\scripts\buildsystems\vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows-static -DSTATIC_BUILD=ON -DCMAKE_BUILD_TYPE="Release" ../../orthanc-object-storage/Azure`
+* `cmake --build . --config Release`
+
 
 ### Azure plugin configuration ###
 

@@ -41,14 +41,32 @@ include_directories(
 find_package(cryptopp CONFIG REQUIRED)
 
 # Azure stuff (from https://github.com/Microsoft/vcpkg/issues/6277)
-find_package(cpprestsdk CONFIG REQUIRED)
-find_path(WASTORAGE_INCLUDE_DIR was/blob.h)
-find_library(WASTORAGE_LIBRARY azurestorage)
-find_package(Boost REQUIRED COMPONENTS log)
-find_library(UUID_LIBRARY uuid)
-find_package(LibXml2 REQUIRED)
+if (NOT WIN32)
+  find_package(cpprestsdk CONFIG REQUIRED)
+  find_path(WASTORAGE_INCLUDE_DIR was/blob.h)
+  find_library(WASTORAGE_LIBRARY azurestorage)
+  find_package(Boost REQUIRED COMPONENTS log)
+  find_library(UUID_LIBRARY uuid)
+  find_package(LibXml2 REQUIRED)
+else()  # inspired from https://github.com/phongcao/azure-storage-cpp-sas-sample/blob/master/CMakeLists.txt
+  find_path(WASTORAGE_INCLUDE_DIR was/blob.h)
+  find_library(CPPREST_LIBRARY
+    NAMES cpprest cpprest_2_10)
+  find_library(WASTORAGE_LIBRARY wastorage)
 
-include_directories(${WASTORAGE_INCLUDE_DIR})
+  set (CMAKE_CXX_STANDARD 11)
+  set (CMAKE_CXX_STANDARD_REQUIRED ON)
+  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHa")
+  set (CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /Zi")
+  set (CMAKE_SHARED_LINKER_FLAGS_RELEASE "${CMAKE_SHARED_LINKER_FLAGS_RELEASE} /DEBUG /OPT:REF /OPT:ICF")
+
+  add_definitions(-D_NO_WASTORAGE_API=1)   # from https://github.com/Azure/azure-storage-cpp/issues/263
+endif()
+
+
+if (NOT WIN32)
+  include_directories(${WASTORAGE_INCLUDE_DIR})
+endif()
 
 set(COMMON_SOURCES
     ${CMAKE_SOURCE_DIR}/../Common/IStoragePlugin.h
@@ -76,25 +94,47 @@ set_target_properties(OrthancAzureBlobStorage PROPERTIES
   SOVERSION ${PLUGIN_VERSION}
   )
 
-target_link_libraries(OrthancAzureBlobStorage
-  PRIVATE
-  cryptopp-static
-  ${WASTORAGE_LIBRARY} ${UUID_LIBRARY} ${Boost_LIBRARIES} ${LIBXML2_LIBRARIES} cpprestsdk::cpprest
-  )
+if (NOT WIN32)
 
-
-
-add_executable(UnitTests
-    ${GOOGLE_TEST_SOURCES}
-    ${COMMON_SOURCES}
-
-    ${CMAKE_SOURCE_DIR}/../UnitTestsSources/EncryptionTests.cpp
-    ${CMAKE_SOURCE_DIR}/../UnitTestsSources/UnitTestsMain.cpp
+  target_link_libraries(OrthancAzureBlobStorage
+    PRIVATE
+    cryptopp-static
+    ${WASTORAGE_LIBRARY} 
+    ${UUID_LIBRARY} 
+    ${Boost_LIBRARIES} 
+    ${LIBXML2_LIBRARIES} 
+    cpprestsdk::cpprest
     )
-
-target_link_libraries(UnitTests
-  PRIVATE
-  cryptopp-static
-  ${GOOGLE_TEST_LIBRARIES}
-  ${WASTORAGE_LIBRARY} ${UUID_LIBRARY} ${Boost_LIBRARIES} ${LIBXML2_LIBRARIES} cpprestsdk::cpprest
+else()
+  target_link_libraries(OrthancAzureBlobStorage
+    PRIVATE
+    cryptopp-static
+    ${OPENSSL_LIBRARY}
+    ${WASTORAGE_LIBRARY} 
+    ${CPPREST_LIBRARY} 
+    Winhttp.lib
+    Crypt32.lib
+    xmllite.lib
   )
+
+endif()
+
+
+# add_executable(UnitTests
+#     ${GOOGLE_TEST_SOURCES}
+#     ${COMMON_SOURCES}
+
+#     ${CMAKE_SOURCE_DIR}/../UnitTestsSources/EncryptionTests.cpp
+#     ${CMAKE_SOURCE_DIR}/../UnitTestsSources/UnitTestsMain.cpp
+#     )
+
+# target_link_libraries(UnitTests
+#   PRIVATE
+#   cryptopp-static
+#   ${GOOGLE_TEST_LIBRARIES}
+#   ${WASTORAGE_LIBRARY} 
+#   # ${UUID_LIBRARY} 
+#   # ${Boost_LIBRARIES} 
+#   # ${LIBXML2_LIBRARIES} 
+#   cpprestsdk::cpprest
+#   )
