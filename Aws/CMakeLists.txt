@@ -10,15 +10,17 @@ include(CheckIncludeFileCXX)
 
 set(ORTHANC_FRAMEWORK_SOURCE "hg" CACHE STRING "orthanc source")
 set(ORTHANC_FRAMEWORK_VERSION "1.8.2" CACHE STRING "orthanc framework version")
-set(USE_VCPKG_PACKAGES ON CACHE BOOL "Use vcpkg to link against crypto++ and AWS SDK")
+set(USE_VCPKG_PACKAGES ON CACHE BOOL "Use Microsoft vcpkg to link against crypto++ and AWS SDK")
 set(STATIC_AWS_CLIENT ON CACHE BOOL "Statically link against AWS client library (only if USE_VCPKG_PACKAGES=OFF)")
-set(ALLOW_DOWNLOADS ON)
+set(USE_SYSTEM_CRYPTOPP ON CACHE BOOL "Use the system version of crypto++")
 
 # Download and setup the Orthanc framework
+set(ALLOW_DOWNLOADS ON)
 include(${CMAKE_SOURCE_DIR}/../Common/Resources/DownloadOrthancFramework.cmake)
 
 include(${ORTHANC_FRAMEWORK_ROOT}/../Resources/CMake/OrthancFrameworkParameters.cmake)
 
+set(ENABLE_WEB_CLIENT ON)  # Access options related to curl
 set(ENABLE_GOOGLE_TEST ON)
 set(ORTHANC_FRAMEWORK_PLUGIN ON)
 set(ENABLE_MODULE_IMAGES OFF)
@@ -43,29 +45,15 @@ include_directories(
   )
 
 
-if (USE_VCPKG_PACKAGES)
+if (NOT STATIC_BUILD AND USE_VCPKG_PACKAGES)
+  # Use vcpkg by Microsoft
   find_package(cryptopp CONFIG REQUIRED)
   find_package(AWSSDK REQUIRED COMPONENTS s3)
   include_directories(${WASTORAGE_INCLUDE_DIR})
   set(CRYPTOPP_LIBRARIES cryptopp-static)
 else()
-  ##
-  ## Inclusion of system-wide crypto++
-  ##
-  check_include_file_cxx(cryptopp/cryptlib.h HAVE_CRYPTOPP_H)
-  if (NOT HAVE_CRYPTOPP_H)
-    message(FATAL_ERROR "Please install the libcrypto++-dev package")
-  endif()
-
-  include(CheckCXXSymbolExists)
-  set(CMAKE_REQUIRED_LIBRARIES cryptopp)
-  check_cxx_symbol_exists("CryptoPP::SHA1::InitState" cryptopp/sha.h HAVE_LIBCRYPTOPP)
-  if (NOT HAVE_LIBCRYPTOPP)
-    message(FATAL_ERROR "Unable to find the cryptopp library")
-  endif()
-
-  set(CRYPTOPP_LIBRARIES cryptopp)
-
+  include(${CMAKE_SOURCE_DIR}/../Common/CryptoPPConfiguration.cmake)
+  
   ##
   ## Building the C++ SDK for Amazon AWS
   ## WARNING: This is *not* compatible with Ninja (yet)
@@ -75,11 +63,11 @@ else()
   else()
     set(Flags -DBUILD_SHARED_LIBS=ON)
   endif()
-  
+
   include(ExternalProject)
   externalproject_add(AwsSdkCpp
     GIT_REPOSITORY https://github.com/aws/aws-sdk-cpp
-    GIT_TAG 1.8.42
+    GIT_TAG 1.8.127
 
     CMAKE_ARGS
     -DBUILD_ONLY=s3   #-DBUILD_ONLY=s3;transfer
@@ -133,6 +121,7 @@ set(COMMON_SOURCES
     ${ORTHANC_FRAMEWORK_ROOT}/../../OrthancServer/Plugins/Samples/Common/OrthancPluginCppWrapper.cpp
 
     ${ORTHANC_CORE_SOURCES}
+    ${CRYPTOPP_SOURCES}
   )
 
 add_library(OrthancAwsS3Storage SHARED
@@ -172,7 +161,7 @@ target_link_libraries(UnitTests
   )
 
 
-if (NOT USE_VCPKG_PACKAGES)
+if (STATIC_BUILD OR NOT USE_VCPKG_PACKAGES)
   add_dependencies(OrthancAwsS3Storage AwsSdkCpp)
   add_dependencies(UnitTests AwsSdkCpp)
 endif()

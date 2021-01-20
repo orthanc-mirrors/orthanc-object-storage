@@ -1,7 +1,7 @@
 # Orthanc - A Lightweight, RESTful DICOM Store
 # Copyright (C) 2012-2016 Sebastien Jodogne, Medical Physics
 # Department, University Hospital of Liege, Belgium
-# Copyright (C) 2020-2021 Osimis S.A., Belgium
+# Copyright (C) 2017-2021 Osimis S.A., Belgium
 #
 # This program is free software: you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public License
@@ -114,6 +114,14 @@ if (ORTHANC_FRAMEWORK_SOURCE STREQUAL "hg" OR
         set(ORTHANC_FRAMEWORK_MD5 "328f94dcbd78c169655a13f7ad58a2c2")
       elseif (ORTHANC_FRAMEWORK_VERSION STREQUAL "1.7.3")
         set(ORTHANC_FRAMEWORK_MD5 "3f1ba9502ec7c5449971d3b56087bcde")
+      elseif (ORTHANC_FRAMEWORK_VERSION STREQUAL "1.7.4")
+        set(ORTHANC_FRAMEWORK_MD5 "19fcb7c21876af86546baa048a22c6c0")
+      elseif (ORTHANC_FRAMEWORK_VERSION STREQUAL "1.8.0")
+        set(ORTHANC_FRAMEWORK_MD5 "f8ec7554ef5d23ea4ce474b1e8214de9")
+      elseif (ORTHANC_FRAMEWORK_VERSION STREQUAL "1.8.1")
+        set(ORTHANC_FRAMEWORK_MD5 "db094f96399cbe8b9bbdbce34884c220")
+      elseif (ORTHANC_FRAMEWORK_VERSION STREQUAL "1.8.2")
+        set(ORTHANC_FRAMEWORK_MD5 "8bfa10e66c9931e74111be0bfb1f4548")
 
       # Below this point are development snapshots that were used to
       # release some plugin, before an official release of the Orthanc
@@ -125,6 +133,15 @@ if (ORTHANC_FRAMEWORK_SOURCE STREQUAL "hg" OR
       elseif (ORTHANC_FRAMEWORK_VERSION STREQUAL "ae0e3fd609df")
         # DICOMweb 1.1 (framework pre-1.6.0)
         set(ORTHANC_FRAMEWORK_MD5 "7e09e9b530a2f527854f0b782d7e0645")
+      elseif (ORTHANC_FRAMEWORK_VERSION STREQUAL "82652c5fc04f")
+        # Stone Web viewer 1.0 (framework pre-1.8.1)
+        set(ORTHANC_FRAMEWORK_MD5 "d77331d68917e66a3f4f9b807bbdab7f")
+      elseif (ORTHANC_FRAMEWORK_VERSION STREQUAL "4a3ba4bf4ba7")
+        # PostgreSQL 3.3 (framework pre-1.8.2)
+        set(ORTHANC_FRAMEWORK_MD5 "2d82bddf06f9cfe82095495cb3b8abde")
+      elseif (ORTHANC_FRAMEWORK_VERSION STREQUAL "23ad1b9c7800")
+        # For "Toolbox::ReadJson()" and "Toolbox::Write{...}Json()" (pre-1.9.0)
+        set(ORTHANC_FRAMEWORK_MD5 "9af92080e57c60dd288eba46ce606c00")
       endif()
     endif()
   endif()
@@ -519,6 +536,16 @@ if (ORTHANC_FRAMEWORK_SOURCE STREQUAL "system")
       include(FindDCMTK)
       include_directories(${DCMTK_INCLUDE_DIRS})
       link_libraries(${DCMTK_LIBRARIES})
+    endif()
+
+    # Optional component - OpenSSL
+    if (ENABLE_SSL)
+      include(FindOpenSSL)
+      if (NOT ${OPENSSL_FOUND})
+        message(FATAL_ERROR "Unable to find OpenSSL")
+      endif()
+      include_directories(${OPENSSL_INCLUDE_DIR})
+      link_libraries(${OPENSSL_LIBRARIES})
     endif()
   endif()
 
