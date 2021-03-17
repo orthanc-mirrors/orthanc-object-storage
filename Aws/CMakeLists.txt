@@ -49,7 +49,6 @@ if (NOT STATIC_BUILD AND USE_VCPKG_PACKAGES)
   # Use vcpkg by Microsoft
   find_package(cryptopp CONFIG REQUIRED)
   find_package(AWSSDK REQUIRED COMPONENTS s3)
-  include_directories(${WASTORAGE_INCLUDE_DIR})
   set(CRYPTOPP_LIBRARIES cryptopp-static)
 else()
   include(${CMAKE_SOURCE_DIR}/../Common/CryptoPPConfiguration.cmake)

@@ -62,7 +62,8 @@ public:
 
     virtual ~IReader() {}
     virtual size_t GetSize() = 0;
-    virtual void Read(char* data, size_t size) = 0;
+    virtual void ReadWhole(char* data, size_t size) = 0;
+    virtual void ReadRange(char* data, size_t size, size_t fromOffset) = 0;
   };
 
 public:

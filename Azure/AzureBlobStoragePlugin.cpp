@@ -124,7 +124,7 @@ public:
     }
   }
 
-  virtual void Read(char* data, size_t size)
+  virtual void ReadWhole(char* data, size_t size)
   {
     try
     {
@@ -135,6 +135,20 @@ public:
     catch (std::exception& ex)
     {
       throw StoragePluginException("AzureBlobStorage: error while reading file " + std::string(path_) + ": " + ex.what());
+    }
+  }
+
+  virtual void ReadRange(char* data, size_t size, size_t fromOffset)
+  {
+    try
+    {
+      concurrency::streams::ostream outputStream = concurrency::streams::rawptr_stream<uint8_t>::open_ostream(reinterpret_cast<uint8_t*>(data), size);
+
+      block_.download_range_to_stream(outputStream, fromOffset, size);
+    }
+    catch (std::exception& ex)
+    {
+      throw StoragePluginException("AzureBlobStorage: error while reading partial file " + std::string(path_) + ": " + ex.what());
     }
   }
 

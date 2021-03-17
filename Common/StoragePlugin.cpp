@@ -51,29 +51,6 @@ static std::string fileSystemRootPath;
 static bool migrationFromFileSystemEnabled = false;
 static std::string objectsRootPath;
 
-// class to free memory allocated by malloc if an exception occurs
-// This is to avoid an issue in which the blob storage read method
-// crashed if the buffer was allocated through:
-//   auto buffer = std::unique_ptr<void, void(*)(void*)>{malloc(static_cast<uint64_t>(*size)), free};
-
-class ScopedFree
-{
-  void* buffer_;
-public:
-  ScopedFree(void* buffer)
-  : buffer_(buffer)
-  {
-  }
-  ~ScopedFree()
-  {
-    free(buffer_);
-  }
-
-  void Release() // abandon ownership
-  {
-    buffer_ = nullptr;
-  }
-};
 
 static OrthancPluginErrorCode StorageCreate(const char* uuid,
                                             const void* content,
@@ -115,49 +92,85 @@ static OrthancPluginErrorCode StorageCreate(const char* uuid,
 }
 
 
-static OrthancPluginErrorCode StorageRead(void** content,
-                                          int64_t* size,
-                                          const char* uuid,
-                                          OrthancPluginContentType type)
+static OrthancPluginErrorCode StorageReadRange(OrthancPluginMemoryBuffer64* target, // Memory buffer where to store the content of the range.  The memory buffer is allocated and freed by Orthanc. The length of the range of interest corresponds to the size of this buffer.
+                                               const char* uuid,
+                                               OrthancPluginContentType type,
+                                               uint64_t rangeStart)
+{
+  assert(!cryptoEnabled);
+
+  try
+  {
+    std::unique_ptr<IStoragePlugin::IReader> reader(plugin->GetReaderForObject(uuid, type, cryptoEnabled));
+    reader->ReadRange(reinterpret_cast<char*>(target->data), target->size, rangeStart);
+  }
+  catch (StoragePluginException& ex)
+  {
+    if (migrationFromFileSystemEnabled)
+    {
+      try
+      {
+        OrthancPlugins::LogWarning(std::string(StoragePluginFactory::GetStoragePluginName()) + ": error while reading object " + std::string(uuid) + ": " + ex.what() + ", will now try to read it from legacy orthanc storage");
+        std::string path = BaseStoragePlugin::GetOrthancFileSystemPath(uuid, fileSystemRootPath);
+
+        std::string stringBuffer;
+        Orthanc::SystemToolbox::ReadFileRange(stringBuffer, path, rangeStart, rangeStart + target->size, true);
+
+        memcpy(target->data, stringBuffer.data(), stringBuffer.size());
+
+        return OrthancPluginErrorCode_Success;
+      }
+      catch(Orthanc::OrthancException& e)
+      {
+        OrthancPlugins::LogError(std::string(StoragePluginFactory::GetStoragePluginName()) + ": error while reading object " + std::string(uuid) + ": " + std::string(e.What()));
+        return OrthancPluginErrorCode_StorageAreaPlugin;
+      }
+    }
+  }
+  return OrthancPluginErrorCode_Success;
+}
+
+
+static OrthancPluginErrorCode StorageReadWhole(OrthancPluginMemoryBuffer64* target, // Memory buffer where to store the content of the file. It must be allocated by the plugin using OrthancPluginCreateMemoryBuffer64(). The core of Orthanc will free it.
+                                               const char* uuid,
+                                               OrthancPluginContentType type)
 {
   try
   {
     std::unique_ptr<IStoragePlugin::IReader> reader(plugin->GetReaderForObject(uuid, type, cryptoEnabled));
 
     size_t fileSize = reader->GetSize();
+    size_t size;
 
     if (cryptoEnabled)
     {
-      *size = fileSize - crypto->OVERHEAD_SIZE;
+      size = fileSize - crypto->OVERHEAD_SIZE;
     }
     else
     {
-      *size = fileSize;
+      size = fileSize;
     }
 
-    if (*size <= 0)
+    if (size <= 0)
     {
       OrthancPlugins::LogError(std::string(StoragePluginFactory::GetStoragePluginName()) + ": error while reading object " + std::string(uuid) + ", size of file is too small: " + boost::lexical_cast<std::string>(fileSize) + " bytes");
       return OrthancPluginErrorCode_StorageAreaPlugin;
     }
 
-    *content = malloc(static_cast<uint64_t>(*size));
-    ScopedFree freeContent(*content);
-
-    if (*content == nullptr)
+    if (OrthancPluginCreateMemoryBuffer64(OrthancPlugins::GetGlobalContext(), target, size) != OrthancPluginErrorCode_Success)
     {
-      OrthancPlugins::LogError(std::string(StoragePluginFactory::GetStoragePluginName()) + ": error while reading object " + std::string(uuid) + ", cannot allocate memory of size " + boost::lexical_cast<std::string>(*size) + " bytes");
+      OrthancPlugins::LogError(std::string(StoragePluginFactory::GetStoragePluginName()) + ": error while reading object " + std::string(uuid) + ", cannot allocate memory of size " + boost::lexical_cast<std::string>(size) + " bytes");
       return OrthancPluginErrorCode_StorageAreaPlugin;
     }
 
     if (cryptoEnabled)
     {
       std::vector<char> encrypted(fileSize);
-      reader->Read(encrypted.data(), fileSize);
+      reader->ReadWhole(encrypted.data(), fileSize);
 
       try
       {
-        crypto->Decrypt((char*)(*content), encrypted.data(), fileSize);
+        crypto->Decrypt(reinterpret_cast<char*>(target->data), encrypted.data(), fileSize);
       }
       catch (EncryptionException& ex)
       {
@@ -167,11 +180,8 @@ static OrthancPluginErrorCode StorageRead(void** content,
     }
     else
     {
-      reader->Read(*(reinterpret_cast<char**>(content)), fileSize);
+      reader->ReadWhole(reinterpret_cast<char*>(target->data), fileSize);
     }
-
-    // transmit ownership to content
-    freeContent.Release();
   }
   catch (StoragePluginException& ex)
   {
@@ -185,19 +195,13 @@ static OrthancPluginErrorCode StorageRead(void** content,
         std::string stringBuffer;
         Orthanc::SystemToolbox::ReadFile(stringBuffer, path);
 
-        *content = malloc(static_cast<uint64_t>(stringBuffer.size()));
-        ScopedFree freeContent(*content);
-
-        if (*content == nullptr)
+        if (OrthancPluginCreateMemoryBuffer64(OrthancPlugins::GetGlobalContext(), target, stringBuffer.size()) != OrthancPluginErrorCode_Success)
         {
-          OrthancPlugins::LogError(std::string(StoragePluginFactory::GetStoragePluginName()) + ": error while reading object " + std::string(uuid) + ", cannot allocate memory of size " + boost::lexical_cast<std::string>(*size) + " bytes");
+          OrthancPlugins::LogError(std::string(StoragePluginFactory::GetStoragePluginName()) + ": error while reading object " + std::string(uuid) + ", cannot allocate memory of size " + boost::lexical_cast<std::string>(stringBuffer.size()) + " bytes");
           return OrthancPluginErrorCode_StorageAreaPlugin;
         }
-        *size = stringBuffer.size();
-        memcpy(*content, stringBuffer.data(), stringBuffer.size());
 
-        // transmit ownership to content
-        freeContent.Release();
+        memcpy(target->data, stringBuffer.data(), stringBuffer.size());
 
         return OrthancPluginErrorCode_Success;
       }
@@ -215,6 +219,24 @@ static OrthancPluginErrorCode StorageRead(void** content,
   }
 
   return OrthancPluginErrorCode_Success;
+}
+
+static OrthancPluginErrorCode StorageReadWholeLegacy(void** content,
+                                                     int64_t* size,
+                                                     const char* uuid,
+                                                     OrthancPluginContentType type)
+{
+  OrthancPluginMemoryBuffer64* buffer = nullptr;
+  OrthancPluginErrorCode result = StorageReadWhole(buffer, uuid, type);  // allocates the buffer but Orthanc won't delete it -> to delete ourselves
+
+  if (buffer != nullptr)
+  {
+    *size = buffer->size;
+    memcpy(*content, buffer->data, buffer->size);
+    OrthancPluginFreeMemoryBuffer64(OrthancPlugins::GetGlobalContext(), buffer);
+  }
+
+  return result;
 }
 
 
@@ -357,7 +379,15 @@ extern "C"
         }
       }
 
-      OrthancPluginRegisterStorageArea(context, StorageCreate, StorageRead, StorageRemove);
+      if (cryptoEnabled)
+      {
+        // with encrypted file, we do not want to support ReadRange.  Therefore, we register the old interface
+        OrthancPluginRegisterStorageArea(context, StorageCreate, StorageReadWholeLegacy, StorageRemove);
+      }
+      else
+      {
+        OrthancPluginRegisterStorageArea2(context, StorageCreate, StorageReadWhole, StorageReadRange, StorageRemove);
+      }
     }
     catch (Orthanc::OrthancException& e)
     {

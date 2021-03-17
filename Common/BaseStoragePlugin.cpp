@@ -34,6 +34,10 @@ std::string BaseStoragePlugin::GetPath(const char* uuid, OrthancPluginContentTyp
     {
       filename += ".json";
     }
+    else if (type == 3) // TODO once using OrthancFramework 1.9.1+: use OrthancPluginContentType_DicomUntilPixelData
+    {
+      filename += "dcm.head";
+    }
     else
     {
       filename += ".unk";
