@@ -103,7 +103,7 @@ public:
     }
   }
 
-  virtual void Read(char* data, size_t size)
+  virtual void ReadWhole(char* data, size_t size)
   {
     auto reader = client_.ReadObject(bucketName_, path_);
 
@@ -119,6 +119,24 @@ public:
       throw StoragePluginException("error while reading file " + std::string(path_) + ": " + reader.status().message());
     }
   }
+
+  virtual void ReadRange(char* data, size_t size, size_t fromOffset)
+  {
+    auto reader = client_.ReadObject(bucketName_, path_, gcs::ReadRange(fromOffset, fromOffset + size));
+
+    if (!reader)
+    {
+      throw StoragePluginException("error while opening/reading file " + std::string(path_) + ": " + reader.status().message());
+    }
+
+    reader.read(data, size);
+
+    if (!reader)
+    {
+      throw StoragePluginException("error while reading file " + std::string(path_) + ": " + reader.status().message());
+    }
+  }
+
 
 };
 
