@@ -226,14 +226,13 @@ static OrthancPluginErrorCode StorageReadWholeLegacy(void** content,
                                                      const char* uuid,
                                                      OrthancPluginContentType type)
 {
-  OrthancPluginMemoryBuffer64* buffer = nullptr;
-  OrthancPluginErrorCode result = StorageReadWhole(buffer, uuid, type);  // allocates the buffer but Orthanc won't delete it -> to delete ourselves
+  OrthancPluginMemoryBuffer64 buffer;
+  OrthancPluginErrorCode result = StorageReadWhole(&buffer, uuid, type); // will allocate OrthancPluginMemoryBuffer64
 
-  if (buffer != nullptr)
+  if (result == OrthancPluginErrorCode_Success)
   {
-    *size = buffer->size;
-    memcpy(*content, buffer->data, buffer->size);
-    OrthancPluginFreeMemoryBuffer64(OrthancPlugins::GetGlobalContext(), buffer);
+    *size = buffer.size;
+    *content = buffer.data; // orthanc will free the buffer (we don't have to delete it ourselves)
   }
 
   return result;
