@@ -141,11 +141,29 @@ public:
       throw StoragePluginException(std::string("error while reading file ") + path_ + ": " + result.GetError().GetExceptionName().c_str() + " " + result.GetError().GetMessage().c_str());
     }
   }
-  virtual void Read(char* data, size_t size)
+
+  virtual void ReadWhole(char* data, size_t size)
+  {
+    _Read(data, size, 0, false);
+  }
+
+  virtual void ReadRange(char* data, size_t size, size_t fromOffset)
+  {
+    _Read(data, size, fromOffset, true);
+  }
+
+  void _Read(char* data, size_t size, size_t fromOffset, bool useRange)
   {
     Aws::S3::Model::GetObjectRequest getObjectRequest;
     getObjectRequest.SetBucket(bucketName_.c_str());
     getObjectRequest.SetKey(path_.c_str());
+
+    if (useRange)
+    {
+      // https://developer.mozilla.org/en-US/docs/Web/HTTP/Range_requests
+      std::string range = std::string("bytes=") + boost::lexical_cast<std::string>(fromOffset) + "-" + boost::lexical_cast<std::string>(fromOffset + size -1);
+      getObjectRequest.SetRange(range.c_str());
+    }
 
     getObjectRequest.SetResponseStreamFactory(
           [data, size]()
@@ -171,6 +189,8 @@ public:
   }
 
 };
+
+
 
 
 
