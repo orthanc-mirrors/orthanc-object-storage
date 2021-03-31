@@ -23,6 +23,7 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string.hpp>
 #include "cpprest/rawptrstream.h"
+#include "cpprest/details/basic_types.h"
 
 
 // Create aliases to make the code easier to read.
@@ -147,11 +148,32 @@ const char* AzureBlobStoragePluginFactory::GetStoragePluginName()
   return "Azure Blob Storage";
 }
 
+bool isSasTokenAccountLevel(utility::string_t sasToken)
+{
+  // Use cpprestsdk's utility::string_t here since the expected argument is the return value of
+  // as::storage_credentials::sas_token(), which is type utility::string_t
+  size_t newIdx = 0;
+  size_t prevIdx = 0;
+  while ((newIdx = sasToken.find('&', prevIdx)) != utility::string_t::npos)
+  {
+    utility::string_t kvpair = sasToken.substr(prevIdx, newIdx-prevIdx);
+    prevIdx = newIdx + 1; // start next time from char after '&'
+
+    size_t equalsIdx = kvpair.find('=');
+    utility::string_t key = kvpair.substr(0, equalsIdx);
+    if (key == "srt") // only account SAS has this parameter
+      return true;
+  }
+
+  return false;
+}
+
 IStoragePlugin* AzureBlobStoragePluginFactory::CreateStoragePlugin(const OrthancPlugins::OrthancConfiguration& orthancConfig)
 {
   std::string connectionString;
   std::string containerName;
   bool enableLegacyStorageStructure;
+  bool createContainerIfNotExists;
 
   if (orthancConfig.IsSection(PLUGIN_SECTION))
   {
@@ -177,6 +199,8 @@ IStoragePlugin* AzureBlobStoragePluginFactory::CreateStoragePlugin(const Orthanc
 
     boost::trim(connectionString); // without that, if there's an EOL in the string, it fails with "provided uri is invalid"
     boost::trim(containerName);
+
+    createContainerIfNotExists = pluginSection.GetBooleanValue("CreateContainerIfNotExists", true);
   }
   else if (orthancConfig.IsSection("BlobStorage")) // backward compatibility with the old plugin:
   {
@@ -209,6 +233,8 @@ IStoragePlugin* AzureBlobStoragePluginFactory::CreateStoragePlugin(const Orthanc
     std::ostringstream connectionStringBuilder;
     connectionStringBuilder << "DefaultEndpointsProtocol=https;AccountName=" << accountName << ";AccountKey=" << accountKey;
     connectionString = connectionStringBuilder.str();
+
+    createContainerIfNotExists = pluginSection.GetBooleanValue("CreateContainerIfNotExists", true);
   }
   else
   {
@@ -229,12 +255,21 @@ IStoragePlugin* AzureBlobStoragePluginFactory::CreateStoragePlugin(const Orthanc
     as::cloud_blob_container blobContainer = blobClient.get_container_reference(containerName);
     OrthancPlugins::LogInfo("Accessing blob container");
 
-    // Return value is true if the container did not exist and was successfully created.
-    bool containerCreated = blobContainer.create_if_not_exists();
-
-    if (containerCreated)
+    // blobContainer.create_if_not_exists() throws an error if a service SAS (for a blob container)
+    // was used in the connectionString.
+    // Only allow the use of this function when using storage account-level credentials, whether
+    // through accountName/accountKey combo or account SAS.
+    if ((storageAccount.credentials().is_account_key() ||
+         (storageAccount.credentials().is_sas() && isSasTokenAccountLevel(storageAccount.credentials().sas_token())))
+        && createContainerIfNotExists)
     {
-      OrthancPlugins::LogWarning("Blob Storage Area container has been created.  **** check in the Azure console that your container is private ****");
+      // Return value is true if the container did not exist and was successfully created.
+      bool containerCreated = blobContainer.create_if_not_exists();
+
+      if (containerCreated)
+      {
+        OrthancPlugins::LogWarning("Blob Storage Area container has been created.  **** check in the Azure console that your container is private ****");
+      }
     }
 
     OrthancPlugins::LogInfo("Blob storage initialized");
