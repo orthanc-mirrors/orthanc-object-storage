@@ -162,7 +162,7 @@ const char* AzureBlobStoragePluginFactory::GetStoragePluginName()
   return "Azure Blob Storage";
 }
 
-bool isSasTokenAccountLevel(utility::string_t sasToken)
+bool IsSasTokenAccountLevel(utility::string_t sasToken)
 {
   // Use cpprestsdk's utility::string_t here since the expected argument is the return value of
   // as::storage_credentials::sas_token(), which is type utility::string_t
@@ -170,7 +170,7 @@ bool isSasTokenAccountLevel(utility::string_t sasToken)
   size_t prevIdx = 0;
   while ((newIdx = sasToken.find('&', prevIdx)) != utility::string_t::npos)
   {
-    utility::string_t kvpair = sasToken.substr(prevIdx, newIdx-prevIdx);
+    utility::string_t kvpair = sasToken.substr(prevIdx, newIdx - prevIdx);
     prevIdx = newIdx + 1; // start next time from char after '&'
 
     size_t equalsIdx = kvpair.find('=');
@@ -274,7 +274,7 @@ IStoragePlugin* AzureBlobStoragePluginFactory::CreateStoragePlugin(const Orthanc
     // Only allow the use of this function when using storage account-level credentials, whether
     // through accountName/accountKey combo or account SAS.
     if ((storageAccount.credentials().is_account_key() ||
-         (storageAccount.credentials().is_sas() && isSasTokenAccountLevel(storageAccount.credentials().sas_token())))
+         (storageAccount.credentials().is_sas() && IsSasTokenAccountLevel(storageAccount.credentials().sas_token())))
         && createContainerIfNotExists)
     {
       // Return value is true if the container did not exist and was successfully created.
