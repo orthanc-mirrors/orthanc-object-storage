@@ -9,7 +9,7 @@ set(PLUGIN_VERSION "mainline")
 include(CheckIncludeFileCXX)
 
 set(ORTHANC_FRAMEWORK_SOURCE "hg" CACHE STRING "orthanc source")
-set(ORTHANC_FRAMEWORK_VERSION "1.9.1" CACHE STRING "orthanc framework version")
+set(ORTHANC_FRAMEWORK_VERSION "1.9.2" CACHE STRING "orthanc framework version")
 set(USE_VCPKG_PACKAGES ON CACHE BOOL "Use Microsoft vcpkg to link against crypto++ and AWS SDK")
 set(STATIC_AWS_CLIENT ON CACHE BOOL "Statically link against AWS client library (only if USE_VCPKG_PACKAGES=OFF)")
 set(USE_SYSTEM_CRYPTOPP ON CACHE BOOL "Use the system version of crypto++")
