@@ -82,7 +82,7 @@ On Windows:
     "AzureBlobStorage" : {
     	"ConnectionString": "DefaultEndpointsProtocol=https;AccountName=xxxxxxxxx;AccountKey=yyyyyyyy===;EndpointSuffix=core.windows.net",
     	"ContainerName" : "test-orthanc-storage-plugin",
-        "CreateContainerIfNotExists": true,       // available from version 1.2.0 (not released yet)
+        "CreateContainerIfNotExists": true,       // available from version 1.2.0
         "RootPath": "",                 // optional: folder in which files are stored (ex: my/path/to/myfolder)
         "StorageEncryption" : {...},
         "StorageStructure" : "flat",
