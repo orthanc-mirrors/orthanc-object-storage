@@ -119,14 +119,14 @@ make install
 * `cd build/aws` 
 * `cmake -DCMAKE_TOOLCHAIN_FILE=[vcpkg root]\scripts\buildsystems\vcpkg.cmake ../../orthanc-object-storage/Aws`
 
-### Azure plugin configuration ###
+### AWS S3 plugin configuration ###
 
 ```
     "AwsS3Storage" : {
     	"BucketName": "test-orthanc-s3-plugin",
         "Region" : "eu-central-1",
-        "AccessKey" : "AKXXX",
-        "SecretKey" : "RhYYYY",
+        "AccessKey" : "AKXXX",          // optional: if not specified, the plugin will use the default credentials manager (from version 1.3.0)
+        "SecretKey" : "RhYYYY",         // optional: if not specified, the plugin will use the default credentials manager (from version 1.3.0)
         "Endpoint": "",                 // optional: custom endpoint
         "ConnectionTimeout": 30,        // optional: connection timeout in seconds
         "RequestTimeout": 1200,         // optional: request timeout in seconds (max time to upload/download a file)
