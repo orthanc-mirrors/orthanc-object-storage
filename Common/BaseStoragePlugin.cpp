@@ -36,7 +36,7 @@ std::string BaseStoragePlugin::GetPath(const char* uuid, OrthancPluginContentTyp
     }
     else if (type == OrthancPluginContentType_DicomUntilPixelData)
     {
-      filename += "dcm.head";
+      filename += ".dcm.head";
     }
     else
     {
