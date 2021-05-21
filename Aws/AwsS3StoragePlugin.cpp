@@ -234,18 +234,6 @@ IStoragePlugin* AwsS3StoragePluginFactory::CreateStoragePlugin(const OrthancPlug
     return nullptr;
   }
 
-  if (!pluginSection.LookupStringValue(accessKey, "AccessKey"))
-  {
-    OrthancPlugins::LogError("AwsS3Storage/AccessKey configuration missing.  Unable to initialize plugin");
-    return nullptr;
-  }
-
-  if (!pluginSection.LookupStringValue(secretKey, "SecretKey"))
-  {
-    OrthancPlugins::LogError("AwsS3Storage/SecretKey configuration missing.  Unable to initialize plugin");
-    return nullptr;
-  }
-
   std::string endpoint = pluginSection.GetStringValue("Endpoint", "");
   unsigned int connectTimeout = pluginSection.GetUnsignedIntegerValue("ConnectTimeout", 30);
   unsigned int requestTimeout = pluginSection.GetUnsignedIntegerValue("RequestTimeout", 1200);
@@ -256,7 +244,6 @@ IStoragePlugin* AwsS3StoragePluginFactory::CreateStoragePlugin(const OrthancPlug
     Aws::SDKOptions options;
     Aws::InitAPI(options);
 
-    Aws::Auth::AWSCredentials credentials(accessKey.c_str(), secretKey.c_str());
     Aws::Client::ClientConfiguration configuration;
     configuration.region = region.c_str();
     configuration.scheme = Aws::Http::Scheme::HTTPS;
@@ -269,15 +256,31 @@ IStoragePlugin* AwsS3StoragePluginFactory::CreateStoragePlugin(const OrthancPlug
       configuration.endpointOverride = endpoint.c_str();
     }
 
-    Aws::S3::S3Client client(credentials, configuration, Aws::Client::AWSAuthV4Signer::PayloadSigningPolicy::Never, virtualAddressing);
+    if (pluginSection.LookupStringValue(accessKey, "AccessKey") && pluginSection.LookupStringValue(secretKey, "SecretKey"))
+    {
+      OrthancPlugins::LogInfo("AWS S3 Storage: using credentials from the configuration file");
+      Aws::Auth::AWSCredentials credentials(accessKey.c_str(), secretKey.c_str());
+      
+      Aws::S3::S3Client client(credentials, configuration, Aws::Client::AWSAuthV4Signer::PayloadSigningPolicy::Never, virtualAddressing);
+      
+      OrthancPlugins::LogInfo("AWS S3 storage initialized");
 
-    OrthancPlugins::LogInfo("AWS S3 storage initialized");
+      return new AwsS3StoragePlugin(client, bucketName, enableLegacyStorageStructure);
+    } 
+    else
+    {
+      // when using default credentials, credentials are not checked at startup but only the first time you try to access the bucket !
+      OrthancPlugins::LogInfo("AWS S3 Storage: using default credentials provider");
+      Aws::S3::S3Client client(configuration, Aws::Client::AWSAuthV4Signer::PayloadSigningPolicy::Never, virtualAddressing);
 
-    return new AwsS3StoragePlugin(client, bucketName, enableLegacyStorageStructure);
+      OrthancPlugins::LogInfo("AWS S3 storage initialized");
+
+      return new AwsS3StoragePlugin(client, bucketName, enableLegacyStorageStructure);
+    }  
   }
   catch (const std::exception& e)
   {
-    OrthancPlugins::LogError(std::string("AzureBlobStorage plugin: failed to initialize plugin: ") + e.what());
+    OrthancPlugins::LogError(std::string("AWS S3 Storage plugin: failed to initialize plugin: ") + e.what());
     return nullptr;
   }
 

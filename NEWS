@@ -1,6 +1,7 @@
 Pending changes in the mainline
 ===============================
 
+* AWS S3: if no access & secret keys are provided, now getting the credentials from the default credentials manager
 
 2021-04-26 - v 1.2.0
 ====================
