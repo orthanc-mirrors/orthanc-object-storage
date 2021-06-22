@@ -40,7 +40,7 @@ set(ENABLE_GOOGLE_TEST ON)
 set(ENABLE_MODULE_DICOM OFF)
 set(ENABLE_MODULE_IMAGES OFF)
 set(ENABLE_MODULE_JOBS OFF)
-# set(ENABLE_WEB_CLIENT ON)  # Access options related to curl
+set(ENABLE_WEB_CLIENT ON)  # Access options related to curl
 set(ORTHANC_FRAMEWORK_PLUGIN ON)
 
 include(${ORTHANC_FRAMEWORK_ROOT}/../Resources/CMake/OrthancFrameworkConfiguration.cmake)

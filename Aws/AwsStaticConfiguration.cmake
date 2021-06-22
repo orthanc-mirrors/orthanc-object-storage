@@ -137,6 +137,7 @@ list(APPEND AWS_SOURCES_SUBDIRS
   ${AWS_SDK_CPP_SOURCES_DIR}/aws-cpp-sdk-core/source/external/cjson/
   ${AWS_SDK_CPP_SOURCES_DIR}/aws-cpp-sdk-core/source/external/tinyxml2/
   ${AWS_SDK_CPP_SOURCES_DIR}/aws-cpp-sdk-core/source/http/
+  ${AWS_SDK_CPP_SOURCES_DIR}/aws-cpp-sdk-core/source/http/curl/
   ${AWS_SDK_CPP_SOURCES_DIR}/aws-cpp-sdk-core/source/http/standard/
   ${AWS_SDK_CPP_SOURCES_DIR}/aws-cpp-sdk-core/source/internal/
   ${AWS_SDK_CPP_SOURCES_DIR}/aws-cpp-sdk-core/source/monitoring/
@@ -145,6 +146,7 @@ list(APPEND AWS_SOURCES_SUBDIRS
   ${AWS_SDK_CPP_SOURCES_DIR}/aws-cpp-sdk-core/source/utils/base64/
   ${AWS_SDK_CPP_SOURCES_DIR}/aws-cpp-sdk-core/source/utils/crypto/
   ${AWS_SDK_CPP_SOURCES_DIR}/aws-cpp-sdk-core/source/utils/crypto/factory/
+  ${AWS_SDK_CPP_SOURCES_DIR}/aws-cpp-sdk-core/source/utils/crypto/openssl/
   ${AWS_SDK_CPP_SOURCES_DIR}/aws-cpp-sdk-core/source/utils/event/
   ${AWS_SDK_CPP_SOURCES_DIR}/aws-cpp-sdk-core/source/utils/json/
   ${AWS_SDK_CPP_SOURCES_DIR}/aws-cpp-sdk-core/source/utils/logging/
@@ -158,8 +160,10 @@ list(APPEND AWS_SOURCES_SUBDIRS
 
 
 add_definitions(
-  -DAWS_AFFINITY_METHOD=AWS_AFFINITY_METHOD_PTHREAD_ATTR
+  -DAWS_AFFINITY_METHOD=AWS_AFFINITY_METHOD_PTHREAD
   -DBYO_CRYPTO  # To have "aws_tls_server_ctx_new()" defined
+  -DENABLE_OPENSSL_ENCRYPTION=1
+  -DENABLE_CURL_CLIENT=1
   )
 
 list(APPEND AWS_SOURCES_SUBDIRS

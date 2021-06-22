@@ -306,6 +306,7 @@ extern "C"
   {
     OrthancPlugins::SetGlobalContext(context);
 
+    Orthanc::InitializeFramework("", false);
     Orthanc::Logging::InitializePluginContext(context);
 
     OrthancPlugins::OrthancConfiguration orthancConfig;
@@ -402,6 +403,8 @@ extern "C"
   ORTHANC_PLUGINS_API void OrthancPluginFinalize()
   {
     OrthancPlugins::LogWarning(std::string(StoragePluginFactory::GetStoragePluginName()) + " plugin is finalizing");
+    plugin.reset();
+    Orthanc::FinalizeFramework();
   }
 
 

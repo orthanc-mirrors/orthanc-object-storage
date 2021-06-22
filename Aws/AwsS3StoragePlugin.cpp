@@ -26,6 +26,7 @@
 #include <aws/s3/model/DeleteObjectRequest.h>
 #include <aws/core/auth/AWSCredentialsProvider.h>
 #include <aws/core/utils/memory/stl/AWSStringStream.h>
+#include <aws/crt/Api.h>
 
 #include <boost/lexical_cast.hpp>
 #include <iostream>
@@ -44,6 +45,8 @@ public:
 public:
 
   AwsS3StoragePlugin(const Aws::S3::S3Client& client, const std::string& bucketName, bool enableLegacyStorageStructure);
+
+  virtual ~AwsS3StoragePlugin();
 
   virtual IWriter* GetWriterForObject(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled);
   virtual IReader* GetReaderForObject(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled);
@@ -199,8 +202,26 @@ const char* AwsS3StoragePluginFactory::GetStoragePluginName()
   return "AWS S3 Storage";
 }
 
+
+static std::unique_ptr<Aws::Crt::ApiHandle>  api_;
+static std::unique_ptr<Aws::SDKOptions>  sdkOptions_;
+
+
 IStoragePlugin* AwsS3StoragePluginFactory::CreateStoragePlugin(const OrthancPlugins::OrthancConfiguration& orthancConfig)
 {
+  if (sdkOptions_.get() != NULL)
+  {
+    throw Orthanc::OrthancException(Orthanc::ErrorCode_BadSequenceOfCalls, "Cannot initialize twice");
+  }
+
+  api_.reset(new Aws::Crt::ApiHandle);
+
+  sdkOptions_.reset(new Aws::SDKOptions);
+  sdkOptions_->cryptoOptions.initAndCleanupOpenSSL = false;  // Done by the Orthanc framework
+  sdkOptions_->httpOptions.initAndCleanupCurl = false;  // Done by the Orthanc framework
+  
+  Aws::InitAPI(*sdkOptions_);
+
   bool enableLegacyStorageStructure;
 
   if (!orthancConfig.IsSection(PLUGIN_SECTION))
@@ -234,10 +255,11 @@ IStoragePlugin* AwsS3StoragePluginFactory::CreateStoragePlugin(const OrthancPlug
     return nullptr;
   }
 
-  std::string endpoint = pluginSection.GetStringValue("Endpoint", "");
-  unsigned int connectTimeout = pluginSection.GetUnsignedIntegerValue("ConnectTimeout", 30);
-  unsigned int requestTimeout = pluginSection.GetUnsignedIntegerValue("RequestTimeout", 1200);
-  bool virtualAddressing = pluginSection.GetBooleanValue("VirtualAddressing", true);
+  const std::string endpoint = pluginSection.GetStringValue("Endpoint", "");
+  const unsigned int connectTimeout = pluginSection.GetUnsignedIntegerValue("ConnectTimeout", 30);
+  const unsigned int requestTimeout = pluginSection.GetUnsignedIntegerValue("RequestTimeout", 1200);
+  const bool virtualAddressing = pluginSection.GetBooleanValue("VirtualAddressing", true);
+  const std::string caFile = orthancConfig.GetStringValue("HttpsCACertificates", "");
   
   try
   {
@@ -245,6 +267,7 @@ IStoragePlugin* AwsS3StoragePluginFactory::CreateStoragePlugin(const OrthancPlug
     Aws::InitAPI(options);
 
     Aws::Client::ClientConfiguration configuration;
+
     configuration.region = region.c_str();
     configuration.scheme = Aws::Http::Scheme::HTTPS;
     configuration.connectTimeoutMs = connectTimeout * 1000;
@@ -256,6 +279,11 @@ IStoragePlugin* AwsS3StoragePluginFactory::CreateStoragePlugin(const OrthancPlug
       configuration.endpointOverride = endpoint.c_str();
     }
 
+    if (!caFile.empty())
+    {
+      configuration.caFile = caFile;
+    }
+    
     if (pluginSection.LookupStringValue(accessKey, "AccessKey") && pluginSection.LookupStringValue(secretKey, "SecretKey"))
     {
       OrthancPlugins::LogInfo("AWS S3 Storage: using credentials from the configuration file");
@@ -285,6 +313,15 @@ IStoragePlugin* AwsS3StoragePluginFactory::CreateStoragePlugin(const OrthancPlug
   }
 
 }
+
+
+AwsS3StoragePlugin::~AwsS3StoragePlugin()
+{
+  assert(sdkOptions_.get() != NULL);
+  Aws::ShutdownAPI(*sdkOptions_);
+  api_.reset();
+}
+
 
 AwsS3StoragePlugin::AwsS3StoragePlugin(const Aws::S3::S3Client& client, const std::string& bucketName, bool enableLegacyStorageStructure)
   : BaseStoragePlugin(enableLegacyStorageStructure),
