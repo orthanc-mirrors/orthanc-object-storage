@@ -16,17 +16,18 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  **/
 
+
 #if GOOGLE_STORAGE_PLUGIN==1
-#include "../Google/GoogleStoragePlugin.h"
-#define StoragePluginFactory GoogleStoragePluginFactory
+#  include "../Google/GoogleStoragePlugin.h"
+#  define StoragePluginFactory GoogleStoragePluginFactory
 #elif AZURE_STORAGE_PLUGIN==1
-#include "../Azure/AzureBlobStoragePlugin.h"
-#define StoragePluginFactory AzureBlobStoragePluginFactory
+#  include "../Azure/AzureBlobStoragePlugin.h"
+#  define StoragePluginFactory AzureBlobStoragePluginFactory
 #elif AWS_STORAGE_PLUGIN==1
-#include "../Aws/AwsS3StoragePlugin.h"
-#define StoragePluginFactory AwsS3StoragePluginFactory
+#  include "../Aws/AwsS3StoragePlugin.h"
+#  define StoragePluginFactory AwsS3StoragePluginFactory
 #else
-#pragma message(error  "define a plugin")
+#  pragma message(error  "define a plugin")
 #endif
 
 #include <string.h>

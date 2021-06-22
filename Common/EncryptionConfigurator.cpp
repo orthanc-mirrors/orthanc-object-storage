@@ -17,7 +17,6 @@
  **/
 
 
-
 #include <orthanc/OrthancCPlugin.h>
 #include <OrthancPluginCppWrapper.h>
 

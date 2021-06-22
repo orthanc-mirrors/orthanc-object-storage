@@ -16,6 +16,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  **/
 
+
 #pragma once
 
 #include "../Common/BaseStoragePlugin.h"
@@ -26,4 +27,3 @@ public:
   static const char* GetStoragePluginName();
   static IStoragePlugin* CreateStoragePlugin(const OrthancPlugins::OrthancConfiguration& orthancConfig);
 };
-
