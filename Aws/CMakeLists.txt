@@ -21,30 +21,78 @@ project(OrthancAwsS3Storage)
 
 set(PLUGIN_VERSION "mainline")
 
-include(CheckIncludeFileCXX)
+if (PLUGIN_VERSION STREQUAL "mainline")
+  set(ORTHANC_FRAMEWORK_DEFAULT_VERSION "mainline")
+  set(ORTHANC_FRAMEWORK_DEFAULT_SOURCE "hg")
+else()
+  set(ORTHANC_FRAMEWORK_DEFAULT_VERSION "1.9.3")
+  set(ORTHANC_FRAMEWORK_DEFAULT_SOURCE "web")
+endif()
 
-set(ORTHANC_FRAMEWORK_SOURCE "hg" CACHE STRING "orthanc source")
-set(ORTHANC_FRAMEWORK_VERSION "1.9.2" CACHE STRING "orthanc framework version")
+set(STATIC_BUILD OFF CACHE BOOL "Static build of the third-party libraries (necessary for Windows)")
+set(ALLOW_DOWNLOADS ON CACHE BOOL "Allow CMake to download packages")
+set(ORTHANC_FRAMEWORK_SOURCE "${ORTHANC_FRAMEWORK_DEFAULT_SOURCE}" CACHE STRING "Source of the Orthanc framework (can be \"system\", \"hg\", \"archive\", \"web\" or \"path\")")
+set(ORTHANC_FRAMEWORK_VERSION "${ORTHANC_FRAMEWORK_DEFAULT_VERSION}" CACHE STRING "Version of the Orthanc framework")
+set(ORTHANC_FRAMEWORK_ARCHIVE "" CACHE STRING "Path to the Orthanc archive, if ORTHANC_FRAMEWORK_SOURCE is \"archive\"")
+set(ORTHANC_FRAMEWORK_ROOT "" CACHE STRING "Path to the Orthanc source directory, if ORTHANC_FRAMEWORK_SOURCE is \"path\"")
+
 set(USE_VCPKG_PACKAGES ON CACHE BOOL "Use Microsoft vcpkg to link against crypto++ and AWS SDK")
-set(STATIC_AWS_CLIENT ON CACHE BOOL "Statically link against AWS client library (only if USE_VCPKG_PACKAGES=OFF)")
 set(USE_SYSTEM_CRYPTOPP ON CACHE BOOL "Use the system version of crypto++")
 
+include(CheckIncludeFileCXX)
+
 # Download and setup the Orthanc framework
-set(ALLOW_DOWNLOADS ON)
-include(${CMAKE_SOURCE_DIR}/../Common/Resources/DownloadOrthancFramework.cmake)
+include(${CMAKE_SOURCE_DIR}/../Common/Resources/Orthanc/CMake/DownloadOrthancFramework.cmake)
 
-include(${ORTHANC_FRAMEWORK_ROOT}/../Resources/CMake/OrthancFrameworkParameters.cmake)
+if (ORTHANC_FRAMEWORK_SOURCE STREQUAL "system")
+  if (ORTHANC_FRAMEWORK_USE_SHARED)
+    include(FindBoost)
+    find_package(Boost COMPONENTS filesystem thread)
+    
+    if (NOT Boost_FOUND)
+      message(FATAL_ERROR "Unable to locate Boost on this system")
+    endif()
+    
+    include(FindOpenSSL)
+    if (NOT OPENSSL_FOUND)
+      message(FATAL_ERROR "Unable to find OpenSSL")
+    endif()
 
-set(ENABLE_CRYPTO_OPTIONS ON)
-set(ENABLE_GOOGLE_TEST ON)
-set(ENABLE_MODULE_DICOM OFF)
-set(ENABLE_MODULE_IMAGES OFF)
-set(ENABLE_MODULE_JOBS OFF)
-set(ENABLE_WEB_CLIENT ON)  # Access options related to curl
-set(ORTHANC_FRAMEWORK_PLUGIN ON)
+    include(FindCURL)
+    if (NOT CURL_FOUND)
+      message(FATAL_ERROR "Unable to find LibCurl")
+    endif()
 
-include(${ORTHANC_FRAMEWORK_ROOT}/../Resources/CMake/OrthancFrameworkConfiguration.cmake)
-include(${ORTHANC_FRAMEWORK_ROOT}/../../OrthancServer/Plugins/Samples/Common/OrthancPluginsExports.cmake)
+    link_libraries(${Boost_LIBRARIES} ${OPENSSL_LIBRARIES} ${CURL_LIBRARIES} jsoncpp)
+  endif()
+
+  link_libraries(${ORTHANC_FRAMEWORK_LIBRARIES})
+  
+  set(USE_SYSTEM_GOOGLE_TEST ON CACHE BOOL "Use the system version of Google Test")
+  set(USE_GOOGLE_TEST_DEBIAN_PACKAGE OFF CACHE BOOL "Use the sources of Google Test shipped with libgtest-dev (Debian only)")
+  mark_as_advanced(USE_GOOGLE_TEST_DEBIAN_PACKAGE)
+  include(${CMAKE_SOURCE_DIR}/../Common/Resources/Orthanc/CMake/GoogleTestConfiguration.cmake)
+  
+else()
+  include(${ORTHANC_FRAMEWORK_ROOT}/../Resources/CMake/OrthancFrameworkParameters.cmake)
+
+  set(ENABLE_CRYPTO_OPTIONS ON)
+  set(ENABLE_GOOGLE_TEST ON)
+  set(ENABLE_MODULE_DICOM OFF)
+  set(ENABLE_MODULE_IMAGES OFF)
+  set(ENABLE_MODULE_JOBS OFF)
+  set(ENABLE_WEB_CLIENT ON)  # Access options related to curl
+  set(ORTHANC_FRAMEWORK_PLUGIN ON)
+
+  include(${ORTHANC_FRAMEWORK_ROOT}/../Resources/CMake/OrthancFrameworkConfiguration.cmake)
+
+  include_directories(
+    ${ORTHANC_FRAMEWORK_ROOT}
+    )
+endif()
+
+
+include(${CMAKE_SOURCE_DIR}/../Common/Resources/Orthanc/Plugins/OrthancPluginsExports.cmake)
 
 
 add_definitions(
@@ -55,9 +103,8 @@ add_definitions(
   )
 
 include_directories(
-  ${ORTHANC_FRAMEWORK_ROOT}
-  ${ORTHANC_FRAMEWORK_ROOT}/../../OrthancServer/Plugins/Include
-  ${ORTHANC_FRAMEWORK_ROOT}/../../OrthancServer/Plugins/Samples/Common
+  ${CMAKE_SOURCE_DIR}/../Common/Resources/Orthanc/Plugins/
+  ${CMAKE_SOURCE_DIR}/../Common/Resources/Orthanc/Sdk-1.9.2/
   )
 
 
@@ -82,7 +129,7 @@ set(COMMON_SOURCES
   ${CMAKE_SOURCE_DIR}/../Common/EncryptionHelpers.h
   ${CMAKE_SOURCE_DIR}/../Common/EncryptionConfigurator.cpp
   ${CMAKE_SOURCE_DIR}/../Common/EncryptionConfigurator.h
-  ${ORTHANC_FRAMEWORK_ROOT}/../../OrthancServer/Plugins/Samples/Common/OrthancPluginCppWrapper.cpp
+  ${CMAKE_SOURCE_DIR}/../Common/Resources/Orthanc/Plugins/OrthancPluginCppWrapper.cpp
 
   ${AWS_SOURCES}
   ${CRYPTOPP_SOURCES}

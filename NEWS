@@ -4,8 +4,10 @@ Pending changes in the mainline
 * BREAKING CHANGE: fix extension of DCM header files from dcm.head to .dcm.head.  If you have saved compressed or
   encrypted files with a previous version of the plugin and/or with a Orthanc 1.9.1 or 1.9.2, you might have to rename
   all your *.unk files into *.dcm.head files or your *dcm.head files into *.dcm.head files.
-* AWS S3: if no access & secret keys are provided, now getting the credentials from the default credentials manager
-* AWS S3: Full static linking is possible
+* AWS S3:
+  - If no access & secret keys are provided, now getting the credentials from the default credentials manager
+  - Full static linking is possible
+  - Support of dynamic linking against the system-wide Orthanc framework library
 
 
 2021-04-26 - v 1.2.0

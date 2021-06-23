@@ -28,8 +28,8 @@ set(ORTHANC_FRAMEWORK_VERSION "1.9.2" CACHE STRING "orthanc framework version")
 set(ALLOW_DOWNLOADS ON)
 
 # Download and setup the Orthanc framework
-include(${CMAKE_SOURCE_DIR}/../Common/Resources/DownloadOrthancFramework.cmake)
 
+include(${CMAKE_SOURCE_DIR}/../Common/Resources/Orthanc/CMake/DownloadOrthancFramework.cmake)
 include(${ORTHANC_FRAMEWORK_ROOT}/../Resources/CMake/OrthancFrameworkParameters.cmake)
 
 set(ENABLE_GOOGLE_TEST ON)
