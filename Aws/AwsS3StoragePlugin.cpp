@@ -92,7 +92,7 @@ public:
 
     if (!result.IsSuccess())
     {
-      throw StoragePluginException(std::string("error while writing file ") + path_ + ": " + result.GetError().GetExceptionName().c_str() + " " + result.GetError().GetMessage().c_str());
+      throw StoragePluginException(std::string("error while writing file ") + path_ + ": response code = " + boost::lexical_cast<std::string>((int)result.GetError().GetResponseCode()) + " " + result.GetError().GetExceptionName().c_str() + " " + result.GetError().GetMessage().c_str());
     }
   }
 };
