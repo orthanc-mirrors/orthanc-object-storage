@@ -44,6 +44,7 @@ cp -r /source/UnitTestsSources /tmp/source-writeable/
 cp /source/Aws/* /tmp/source-writeable/Aws/ || true  # Ignore error about omitting directories
 
 cmake /tmp/source-writeable/Aws/ \
+      -DORTHANC_FRAMEWORK_VERSION=1.9.3 \
       -DORTHANC_FRAMEWORK_SOURCE=web \
       -DCMAKE_BUILD_TYPE=$1 -DSTATIC_BUILD=ON
 
