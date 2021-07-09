@@ -34,7 +34,7 @@ std::string BaseStoragePlugin::GetOrthancFileSystemPath(const std::string& uuid,
 }
 
 
-std::string BaseStoragePlugin::GetPath(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled)
+std::string BaseStoragePlugin::GetPath(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled, bool useAlternateExtension)
 {
   if (enableLegacyStorageStructure_)
   {
@@ -53,7 +53,7 @@ std::string BaseStoragePlugin::GetPath(const char* uuid, OrthancPluginContentTyp
     {
       filename += ".json";
     }
-    else if (type == OrthancPluginContentType_DicomUntilPixelData)
+    else if (type == OrthancPluginContentType_DicomUntilPixelData && !useAlternateExtension)  // for some time, header files were saved with .unk (happened with S3 storage plugin between version 1.2.0 and 1.3.0 - 21.5.1 and 21.6.2)
     {
       filename += ".dcm.head";
     }

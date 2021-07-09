@@ -32,7 +32,7 @@ protected:
     enableLegacyStorageStructure_(enableLegacyStorageStructure)
   {}
 
-  std::string GetPath(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled);
+  std::string GetPath(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled, bool useAlternateExtension = false);
 
 public:
   virtual void SetRootPath(const std::string& rootPath)

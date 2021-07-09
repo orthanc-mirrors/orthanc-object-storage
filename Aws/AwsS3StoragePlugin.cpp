@@ -100,15 +100,17 @@ public:
 
 class Reader : public IStoragePlugin::IReader
 {
-  std::string             path_;
   Aws::S3::S3Client       client_;
   std::string             bucketName_;
+  std::list<std::string>  paths_;
+  std::string             uuid_;
 
 public:
-  Reader(const Aws::S3::S3Client& client, const std::string& bucketName, const std::string& path)
-    : path_(path),
-      client_(client),
-      bucketName_(bucketName)
+  Reader(const Aws::S3::S3Client& client, const std::string& bucketName, const std::list<std::string>& paths, const char* uuid)
+    : client_(client),
+      bucketName_(bucketName),
+      paths_(paths),
+      uuid_(uuid)
   {
   }
 
@@ -116,11 +118,12 @@ public:
   {
 
   }
-  virtual size_t GetSize()
+
+  size_t _GetSize(const std::string& path)
   {
     Aws::S3::Model::ListObjectsRequest listObjectRequest;
     listObjectRequest.SetBucket(bucketName_.c_str());
-    listObjectRequest.SetPrefix(path_.c_str());
+    listObjectRequest.SetPrefix(path.c_str());
 
     auto result = client_.ListObjects(listObjectRequest);
 
@@ -135,14 +138,30 @@ public:
       }
       else if (objectList.size() > 1)
       {
-        throw StoragePluginException(std::string("error while reading file ") + path_ + ": multiple objet with same name !");
+        throw StoragePluginException(std::string("error while reading file ") + path + ": multiple objet with same name !");
       }
-      throw StoragePluginException(std::string("error while reading file ") + path_ + ": object not found !");
+      throw StoragePluginException(std::string("error while reading file ") + path + ": object not found !");
     }
     else
     {
-      throw StoragePluginException(std::string("error while reading file ") + path_ + ": " + result.GetError().GetExceptionName().c_str() + " " + result.GetError().GetMessage().c_str());
+      throw StoragePluginException(std::string("error while reading file ") + path + ": " + result.GetError().GetExceptionName().c_str() + " " + result.GetError().GetMessage().c_str());
     }
+  }
+
+  virtual size_t GetSize()
+  {
+    for (auto& path: paths_)
+    {
+      try
+      {
+        return _GetSize(path);
+      }
+      catch (StoragePluginException&)
+      {
+        //ignore to retry
+      }
+    }
+    throw StoragePluginException(std::string("error while trying to get file size with uuid " + uuid_));
   }
 
   virtual void ReadWhole(char* data, size_t size)
@@ -157,9 +176,25 @@ public:
 
   void _Read(char* data, size_t size, size_t fromOffset, bool useRange)
   {
+    for (auto& path: paths_)
+    {
+      try
+      {
+        return __Read(path, data, size, fromOffset, useRange);
+      }
+      catch (StoragePluginException&)
+      {
+        //ignore to retry
+      }
+    }
+    throw StoragePluginException(std::string("error while trying to read file with uuid " + uuid_));
+  }
+
+  void __Read(const std::string& path, char* data, size_t size, size_t fromOffset, bool useRange)
+  {
     Aws::S3::Model::GetObjectRequest getObjectRequest;
     getObjectRequest.SetBucket(bucketName_.c_str());
-    getObjectRequest.SetKey(path_.c_str());
+    getObjectRequest.SetKey(path.c_str());
 
     if (useRange)
     {
@@ -187,7 +222,7 @@ public:
     }
     else
     {
-      throw StoragePluginException(std::string("error while reading file ") + path_ + ": " + result.GetError().GetExceptionName().c_str() + " " + result.GetError().GetMessage().c_str());
+      throw StoragePluginException(std::string("error while reading file ") + path + ": " + result.GetError().GetExceptionName().c_str() + " " + result.GetError().GetMessage().c_str());
     }
   }
 
@@ -328,7 +363,6 @@ AwsS3StoragePlugin::AwsS3StoragePlugin(const Aws::S3::S3Client& client, const st
     client_(client),
     bucketName_(bucketName)
 {
-
 }
 
 IStoragePlugin::IWriter* AwsS3StoragePlugin::GetWriterForObject(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled)
@@ -338,7 +372,11 @@ IStoragePlugin::IWriter* AwsS3StoragePlugin::GetWriterForObject(const char* uuid
 
 IStoragePlugin::IReader* AwsS3StoragePlugin::GetReaderForObject(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled)
 {
-  return new Reader(client_, bucketName_, GetPath(uuid, type, encryptionEnabled));
+  std::list<std::string> paths;
+  paths.push_back(GetPath(uuid, type, encryptionEnabled, false));
+  paths.push_back(GetPath(uuid, type, encryptionEnabled, true));
+
+  return new Reader(client_, bucketName_, paths, uuid);
 }
 
 void AwsS3StoragePlugin::DeleteObject(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled)
