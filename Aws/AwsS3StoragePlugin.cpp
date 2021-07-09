@@ -41,10 +41,11 @@ public:
 
   Aws::S3::S3Client       client_;
   std::string             bucketName_;
+  bool                    storageContainsUnknownFiles_;
 
 public:
 
-  AwsS3StoragePlugin(const Aws::S3::S3Client& client, const std::string& bucketName, bool enableLegacyStorageStructure);
+  AwsS3StoragePlugin(const Aws::S3::S3Client& client, const std::string& bucketName, bool enableLegacyStorageStructure, bool storageContainsUnknownFiles);
 
   virtual ~AwsS3StoragePlugin();
 
@@ -150,18 +151,24 @@ public:
 
   virtual size_t GetSize()
   {
+    std::string firstExceptionMessage;
+
     for (auto& path: paths_)
     {
       try
       {
         return _GetSize(path);
       }
-      catch (StoragePluginException&)
+      catch (StoragePluginException& ex)
       {
+        if (firstExceptionMessage.empty())
+        {
+          firstExceptionMessage = ex.what();
+        }
         //ignore to retry
       }
     }
-    throw StoragePluginException(std::string("error while trying to get file size with uuid " + uuid_));
+    throw StoragePluginException(firstExceptionMessage);
   }
 
   virtual void ReadWhole(char* data, size_t size)
@@ -176,18 +183,24 @@ public:
 
   void _Read(char* data, size_t size, size_t fromOffset, bool useRange)
   {
+    std::string firstExceptionMessage;
+
     for (auto& path: paths_)
     {
       try
       {
         return __Read(path, data, size, fromOffset, useRange);
       }
-      catch (StoragePluginException&)
+      catch (StoragePluginException& ex)
       {
+        if (firstExceptionMessage.empty())
+        {
+          firstExceptionMessage = ex.what();
+        }
         //ignore to retry
       }
     }
-    throw StoragePluginException(std::string("error while trying to read file with uuid " + uuid_));
+    throw StoragePluginException(firstExceptionMessage);
   }
 
   void __Read(const std::string& path, char* data, size_t size, size_t fromOffset, bool useRange)
@@ -222,7 +235,7 @@ public:
     }
     else
     {
-      throw StoragePluginException(std::string("error while reading file ") + path + ": " + result.GetError().GetExceptionName().c_str() + " " + result.GetError().GetMessage().c_str());
+      throw StoragePluginException(std::string("error while reading file ") + path + ": response code = " + boost::lexical_cast<std::string>((int)result.GetError().GetResponseCode()) + " " + result.GetError().GetExceptionName().c_str() + " " + result.GetError().GetMessage().c_str());
     }
   }
 
@@ -294,6 +307,7 @@ IStoragePlugin* AwsS3StoragePluginFactory::CreateStoragePlugin(const OrthancPlug
   const unsigned int connectTimeout = pluginSection.GetUnsignedIntegerValue("ConnectTimeout", 30);
   const unsigned int requestTimeout = pluginSection.GetUnsignedIntegerValue("RequestTimeout", 1200);
   const bool virtualAddressing = pluginSection.GetBooleanValue("VirtualAddressing", true);
+  const bool storageContainsUnknownFiles = pluginSection.GetBooleanValue("EnableLegacyUnknownFiles", false);
   const std::string caFile = orthancConfig.GetStringValue("HttpsCACertificates", "");
   
   try
@@ -328,7 +342,7 @@ IStoragePlugin* AwsS3StoragePluginFactory::CreateStoragePlugin(const OrthancPlug
       
       OrthancPlugins::LogInfo("AWS S3 storage initialized");
 
-      return new AwsS3StoragePlugin(client, bucketName, enableLegacyStorageStructure);
+      return new AwsS3StoragePlugin(client, bucketName, enableLegacyStorageStructure, storageContainsUnknownFiles);
     } 
     else
     {
@@ -338,7 +352,7 @@ IStoragePlugin* AwsS3StoragePluginFactory::CreateStoragePlugin(const OrthancPlug
 
       OrthancPlugins::LogInfo("AWS S3 storage initialized");
 
-      return new AwsS3StoragePlugin(client, bucketName, enableLegacyStorageStructure);
+      return new AwsS3StoragePlugin(client, bucketName, enableLegacyStorageStructure, storageContainsUnknownFiles);
     }  
   }
   catch (const std::exception& e)
@@ -358,10 +372,11 @@ AwsS3StoragePlugin::~AwsS3StoragePlugin()
 }
 
 
-AwsS3StoragePlugin::AwsS3StoragePlugin(const Aws::S3::S3Client& client, const std::string& bucketName, bool enableLegacyStorageStructure)
+AwsS3StoragePlugin::AwsS3StoragePlugin(const Aws::S3::S3Client& client, const std::string& bucketName, bool enableLegacyStorageStructure, bool storageContainsUnknownFiles)
   : BaseStoragePlugin(enableLegacyStorageStructure),
     client_(client),
-    bucketName_(bucketName)
+    bucketName_(bucketName),
+    storageContainsUnknownFiles_(storageContainsUnknownFiles)
 {
 }
 
@@ -374,24 +389,42 @@ IStoragePlugin::IReader* AwsS3StoragePlugin::GetReaderForObject(const char* uuid
 {
   std::list<std::string> paths;
   paths.push_back(GetPath(uuid, type, encryptionEnabled, false));
-  paths.push_back(GetPath(uuid, type, encryptionEnabled, true));
+  if (storageContainsUnknownFiles_)
+  {
+    paths.push_back(GetPath(uuid, type, encryptionEnabled, true));
+  }
 
   return new Reader(client_, bucketName_, paths, uuid);
 }
 
 void AwsS3StoragePlugin::DeleteObject(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled)
 {
-  std::string path = GetPath(uuid, type, encryptionEnabled);
+  std::string firstExceptionMessage;
 
-  Aws::S3::Model::DeleteObjectRequest deleteObjectRequest;
-  deleteObjectRequest.SetBucket(bucketName_.c_str());
-  deleteObjectRequest.SetKey(path.c_str());
-
-  auto result = client_.DeleteObject(deleteObjectRequest);
-
-  if (!result.IsSuccess())
+  std::list<std::string> paths;
+  paths.push_back(GetPath(uuid, type, encryptionEnabled, false));
+  if (storageContainsUnknownFiles_)
   {
-    throw StoragePluginException(std::string("error while deleting file ") + path + ": " + result.GetError().GetExceptionName().c_str() + " " + result.GetError().GetMessage().c_str());
+    paths.push_back(GetPath(uuid, type, encryptionEnabled, true));
   }
 
+  // DeleteObject succeeds even if the file does not exist -> we need to try to delete every path
+  for (auto& path: paths)
+  {
+    Aws::S3::Model::DeleteObjectRequest deleteObjectRequest;
+    deleteObjectRequest.SetBucket(bucketName_.c_str());
+    deleteObjectRequest.SetKey(path.c_str());
+
+    auto result = client_.DeleteObject(deleteObjectRequest);
+
+    if (!result.IsSuccess() && firstExceptionMessage.empty())  
+    {
+      firstExceptionMessage = std::string("error while deleting file ") + path + ": response code = " + boost::lexical_cast<std::string>((int)result.GetError().GetResponseCode()) + " " + result.GetError().GetExceptionName().c_str() + " " + result.GetError().GetMessage().c_str();
+    }
+  }
+
+  if (!firstExceptionMessage.empty())
+  {
+    throw StoragePluginException(firstExceptionMessage);
+  }
 }

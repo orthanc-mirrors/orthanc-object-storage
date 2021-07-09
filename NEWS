@@ -1,3 +1,11 @@
+2021-07-09 - v 1.3.2
+====================
+
+* AWS: improved error reporting
+* AWS: new option "EnableLegacyUnknownFiles" should be enabled if files were saved with plugin version 1.2.0 and Orthanc 1.9.3.  
+  This allows reading .unk files that were generated at this time.  You can get rid of this option once you've renamed all the .unk
+  files into .dcm.head files.
+
 2021-07-09 - v 1.3.1
 ====================
 
