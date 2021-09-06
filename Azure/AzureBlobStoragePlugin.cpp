@@ -110,6 +110,7 @@ public:
         block_ = container_.get_block_blob_reference(utility::conversions::to_string_t(path));
         block_.download_attributes(); // to retrieve the properties
         path_ = path;
+        return;
       }
       catch (std::exception& ex)
       {
