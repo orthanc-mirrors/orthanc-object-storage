@@ -25,10 +25,29 @@
 namespace gcs = google::cloud::storage;
 static const char* const PLUGIN_SECTION = "GoogleCloudStorage";
 
-const char* GoogleStoragePlugin::GetConfigurationSectionName() 
+
+class GoogleStoragePlugin : public BaseStoragePlugin
 {
-  return PLUGIN_SECTION;
-}
+public:
+
+  std::string         bucketName_;
+  google::cloud::storage::Client mainClient_; // the client that is created at startup.  Each thread should copy it when it needs it. (from the doc: Instances of this class created via copy-construction or copy-assignment share the underlying pool of connections. Access to these copies via multiple threads is guaranteed to work. Two threads operating on the same instance of this class is not guaranteed to work.)
+  bool                storageContainsUnknownFiles_;
+
+public:
+
+  GoogleStoragePlugin(const std::string& bucketName,
+                      google::cloud::storage::Client& mainClient,
+                      bool enableLegacyStorageStructure,
+                      bool storageContainsUnknownFiles
+                      );
+
+  virtual IWriter* GetWriterForObject(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled);
+  virtual IReader* GetReaderForObject(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled);
+  virtual void DeleteObject(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled);
+  virtual const char* GetConfigurationSectionName() {return PLUGIN_SECTION;}
+};
+
 
 class Writer : public IStoragePlugin::IWriter
 {
@@ -72,13 +91,13 @@ public:
 
 class Reader : public IStoragePlugin::IReader
 {
-  std::string   path_;
-  gcs::Client   client_;
-  std::string   bucketName_;
+  std::list<std::string>  paths_;
+  gcs::Client             client_;
+  std::string             bucketName_;
 
 public:
-  Reader(const std::string& bucketName, const std::string& path, gcs::Client& client)
-    : path_(path),
+  Reader(const std::string& bucketName, const std::list<std::string>& paths, gcs::Client& client)
+    : paths_(paths),
       client_(client),
       bucketName_(bucketName)
   {
@@ -88,9 +107,111 @@ public:
   {
 
   }
+
   virtual size_t GetSize()
   {
-    auto objectMetadata = client_.GetObjectMetadata(bucketName_, path_);
+    std::string firstExceptionMessage;
+
+    for (auto& path: paths_)
+    {
+      try
+      {
+        return _GetSize(path);
+      }
+      catch (StoragePluginException& ex)
+      {
+        if (firstExceptionMessage.empty())
+        {
+          firstExceptionMessage = ex.what();
+        }
+        //ignore to retry
+      }
+    }
+    throw StoragePluginException(firstExceptionMessage);
+  }
+
+  void ReadWhole(char* data, size_t size)
+  {
+    std::string firstExceptionMessage;
+
+    for (auto& path: paths_)
+    {
+      try
+      {
+        return _ReadWhole(path, data, size);
+      }
+      catch (StoragePluginException& ex)
+      {
+        if (firstExceptionMessage.empty())
+        {
+          firstExceptionMessage = ex.what();
+        }
+        //ignore to retry
+      }
+    }
+    throw StoragePluginException(firstExceptionMessage);
+  }
+
+  void ReadRange(char* data, size_t size, size_t fromOffset)
+  {
+    std::string firstExceptionMessage;
+
+    for (auto& path: paths_)
+    {
+      try
+      {
+        return _ReadRange(path, data, size, fromOffset);
+      }
+      catch (StoragePluginException& ex)
+      {
+        if (firstExceptionMessage.empty())
+        {
+          firstExceptionMessage = ex.what();
+        }
+        //ignore to retry
+      }
+    }
+    throw StoragePluginException(firstExceptionMessage);
+  }
+
+private:
+  virtual void _ReadWhole(const std::string& path, char* data, size_t size)
+  {
+    auto reader = client_.ReadObject(bucketName_, path);
+
+    if (!reader)
+    {
+      throw StoragePluginException("error while opening/reading file " + std::string(path) + ": " + reader.status().message());
+    }
+
+    reader.read(data, size);
+
+    if (!reader)
+    {
+      throw StoragePluginException("error while reading file " + std::string(path) + ": " + reader.status().message());
+    }
+  }
+
+  virtual void _ReadRange(const std::string& path, char* data, size_t size, size_t fromOffset)
+  {
+    auto reader = client_.ReadObject(bucketName_, path, gcs::ReadRange(fromOffset, fromOffset + size));
+
+    if (!reader)
+    {
+      throw StoragePluginException("error while opening/reading file " + std::string(path) + ": " + reader.status().message());
+    }
+
+    reader.read(data, size);
+
+    if (!reader)
+    {
+      throw StoragePluginException("error while reading file " + std::string(path) + ": " + reader.status().message());
+    }
+  }
+
+  size_t _GetSize(const std::string& path)
+  {
+    auto objectMetadata = client_.GetObjectMetadata(bucketName_, path);
 
     if (objectMetadata)
     {
@@ -100,44 +221,9 @@ public:
     }
     else
     {
-        throw StoragePluginException("error while getting the size of " + std::string(path_) + ": " + objectMetadata.status().message());
+        throw StoragePluginException("error while getting the size of " + std::string(path) + ": " + objectMetadata.status().message());
     }
   }
-
-  virtual void ReadWhole(char* data, size_t size)
-  {
-    auto reader = client_.ReadObject(bucketName_, path_);
-
-    if (!reader)
-    {
-      throw StoragePluginException("error while opening/reading file " + std::string(path_) + ": " + reader.status().message());
-    }
-
-    reader.read(data, size);
-
-    if (!reader)
-    {
-      throw StoragePluginException("error while reading file " + std::string(path_) + ": " + reader.status().message());
-    }
-  }
-
-  virtual void ReadRange(char* data, size_t size, size_t fromOffset)
-  {
-    auto reader = client_.ReadObject(bucketName_, path_, gcs::ReadRange(fromOffset, fromOffset + size));
-
-    if (!reader)
-    {
-      throw StoragePluginException("error while opening/reading file " + std::string(path_) + ": " + reader.status().message());
-    }
-
-    reader.read(data, size);
-
-    if (!reader)
-    {
-      throw StoragePluginException("error while reading file " + std::string(path_) + ": " + reader.status().message());
-    }
-  }
-
 
 };
 
@@ -151,6 +237,7 @@ const char* GoogleStoragePluginFactory::GetStoragePluginName()
 IStoragePlugin* GoogleStoragePluginFactory::CreateStoragePlugin(const OrthancPlugins::OrthancConfiguration& orthancConfig)
 {
   bool enableLegacyStorageStructure;
+  bool storageContainsUnknownFiles;
 
   if (!orthancConfig.IsSection(PLUGIN_SECTION))
   {
@@ -161,7 +248,7 @@ IStoragePlugin* GoogleStoragePluginFactory::CreateStoragePlugin(const OrthancPlu
   OrthancPlugins::OrthancConfiguration pluginSection;
   orthancConfig.GetSection(pluginSection, PLUGIN_SECTION);
 
-  if (!BaseStoragePlugin::ReadCommonConfiguration(enableLegacyStorageStructure, pluginSection))
+  if (!BaseStoragePlugin::ReadCommonConfiguration(enableLegacyStorageStructure, storageContainsUnknownFiles, pluginSection))
   {
     return nullptr;
   }
@@ -198,13 +285,14 @@ IStoragePlugin* GoogleStoragePluginFactory::CreateStoragePlugin(const OrthancPlu
     return nullptr;
   }
 
-  return new GoogleStoragePlugin(googleBucketName, mainClient.value(), enableLegacyStorageStructure);
+  return new GoogleStoragePlugin(googleBucketName, mainClient.value(), enableLegacyStorageStructure, storageContainsUnknownFiles);
 }
 
-GoogleStoragePlugin::GoogleStoragePlugin(const std::string &bucketName, google::cloud::storage::Client& mainClient, bool enableLegacyStorageStructure)
+GoogleStoragePlugin::GoogleStoragePlugin(const std::string &bucketName, google::cloud::storage::Client& mainClient, bool enableLegacyStorageStructure, bool storageContainsUnknownFiles)
   : BaseStoragePlugin(enableLegacyStorageStructure),
     bucketName_(bucketName),
-    mainClient_(mainClient)
+    mainClient_(mainClient),
+    storageContainsUnknownFiles_(storageContainsUnknownFiles)
 {
 
 }
@@ -216,7 +304,14 @@ IStoragePlugin::IWriter* GoogleStoragePlugin::GetWriterForObject(const char* uui
 
 IStoragePlugin::IReader* GoogleStoragePlugin::GetReaderForObject(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled)
 {
-  return new Reader(bucketName_, GetPath(uuid, type, encryptionEnabled), mainClient_);
+  std::list<std::string> paths;
+  paths.push_back(GetPath(uuid, type, encryptionEnabled, false));
+  if (storageContainsUnknownFiles_)
+  {
+    paths.push_back(GetPath(uuid, type, encryptionEnabled, true));
+  }
+
+  return new Reader(bucketName_, paths, mainClient_);
 }
 
 void GoogleStoragePlugin::DeleteObject(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled)

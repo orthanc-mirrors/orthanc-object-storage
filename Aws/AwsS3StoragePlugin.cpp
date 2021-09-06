@@ -120,35 +120,6 @@ public:
 
   }
 
-  size_t _GetSize(const std::string& path)
-  {
-    Aws::S3::Model::ListObjectsRequest listObjectRequest;
-    listObjectRequest.SetBucket(bucketName_.c_str());
-    listObjectRequest.SetPrefix(path.c_str());
-
-    auto result = client_.ListObjects(listObjectRequest);
-
-    if (result.IsSuccess())
-    {
-      Aws::Vector<Aws::S3::Model::Object> objectList =
-          result.GetResult().GetContents();
-
-      if (objectList.size() == 1)
-      {
-        return objectList[0].GetSize();
-      }
-      else if (objectList.size() > 1)
-      {
-        throw StoragePluginException(std::string("error while reading file ") + path + ": multiple objet with same name !");
-      }
-      throw StoragePluginException(std::string("error while reading file ") + path + ": object not found !");
-    }
-    else
-    {
-      throw StoragePluginException(std::string("error while reading file ") + path + ": " + result.GetError().GetExceptionName().c_str() + " " + result.GetError().GetMessage().c_str());
-    }
-  }
-
   virtual size_t GetSize()
   {
     std::string firstExceptionMessage;
@@ -180,6 +151,38 @@ public:
   {
     _Read(data, size, fromOffset, true);
   }
+
+private:
+
+  size_t _GetSize(const std::string& path)
+  {
+    Aws::S3::Model::ListObjectsRequest listObjectRequest;
+    listObjectRequest.SetBucket(bucketName_.c_str());
+    listObjectRequest.SetPrefix(path.c_str());
+
+    auto result = client_.ListObjects(listObjectRequest);
+
+    if (result.IsSuccess())
+    {
+      Aws::Vector<Aws::S3::Model::Object> objectList =
+          result.GetResult().GetContents();
+
+      if (objectList.size() == 1)
+      {
+        return objectList[0].GetSize();
+      }
+      else if (objectList.size() > 1)
+      {
+        throw StoragePluginException(std::string("error while reading file ") + path + ": multiple objet with same name !");
+      }
+      throw StoragePluginException(std::string("error while reading file ") + path + ": object not found !");
+    }
+    else
+    {
+      throw StoragePluginException(std::string("error while reading file ") + path + ": " + result.GetError().GetExceptionName().c_str() + " " + result.GetError().GetMessage().c_str());
+    }
+  }
+
 
   void _Read(char* data, size_t size, size_t fromOffset, bool useRange)
   {
@@ -271,6 +274,7 @@ IStoragePlugin* AwsS3StoragePluginFactory::CreateStoragePlugin(const OrthancPlug
   Aws::InitAPI(*sdkOptions_);
 
   bool enableLegacyStorageStructure;
+  bool storageContainsUnknownFiles;
 
   if (!orthancConfig.IsSection(PLUGIN_SECTION))
   {
@@ -281,7 +285,7 @@ IStoragePlugin* AwsS3StoragePluginFactory::CreateStoragePlugin(const OrthancPlug
   OrthancPlugins::OrthancConfiguration pluginSection;
   orthancConfig.GetSection(pluginSection, PLUGIN_SECTION);
 
-  if (!BaseStoragePlugin::ReadCommonConfiguration(enableLegacyStorageStructure, pluginSection))
+  if (!BaseStoragePlugin::ReadCommonConfiguration(enableLegacyStorageStructure, storageContainsUnknownFiles, pluginSection))
   {
     return nullptr;
   }
@@ -307,7 +311,6 @@ IStoragePlugin* AwsS3StoragePluginFactory::CreateStoragePlugin(const OrthancPlug
   const unsigned int connectTimeout = pluginSection.GetUnsignedIntegerValue("ConnectTimeout", 30);
   const unsigned int requestTimeout = pluginSection.GetUnsignedIntegerValue("RequestTimeout", 1200);
   const bool virtualAddressing = pluginSection.GetBooleanValue("VirtualAddressing", true);
-  const bool storageContainsUnknownFiles = pluginSection.GetBooleanValue("EnableLegacyUnknownFiles", false);
   const std::string caFile = orthancConfig.GetStringValue("HttpsCACertificates", "");
   
   try

@@ -72,7 +72,7 @@ std::string BaseStoragePlugin::GetPath(const char* uuid, OrthancPluginContentTyp
   }
 }
 
-bool BaseStoragePlugin::ReadCommonConfiguration(bool& enableLegacyStorageStructure, const OrthancPlugins::OrthancConfiguration& pluginSection)
+bool BaseStoragePlugin::ReadCommonConfiguration(bool& enableLegacyStorageStructure, bool& storageContainsUnknownFiles, const OrthancPlugins::OrthancConfiguration& pluginSection)
 {
   std::string storageStructure = pluginSection.GetStringValue("StorageStructure", "flat");
   if (storageStructure == "flat")
@@ -88,6 +88,8 @@ bool BaseStoragePlugin::ReadCommonConfiguration(bool& enableLegacyStorageStructu
       return false;
     }
   }
+
+  storageContainsUnknownFiles = pluginSection.GetBooleanValue("EnableLegacyUnknownFiles", false);
 
   return true;
 }
