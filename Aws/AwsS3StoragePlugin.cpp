@@ -26,6 +26,7 @@
 #include <aws/s3/model/DeleteObjectRequest.h>
 #include <aws/core/auth/AWSCredentialsProvider.h>
 #include <aws/core/utils/memory/stl/AWSStringStream.h>
+#include <aws/core/utils/HashingUtils.h>
 #include <aws/crt/Api.h>
 
 #include <boost/lexical_cast.hpp>
@@ -88,6 +89,7 @@ public:
     stream->seekg(0);
 
     putObjectRequest.SetBody(stream);
+    putObjectRequest.SetContentMD5(Aws::Utils::HashingUtils::Base64Encode(Aws::Utils::HashingUtils::CalculateMD5(*stream)));
 
     auto result = client_.PutObject(putObjectRequest);
 
