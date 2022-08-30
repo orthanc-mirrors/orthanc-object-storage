@@ -26,6 +26,7 @@
 #include <cryptopp/cryptlib.h>
 #include <cryptopp/modes.h>
 #include <cryptopp/hex.h>
+#include <cryptopp/base64.h>
 #include <cryptopp/gcm.h>
 #include <cryptopp/files.h>
 #include <cryptopp/filters.h>
@@ -73,10 +74,12 @@ void EncryptionHelpers::ReadKey(CryptoPP::SecByteBlock& key, const std::string& 
   try
   {
     FileSource fs(path.c_str(), true,
-                  new HexDecoder(
+                  new Base64Decoder(
                     new ArraySink(key.begin(), key.size())
                     )
                   );
+
+    // std::cout << "ReadKey " << ToHexString(key) << std::endl;
   }
   catch (CryptoPP::Exception& ex)
   {
@@ -259,19 +262,25 @@ void EncryptionHelpers::DecryptPrefixSecBlock(CryptoPP::SecByteBlock& output, co
 
 void EncryptionHelpers::EncryptInternal(std::string& output, const char* data, size_t size, const CryptoPP::SecByteBlock& masterKey)
 {
+  // std::cout << "EncryptInternal" << std::endl;
+  // std::cout << "masterKey " << ToHexString(masterKey) << std::endl;
+
   SecByteBlock iv(IV_SIZE);
   randomGenerator_.GenerateBlock(iv, iv.size());  // with GCM, the iv is supposed to be a nonce (not a random number).  However, since each dataKey is used only once, we consider a random number is fine.
 
   SecByteBlock dataKey;
   GenerateKey(dataKey);
 
-//  std::cout << ToHexString(dataKey) << std::endl;
-//  std::cout << ToHexString(iv) << std::endl;
+  // std::cout << "dataKey " << ToHexString(dataKey) << std::endl;
+  // std::cout << "iv " << ToHexString(iv) << std::endl;
   std::string encryptedDataKey;
   std::string encryptedIv;
 
   EncryptPrefixSecBlock(encryptedIv, iv, masterKey);
   EncryptPrefixSecBlock(encryptedDataKey, dataKey, masterKey);
+
+  // std::cout << "encryptedIv " << ToHexString(encryptedIv) << std::endl;
+  // std::cout << "encryptedDataKey " << ToHexString(encryptedDataKey) << std::endl;
 
   std::string prefix = HEADER_VERSION + encryptionMasterKeyId_ + encryptedIv + encryptedDataKey;
 
@@ -309,21 +318,30 @@ void EncryptionHelpers::EncryptInternal(std::string& output, const char* data, s
 
 void EncryptionHelpers::DecryptInternal(char* output, const char* data, size_t size, const CryptoPP::SecByteBlock& masterKey)
 {
+  // std::cout << "DecryptInternal" << std::endl;
+  // std::cout << "masterKey " << ToHexString(masterKey) << std::endl;
+
   size_t prefixSize = HEADER_VERSION_SIZE + MASTER_KEY_ID_SIZE + IV_SIZE + AES_KEY_SIZE;
 
   std::string prefix = std::string(data, prefixSize);
   std::string mac = std::string(data + size - INTEGRITY_CHECK_TAG_SIZE, INTEGRITY_CHECK_TAG_SIZE);
 
+  // std::cout << "prefix " << ToHexString(prefix) << std::endl;
+  // std::cout << "mac " << ToHexString(mac) << std::endl;
+
   std::string encryptedIv = prefix.substr(HEADER_VERSION_SIZE + MASTER_KEY_ID_SIZE, IV_SIZE);
   std::string encryptedDataKey = prefix.substr(HEADER_VERSION_SIZE + MASTER_KEY_ID_SIZE + IV_SIZE, AES_KEY_SIZE);
+
+  // std::cout << "encryptedIv " << ToHexString(encryptedIv) << std::endl;
+  // std::cout << "encryptedDataKey " << ToHexString(encryptedDataKey) << std::endl;
 
   SecByteBlock dataKey;
   SecByteBlock iv;
 
   DecryptPrefixSecBlock(iv, encryptedIv, masterKey);
   DecryptPrefixSecBlock(dataKey, encryptedDataKey, masterKey);
-//  std::cout << ToHexString(dataKey) << std::endl;
-//  std::cout << ToHexString(iv) << std::endl;
+  // std::cout << "dataKey " << ToHexString(dataKey) << std::endl;
+  // std::cout << "iv " << ToHexString(iv) << std::endl;
 
   GCM<AES>::Decryption d;
   d.SetKeyWithIV(dataKey, dataKey.size(), iv, iv.size());
