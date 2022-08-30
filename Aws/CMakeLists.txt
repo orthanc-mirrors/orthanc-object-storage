@@ -19,7 +19,7 @@ cmake_minimum_required(VERSION 2.8)
 
 project(OrthancAwsS3Storage)
 
-set(PLUGIN_VERSION "mainline")
+set(PLUGIN_VERSION "2.0.0")
 
 if (PLUGIN_VERSION STREQUAL "mainline")
   set(ORTHANC_FRAMEWORK_DEFAULT_VERSION "mainline")
