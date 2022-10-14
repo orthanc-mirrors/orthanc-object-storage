@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "../Common/BaseStoragePlugin.h"
+#include "../Common/BaseStorage.h"
 
 #include "google/cloud/storage/client.h"
 
@@ -27,5 +27,5 @@ class GoogleStoragePluginFactory
 {
 public:
   static const char* GetStoragePluginName();
-  static IStoragePlugin* CreateStoragePlugin(const OrthancPlugins::OrthancConfiguration& orthancConfig);
+  static IStorage* CreateStorage(const OrthancPlugins::OrthancConfiguration& orthancConfig);
 };

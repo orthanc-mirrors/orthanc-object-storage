@@ -16,8 +16,8 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  **/
 
-#include "FileSystemStoragePlugin.h"
-#include "BaseStoragePlugin.h"
+#include "FileSystemStorage.h"
+#include "BaseStorage.h"
 
 #include <SystemToolbox.h>
 #include <boost/filesystem.hpp>
@@ -98,14 +98,14 @@ void FileSystemStoragePlugin::FileSystemReader::ReadRange(char* data, size_t siz
 
 
 
-IStoragePlugin::IWriter* FileSystemStoragePlugin::GetWriterForObject(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled)
+IStorage::IWriter* FileSystemStoragePlugin::GetWriterForObject(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled)
 {
-  return new FileSystemWriter(BaseStoragePlugin::GetOrthancFileSystemPath(uuid, fileSystemRootPath_), fsync_);
+  return new FileSystemWriter(BaseStorage::GetOrthancFileSystemPath(uuid, fileSystemRootPath_), fsync_);
 }
 
-IStoragePlugin::IReader* FileSystemStoragePlugin::GetReaderForObject(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled)
+IStorage::IReader* FileSystemStoragePlugin::GetReaderForObject(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled)
 {
-  return new FileSystemReader(BaseStoragePlugin::GetOrthancFileSystemPath(uuid, fileSystemRootPath_));
+  return new FileSystemReader(BaseStorage::GetOrthancFileSystemPath(uuid, fileSystemRootPath_));
 }
 
 void FileSystemStoragePlugin::DeleteObject(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled)
@@ -114,7 +114,7 @@ void FileSystemStoragePlugin::DeleteObject(const char* uuid, OrthancPluginConten
   {
     namespace fs = boost::filesystem;
 
-    fs::path path = BaseStoragePlugin::GetOrthancFileSystemPath(uuid, fileSystemRootPath_);
+    fs::path path = BaseStorage::GetOrthancFileSystemPath(uuid, fileSystemRootPath_);
 
     try
     {

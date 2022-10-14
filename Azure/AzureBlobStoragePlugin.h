@@ -19,11 +19,11 @@
 
 #pragma once
 
-#include "../Common/BaseStoragePlugin.h"
+#include "../Common/BaseStorage.h"
 
 class AzureBlobStoragePluginFactory
 {
 public:
   static const char* GetStoragePluginName();
-  static IStoragePlugin* CreateStoragePlugin(const OrthancPlugins::OrthancConfiguration& orthancConfig);
+  static IStorage* CreateStorage(const OrthancPlugins::OrthancConfiguration& orthancConfig);
 };

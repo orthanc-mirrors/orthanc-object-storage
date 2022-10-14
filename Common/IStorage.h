@@ -39,10 +39,10 @@ public:
 //{
 //public:
 //  const char* GetStoragePluginName();
-//  IStoragePlugin* CreateStoragePlugin(const OrthancPlugins::OrthancConfiguration& orthancConfig);
+//  IStorage* CreateStorage(const OrthancPlugins::OrthancConfiguration& orthancConfig);
 //};
 
-class IStoragePlugin
+class IStorage
 {
 public:
   class IWriter
@@ -69,7 +69,7 @@ public:
 
   std::string nameForLogs_;
 public:
-  IStoragePlugin(const std::string& nameForLogs):
+  IStorage(const std::string& nameForLogs):
     nameForLogs_(nameForLogs)
   {}
 

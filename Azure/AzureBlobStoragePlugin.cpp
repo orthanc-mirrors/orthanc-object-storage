@@ -31,7 +31,7 @@
 namespace as = azure::storage;
 static const char* const PLUGIN_SECTION = "AzureBlobStorage";
 
-class AzureBlobStoragePlugin : public BaseStoragePlugin
+class AzureBlobStoragePlugin : public BaseStorage
 {
 public:
 
@@ -54,7 +54,7 @@ public:
 };
 
 
-class Writer : public IStoragePlugin::IWriter
+class Writer : public IStorage::IWriter
 {
   std::string   path_;
   as::cloud_blob_client   client_;
@@ -89,7 +89,7 @@ public:
 };
 
 
-class Reader : public IStoragePlugin::IReader
+class Reader : public IStorage::IReader
 {
   std::string path_;
   as::cloud_blob_client   client_;
@@ -196,7 +196,7 @@ bool IsSasTokenAccountLevel(utility::string_t sasToken)
   return false;
 }
 
-IStoragePlugin* AzureBlobStoragePluginFactory::CreateStoragePlugin(const OrthancPlugins::OrthancConfiguration& orthancConfig)
+IStorage* AzureBlobStoragePluginFactory::CreateStorage(const OrthancPlugins::OrthancConfiguration& orthancConfig)
 {
   std::string connectionString;
   std::string containerName;
@@ -209,7 +209,7 @@ IStoragePlugin* AzureBlobStoragePluginFactory::CreateStoragePlugin(const Orthanc
     OrthancPlugins::OrthancConfiguration pluginSection;
     orthancConfig.GetSection(pluginSection, PLUGIN_SECTION);
 
-    if (!BaseStoragePlugin::ReadCommonConfiguration(enableLegacyStorageStructure, storageContainsUnknownFiles, pluginSection))
+    if (!BaseStorage::ReadCommonConfiguration(enableLegacyStorageStructure, storageContainsUnknownFiles, pluginSection))
     {
       return nullptr;
     }
@@ -314,7 +314,7 @@ IStoragePlugin* AzureBlobStoragePluginFactory::CreateStoragePlugin(const Orthanc
 }
 
 AzureBlobStoragePlugin::AzureBlobStoragePlugin(const as::cloud_blob_client& blobClient, const as::cloud_blob_container& blobContainer, bool enableLegacyStorageStructure, bool storageContainsUnknownFiles)
-  : BaseStoragePlugin(enableLegacyStorageStructure),
+  : BaseStorage(enableLegacyStorageStructure),
     blobClient_(blobClient),
     blobContainer_(blobContainer),
     storageContainsUnknownFiles_(storageContainsUnknownFiles)
@@ -322,12 +322,12 @@ AzureBlobStoragePlugin::AzureBlobStoragePlugin(const as::cloud_blob_client& blob
 
 }
 
-IStoragePlugin::IWriter* AzureBlobStoragePlugin::GetWriterForObject(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled)
+IStorage::IWriter* AzureBlobStoragePlugin::GetWriterForObject(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled)
 {
   return new Writer(blobContainer_, GetPath(uuid, type, encryptionEnabled), blobClient_);
 }
 
-IStoragePlugin::IReader* AzureBlobStoragePlugin::GetReaderForObject(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled)
+IStorage::IReader* AzureBlobStoragePlugin::GetReaderForObject(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled)
 {
   std::list<std::string> paths;
   paths.push_back(GetPath(uuid, type, encryptionEnabled, false));

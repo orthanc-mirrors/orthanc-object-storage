@@ -35,7 +35,7 @@
 
 const char* ALLOCATION_TAG = "OrthancS3";
 
-class AwsS3StoragePlugin : public BaseStoragePlugin
+class AwsS3StoragePlugin : public BaseStorage
 {
 public:
 
@@ -55,7 +55,7 @@ public:
 };
 
 
-class Writer : public IStoragePlugin::IWriter
+class Writer : public IStorage::IWriter
 {
   std::string             path_;
   Aws::S3::S3Client       client_;
@@ -99,7 +99,7 @@ public:
 };
 
 
-class Reader : public IStoragePlugin::IReader
+class Reader : public IStorage::IReader
 {
   Aws::S3::S3Client       client_;
   std::string             bucketName_;
@@ -258,7 +258,7 @@ static std::unique_ptr<Aws::Crt::ApiHandle>  api_;
 static std::unique_ptr<Aws::SDKOptions>  sdkOptions_;
 
 
-IStoragePlugin* AwsS3StoragePluginFactory::CreateStoragePlugin(const std::string& nameForLogs, const OrthancPlugins::OrthancConfiguration& orthancConfig)
+IStorage* AwsS3StoragePluginFactory::CreateStorage(const std::string& nameForLogs, const OrthancPlugins::OrthancConfiguration& orthancConfig)
 {
   if (sdkOptions_.get() != NULL)
   {
@@ -285,7 +285,7 @@ IStoragePlugin* AwsS3StoragePluginFactory::CreateStoragePlugin(const std::string
   OrthancPlugins::OrthancConfiguration pluginSection;
   orthancConfig.GetSection(pluginSection, GetConfigurationSectionName());
 
-  if (!BaseStoragePlugin::ReadCommonConfiguration(enableLegacyStorageStructure, storageContainsUnknownFiles, pluginSection))
+  if (!BaseStorage::ReadCommonConfiguration(enableLegacyStorageStructure, storageContainsUnknownFiles, pluginSection))
   {
     return nullptr;
   }
@@ -376,19 +376,19 @@ AwsS3StoragePlugin::~AwsS3StoragePlugin()
 
 
 AwsS3StoragePlugin::AwsS3StoragePlugin(const std::string& nameForLogs, const Aws::S3::S3Client& client, const std::string& bucketName, bool enableLegacyStorageStructure, bool storageContainsUnknownFiles)
-  : BaseStoragePlugin(nameForLogs, enableLegacyStorageStructure),
+  : BaseStorage(nameForLogs, enableLegacyStorageStructure),
     client_(client),
     bucketName_(bucketName),
     storageContainsUnknownFiles_(storageContainsUnknownFiles)
 {
 }
 
-IStoragePlugin::IWriter* AwsS3StoragePlugin::GetWriterForObject(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled)
+IStorage::IWriter* AwsS3StoragePlugin::GetWriterForObject(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled)
 {
   return new Writer(client_, bucketName_, GetPath(uuid, type, encryptionEnabled));
 }
 
-IStoragePlugin::IReader* AwsS3StoragePlugin::GetReaderForObject(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled)
+IStorage::IReader* AwsS3StoragePlugin::GetReaderForObject(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled)
 {
   std::list<std::string> paths;
   paths.push_back(GetPath(uuid, type, encryptionEnabled, false));

@@ -17,10 +17,10 @@
  **/
 
 
-#include "BaseStoragePlugin.h"
+#include "BaseStorage.h"
 #include <boost/filesystem/fstream.hpp>
 
-boost::filesystem::path BaseStoragePlugin::GetOrthancFileSystemPath(const std::string& uuid, const std::string& fileSystemRootPath)
+boost::filesystem::path BaseStorage::GetOrthancFileSystemPath(const std::string& uuid, const std::string& fileSystemRootPath)
 {
   boost::filesystem::path path = fileSystemRootPath;
 
@@ -34,7 +34,7 @@ boost::filesystem::path BaseStoragePlugin::GetOrthancFileSystemPath(const std::s
 }
 
 
-std::string BaseStoragePlugin::GetPath(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled, bool useAlternateExtension)
+std::string BaseStorage::GetPath(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled, bool useAlternateExtension)
 {
   if (enableLegacyStorageStructure_)
   {
@@ -72,7 +72,7 @@ std::string BaseStoragePlugin::GetPath(const char* uuid, OrthancPluginContentTyp
   }
 }
 
-bool BaseStoragePlugin::ReadCommonConfiguration(bool& enableLegacyStorageStructure, bool& storageContainsUnknownFiles, const OrthancPlugins::OrthancConfiguration& pluginSection)
+bool BaseStorage::ReadCommonConfiguration(bool& enableLegacyStorageStructure, bool& storageContainsUnknownFiles, const OrthancPlugins::OrthancConfiguration& pluginSection)
 {
   std::string storageStructure = pluginSection.GetStringValue("StorageStructure", "flat");
   if (storageStructure == "flat")

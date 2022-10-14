@@ -86,15 +86,15 @@ if (NOT WIN32)
 endif()
 
 set(COMMON_SOURCES
-    ${CMAKE_SOURCE_DIR}/../Common/IStoragePlugin.h
-    ${CMAKE_SOURCE_DIR}/../Common/BaseStoragePlugin.h
-    ${CMAKE_SOURCE_DIR}/../Common/BaseStoragePlugin.cpp
+    ${CMAKE_SOURCE_DIR}/../Common/IStorage.h
+    ${CMAKE_SOURCE_DIR}/../Common/BaseStorage.h
+    ${CMAKE_SOURCE_DIR}/../Common/BaseStorage.cpp
     ${CMAKE_SOURCE_DIR}/../Common/EncryptionHelpers.cpp
     ${CMAKE_SOURCE_DIR}/../Common/EncryptionHelpers.h
     ${CMAKE_SOURCE_DIR}/../Common/EncryptionConfigurator.cpp
     ${CMAKE_SOURCE_DIR}/../Common/EncryptionConfigurator.h
-    ${CMAKE_SOURCE_DIR}/../Common/FileSystemStoragePlugin.h
-    ${CMAKE_SOURCE_DIR}/../Common/FileSystemStoragePlugin.cpp
+    ${CMAKE_SOURCE_DIR}/../Common/FileSystemStorage.h
+    ${CMAKE_SOURCE_DIR}/../Common/FileSystemStorage.cpp
     ${ORTHANC_FRAMEWORK_ROOT}/../../OrthancServer/Plugins/Samples/Common/OrthancPluginCppWrapper.cpp
 
     ${ORTHANC_CORE_SOURCES}

@@ -26,7 +26,7 @@ namespace gcs = google::cloud::storage;
 static const char* const PLUGIN_SECTION = "GoogleCloudStorage";
 
 
-class GoogleStoragePlugin : public BaseStoragePlugin
+class GoogleStoragePlugin : public BaseStorage
 {
 public:
 
@@ -49,7 +49,7 @@ public:
 };
 
 
-class Writer : public IStoragePlugin::IWriter
+class Writer : public IStorage::IWriter
 {
   std::string   path_;
   gcs::Client   client_;
@@ -89,7 +89,7 @@ public:
 };
 
 
-class Reader : public IStoragePlugin::IReader
+class Reader : public IStorage::IReader
 {
   std::list<std::string>  paths_;
   gcs::Client             client_;
@@ -234,7 +234,7 @@ const char* GoogleStoragePluginFactory::GetStoragePluginName()
   return "Google Cloud Storage";
 }
 
-IStoragePlugin* GoogleStoragePluginFactory::CreateStoragePlugin(const OrthancPlugins::OrthancConfiguration& orthancConfig)
+IStorage* GoogleStoragePluginFactory::CreateStorage(const OrthancPlugins::OrthancConfiguration& orthancConfig)
 {
   bool enableLegacyStorageStructure;
   bool storageContainsUnknownFiles;
@@ -248,7 +248,7 @@ IStoragePlugin* GoogleStoragePluginFactory::CreateStoragePlugin(const OrthancPlu
   OrthancPlugins::OrthancConfiguration pluginSection;
   orthancConfig.GetSection(pluginSection, PLUGIN_SECTION);
 
-  if (!BaseStoragePlugin::ReadCommonConfiguration(enableLegacyStorageStructure, storageContainsUnknownFiles, pluginSection))
+  if (!BaseStorage::ReadCommonConfiguration(enableLegacyStorageStructure, storageContainsUnknownFiles, pluginSection))
   {
     return nullptr;
   }
@@ -289,7 +289,7 @@ IStoragePlugin* GoogleStoragePluginFactory::CreateStoragePlugin(const OrthancPlu
 }
 
 GoogleStoragePlugin::GoogleStoragePlugin(const std::string &bucketName, google::cloud::storage::Client& mainClient, bool enableLegacyStorageStructure, bool storageContainsUnknownFiles)
-  : BaseStoragePlugin(enableLegacyStorageStructure),
+  : BaseStorage(enableLegacyStorageStructure),
     bucketName_(bucketName),
     mainClient_(mainClient),
     storageContainsUnknownFiles_(storageContainsUnknownFiles)
@@ -297,12 +297,12 @@ GoogleStoragePlugin::GoogleStoragePlugin(const std::string &bucketName, google::
 
 }
 
-IStoragePlugin::IWriter* GoogleStoragePlugin::GetWriterForObject(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled)
+IStorage::IWriter* GoogleStoragePlugin::GetWriterForObject(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled)
 {
   return new Writer(bucketName_, GetPath(uuid, type, encryptionEnabled), mainClient_);
 }
 
-IStoragePlugin::IReader* GoogleStoragePlugin::GetReaderForObject(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled)
+IStorage::IReader* GoogleStoragePlugin::GetReaderForObject(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled)
 {
   std::list<std::string> paths;
   paths.push_back(GetPath(uuid, type, encryptionEnabled, false));

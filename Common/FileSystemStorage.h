@@ -19,16 +19,16 @@
 
 #pragma once
 
-#include "IStoragePlugin.h"
+#include "IStorage.h"
 #include <boost/filesystem.hpp>
 
 namespace fs = boost::filesystem;
 
 
-class FileSystemStoragePlugin: public IStoragePlugin
+class FileSystemStoragePlugin: public IStorage
 {
 public:
-  class FileSystemWriter: public IStoragePlugin::IWriter
+  class FileSystemWriter: public IStorage::IWriter
   {
     const fs::path path_;
     bool fsync_;
@@ -42,7 +42,7 @@ public:
     virtual void Write(const char* data, size_t size);
   };
 
-  class FileSystemReader: public IStoragePlugin::IReader
+  class FileSystemReader: public IStorage::IReader
   {
     const fs::path path_;
   public:
@@ -60,14 +60,14 @@ public:
   bool fsync_;
 public:
   FileSystemStoragePlugin(const std::string& nameForLogs, const std::string& fileSystemRootPath, bool fsync)
-  : IStoragePlugin(nameForLogs),
+  : IStorage(nameForLogs),
     fileSystemRootPath_(fileSystemRootPath),
     fsync_(fsync)
   {}
 
   virtual void SetRootPath(const std::string& rootPath) {}
 
-  virtual IStoragePlugin::IWriter* GetWriterForObject(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled);
-  virtual IStoragePlugin::IReader* GetReaderForObject(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled);
+  virtual IStorage::IWriter* GetWriterForObject(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled);
+  virtual IStorage::IReader* GetReaderForObject(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled);
   virtual void DeleteObject(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled);
 };

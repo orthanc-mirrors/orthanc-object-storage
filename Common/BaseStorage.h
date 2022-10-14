@@ -19,20 +19,20 @@
 
 #pragma once
 
-#include "IStoragePlugin.h"
+#include "IStorage.h"
 #include <boost/filesystem.hpp>
 
 namespace fs = boost::filesystem;
 
-class BaseStoragePlugin : public IStoragePlugin
+class BaseStorage : public IStorage
 {
   bool        enableLegacyStorageStructure_;
   std::string rootPath_;
 
 protected:
 
-  BaseStoragePlugin(const std::string& nameForLogs, bool enableLegacyStorageStructure):
-    IStoragePlugin(nameForLogs),
+  BaseStorage(const std::string& nameForLogs, bool enableLegacyStorageStructure):
+    IStorage(nameForLogs),
     enableLegacyStorageStructure_(enableLegacyStorageStructure)
   {}
 

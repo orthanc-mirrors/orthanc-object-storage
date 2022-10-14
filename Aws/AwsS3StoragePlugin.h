@@ -18,13 +18,13 @@
 
 #pragma once
 
-#include "../Common/BaseStoragePlugin.h"
+#include "../Common/BaseStorage.h"
 
 class AwsS3StoragePluginFactory
 {
 public:
   static const char* GetStoragePluginName();
-  static IStoragePlugin* CreateStoragePlugin(const std::string& nameForLogs, const OrthancPlugins::OrthancConfiguration& orthancConfig);
+  static IStorage* CreateStorage(const std::string& nameForLogs, const OrthancPlugins::OrthancConfiguration& orthancConfig);
   static const char* GetConfigurationSectionName() {return "AwsS3Storage";}
 };
 
