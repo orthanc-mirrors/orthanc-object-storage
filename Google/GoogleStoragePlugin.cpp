@@ -36,7 +36,8 @@ public:
 
 public:
 
-  GoogleStoragePlugin(const std::string& bucketName,
+  GoogleStoragePlugin(const std::string& nameForLogs, 
+                      const std::string& bucketName,
                       google::cloud::storage::Client& mainClient,
                       bool enableLegacyStorageStructure,
                       bool storageContainsUnknownFiles
@@ -234,7 +235,7 @@ const char* GoogleStoragePluginFactory::GetStoragePluginName()
   return "Google Cloud Storage";
 }
 
-IStorage* GoogleStoragePluginFactory::CreateStorage(const OrthancPlugins::OrthancConfiguration& orthancConfig)
+IStorage* GoogleStoragePluginFactory::CreateStorage(const std::string& nameForLogs, const OrthancPlugins::OrthancConfiguration& orthancConfig)
 {
   bool enableLegacyStorageStructure;
   bool storageContainsUnknownFiles;
@@ -285,11 +286,11 @@ IStorage* GoogleStoragePluginFactory::CreateStorage(const OrthancPlugins::Orthan
     return nullptr;
   }
 
-  return new GoogleStoragePlugin(googleBucketName, mainClient.value(), enableLegacyStorageStructure, storageContainsUnknownFiles);
+  return new GoogleStoragePlugin(nameForLogs, googleBucketName, mainClient.value(), enableLegacyStorageStructure, storageContainsUnknownFiles);
 }
 
-GoogleStoragePlugin::GoogleStoragePlugin(const std::string &bucketName, google::cloud::storage::Client& mainClient, bool enableLegacyStorageStructure, bool storageContainsUnknownFiles)
-  : BaseStorage(enableLegacyStorageStructure),
+GoogleStoragePlugin::GoogleStoragePlugin(const std::string& nameForLogs, const std::string &bucketName, google::cloud::storage::Client& mainClient, bool enableLegacyStorageStructure, bool storageContainsUnknownFiles)
+  : BaseStorage(nameForLogs, enableLegacyStorageStructure),
     bucketName_(bucketName),
     mainClient_(mainClient),
     storageContainsUnknownFiles_(storageContainsUnknownFiles)

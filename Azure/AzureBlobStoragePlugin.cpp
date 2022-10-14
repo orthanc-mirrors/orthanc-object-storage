@@ -41,7 +41,8 @@ public:
 
 public:
 
-  AzureBlobStoragePlugin(const as::cloud_blob_client& blobClient, 
+  AzureBlobStoragePlugin(const std::string& nameForLogs,  
+                         const as::cloud_blob_client& blobClient, 
                          const as::cloud_blob_container& blobContainer, 
                          bool enableLegacyStorageStructure,
                          bool storageContainsUnknownFiles
@@ -196,7 +197,7 @@ bool IsSasTokenAccountLevel(utility::string_t sasToken)
   return false;
 }
 
-IStorage* AzureBlobStoragePluginFactory::CreateStorage(const OrthancPlugins::OrthancConfiguration& orthancConfig)
+IStorage* AzureBlobStoragePluginFactory::CreateStorage(const std::string& nameForLogs, const OrthancPlugins::OrthancConfiguration& orthancConfig)
 {
   std::string connectionString;
   std::string containerName;
@@ -303,7 +304,7 @@ IStorage* AzureBlobStoragePluginFactory::CreateStorage(const OrthancPlugins::Ort
 
     OrthancPlugins::LogInfo("Blob storage initialized");
 
-    return new AzureBlobStoragePlugin(blobClient, blobContainer, enableLegacyStorageStructure, storageContainsUnknownFiles);
+    return new AzureBlobStoragePlugin(nameForLogs, blobClient, blobContainer, enableLegacyStorageStructure, storageContainsUnknownFiles);
   }
   catch (const std::exception& e)
   {
@@ -313,8 +314,8 @@ IStorage* AzureBlobStoragePluginFactory::CreateStorage(const OrthancPlugins::Ort
 
 }
 
-AzureBlobStoragePlugin::AzureBlobStoragePlugin(const as::cloud_blob_client& blobClient, const as::cloud_blob_container& blobContainer, bool enableLegacyStorageStructure, bool storageContainsUnknownFiles)
-  : BaseStorage(enableLegacyStorageStructure),
+AzureBlobStoragePlugin::AzureBlobStoragePlugin(const std::string& nameForLogs, const as::cloud_blob_client& blobClient, const as::cloud_blob_container& blobContainer, bool enableLegacyStorageStructure, bool storageContainsUnknownFiles)
+  : BaseStorage(nameForLogs, enableLegacyStorageStructure),
     blobClient_(blobClient),
     blobContainer_(blobContainer),
     storageContainsUnknownFiles_(storageContainsUnknownFiles)

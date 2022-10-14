@@ -25,5 +25,5 @@ class AzureBlobStoragePluginFactory
 {
 public:
   static const char* GetStoragePluginName();
-  static IStorage* CreateStorage(const OrthancPlugins::OrthancConfiguration& orthancConfig);
+  static IStorage* CreateStorage(const std::string& nameForLogs, const OrthancPlugins::OrthancConfiguration& orthancConfig);
 };
