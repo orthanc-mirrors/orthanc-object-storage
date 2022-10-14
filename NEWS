@@ -1,3 +1,8 @@
+* new option "HybridMode" allows selecting where to write new data (FileSystem or ObjectStorage) and reads
+  from both storages.  Allowed values: "WriteToFileSystem", "WriteToObjectStorage", "Disabled".
+  If disabled (default), the plugin writes all data to the object storage and tries to read them only from the
+  object storage.
+
 2022-08-30 - v 2.0.0
 ====================
 

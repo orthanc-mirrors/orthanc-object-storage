@@ -67,11 +67,17 @@ public:
     virtual void ReadRange(char* data, size_t size, size_t fromOffset) = 0;
   };
 
+  std::string nameForLogs_;
 public:
+  IStoragePlugin(const std::string& nameForLogs):
+    nameForLogs_(nameForLogs)
+  {}
+
   virtual void SetRootPath(const std::string& rootPath) = 0;
 
   virtual IWriter* GetWriterForObject(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled) = 0;
   virtual IReader* GetReaderForObject(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled) = 0;
-  virtual void DeleteObject(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled) = 0;
-  virtual const char* GetConfigurationSectionName() = 0;
+  virtual void DeleteObject(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled) = 0;  // returns true only if 100% sure that the file has been deleted, false otherwise
+
+  const std::string& GetNameForLogs() {return nameForLogs_;}
 };

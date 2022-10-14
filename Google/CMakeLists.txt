@@ -67,6 +67,8 @@ set(COMMON_SOURCES
     ${CMAKE_SOURCE_DIR}/../Common/EncryptionHelpers.h
     ${CMAKE_SOURCE_DIR}/../Common/EncryptionConfigurator.cpp
     ${CMAKE_SOURCE_DIR}/../Common/EncryptionConfigurator.h
+    ${CMAKE_SOURCE_DIR}/../Common/FileSystemStoragePlugin.h
+    ${CMAKE_SOURCE_DIR}/../Common/FileSystemStoragePlugin.cpp
     ${ORTHANC_FRAMEWORK_ROOT}/../../OrthancServer/Plugins/Samples/Common/OrthancPluginCppWrapper.cpp
 
     ${ORTHANC_CORE_SOURCES}

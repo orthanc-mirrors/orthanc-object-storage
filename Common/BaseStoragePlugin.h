@@ -20,6 +20,9 @@
 #pragma once
 
 #include "IStoragePlugin.h"
+#include <boost/filesystem.hpp>
+
+namespace fs = boost::filesystem;
 
 class BaseStoragePlugin : public IStoragePlugin
 {
@@ -28,7 +31,8 @@ class BaseStoragePlugin : public IStoragePlugin
 
 protected:
 
-  BaseStoragePlugin(bool enableLegacyStorageStructure):
+  BaseStoragePlugin(const std::string& nameForLogs, bool enableLegacyStorageStructure):
+    IStoragePlugin(nameForLogs),
     enableLegacyStorageStructure_(enableLegacyStorageStructure)
   {}
 
@@ -41,7 +45,7 @@ public:
   }
 
   static std::string GetPath(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled, bool legacyFileStructure, const std::string& rootFolder);
-  static std::string GetOrthancFileSystemPath(const std::string& uuid, const std::string& fileSystemRootPath);
+  static fs::path GetOrthancFileSystemPath(const std::string& uuid, const std::string& fileSystemRootPath);
 
   static bool ReadCommonConfiguration(bool& enableLegacyStorageStructure, bool& storageContainsUnknownFiles, const OrthancPlugins::OrthancConfiguration& pluginSection);
 };

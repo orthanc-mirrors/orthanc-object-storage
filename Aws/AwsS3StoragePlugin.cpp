@@ -34,7 +34,6 @@
 #include <fstream>
 
 const char* ALLOCATION_TAG = "OrthancS3";
-static const char* const PLUGIN_SECTION = "AwsS3Storage";
 
 class AwsS3StoragePlugin : public BaseStoragePlugin
 {
@@ -46,14 +45,13 @@ public:
 
 public:
 
-  AwsS3StoragePlugin(const Aws::S3::S3Client& client, const std::string& bucketName, bool enableLegacyStorageStructure, bool storageContainsUnknownFiles);
+  AwsS3StoragePlugin(const std::string& nameForLogs,  const Aws::S3::S3Client& client, const std::string& bucketName, bool enableLegacyStorageStructure, bool storageContainsUnknownFiles);
 
   virtual ~AwsS3StoragePlugin();
 
   virtual IWriter* GetWriterForObject(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled);
   virtual IReader* GetReaderForObject(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled);
   virtual void DeleteObject(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled);
-  virtual const char* GetConfigurationSectionName() {return PLUGIN_SECTION;};
 };
 
 
@@ -260,7 +258,7 @@ static std::unique_ptr<Aws::Crt::ApiHandle>  api_;
 static std::unique_ptr<Aws::SDKOptions>  sdkOptions_;
 
 
-IStoragePlugin* AwsS3StoragePluginFactory::CreateStoragePlugin(const OrthancPlugins::OrthancConfiguration& orthancConfig)
+IStoragePlugin* AwsS3StoragePluginFactory::CreateStoragePlugin(const std::string& nameForLogs, const OrthancPlugins::OrthancConfiguration& orthancConfig)
 {
   if (sdkOptions_.get() != NULL)
   {
@@ -278,14 +276,14 @@ IStoragePlugin* AwsS3StoragePluginFactory::CreateStoragePlugin(const OrthancPlug
   bool enableLegacyStorageStructure;
   bool storageContainsUnknownFiles;
 
-  if (!orthancConfig.IsSection(PLUGIN_SECTION))
+  if (!orthancConfig.IsSection(GetConfigurationSectionName()))
   {
     OrthancPlugins::LogWarning(std::string(GetStoragePluginName()) + " plugin, section missing.  Plugin is not enabled.");
     return nullptr;
   }
 
   OrthancPlugins::OrthancConfiguration pluginSection;
-  orthancConfig.GetSection(pluginSection, PLUGIN_SECTION);
+  orthancConfig.GetSection(pluginSection, GetConfigurationSectionName());
 
   if (!BaseStoragePlugin::ReadCommonConfiguration(enableLegacyStorageStructure, storageContainsUnknownFiles, pluginSection))
   {
@@ -347,7 +345,7 @@ IStoragePlugin* AwsS3StoragePluginFactory::CreateStoragePlugin(const OrthancPlug
       
       OrthancPlugins::LogInfo("AWS S3 storage initialized");
 
-      return new AwsS3StoragePlugin(client, bucketName, enableLegacyStorageStructure, storageContainsUnknownFiles);
+      return new AwsS3StoragePlugin(nameForLogs, client, bucketName, enableLegacyStorageStructure, storageContainsUnknownFiles);
     } 
     else
     {
@@ -357,7 +355,7 @@ IStoragePlugin* AwsS3StoragePluginFactory::CreateStoragePlugin(const OrthancPlug
 
       OrthancPlugins::LogInfo("AWS S3 storage initialized");
 
-      return new AwsS3StoragePlugin(client, bucketName, enableLegacyStorageStructure, storageContainsUnknownFiles);
+      return new AwsS3StoragePlugin(nameForLogs, client, bucketName, enableLegacyStorageStructure, storageContainsUnknownFiles);
     }  
   }
   catch (const std::exception& e)
@@ -377,8 +375,8 @@ AwsS3StoragePlugin::~AwsS3StoragePlugin()
 }
 
 
-AwsS3StoragePlugin::AwsS3StoragePlugin(const Aws::S3::S3Client& client, const std::string& bucketName, bool enableLegacyStorageStructure, bool storageContainsUnknownFiles)
-  : BaseStoragePlugin(enableLegacyStorageStructure),
+AwsS3StoragePlugin::AwsS3StoragePlugin(const std::string& nameForLogs, const Aws::S3::S3Client& client, const std::string& bucketName, bool enableLegacyStorageStructure, bool storageContainsUnknownFiles)
+  : BaseStoragePlugin(nameForLogs, enableLegacyStorageStructure),
     client_(client),
     bucketName_(bucketName),
     storageContainsUnknownFiles_(storageContainsUnknownFiles)

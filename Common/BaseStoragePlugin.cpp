@@ -20,7 +20,7 @@
 #include "BaseStoragePlugin.h"
 #include <boost/filesystem/fstream.hpp>
 
-std::string BaseStoragePlugin::GetOrthancFileSystemPath(const std::string& uuid, const std::string& fileSystemRootPath)
+boost::filesystem::path BaseStoragePlugin::GetOrthancFileSystemPath(const std::string& uuid, const std::string& fileSystemRootPath)
 {
   boost::filesystem::path path = fileSystemRootPath;
 
@@ -30,7 +30,7 @@ std::string BaseStoragePlugin::GetOrthancFileSystemPath(const std::string& uuid,
 
   path.make_preferred();
 
-  return path.string();
+  return path;
 }
 
 
@@ -38,7 +38,7 @@ std::string BaseStoragePlugin::GetPath(const char* uuid, OrthancPluginContentTyp
 {
   if (enableLegacyStorageStructure_)
   {
-    return GetOrthancFileSystemPath(uuid, rootPath_);
+    return GetOrthancFileSystemPath(uuid, rootPath_).string();
   }
   else
   {

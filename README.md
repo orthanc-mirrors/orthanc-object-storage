@@ -133,6 +133,46 @@ make install
         "RootPath": "",                 // optional: folder in which files are stored (ex: my/path/to/myfolder)
         "StorageEncryption" : {...},    // optional
         "StorageStructure" : "flat",    // optional
-        "MigrationFromFileSystemEnabled" : false // optional
+        "MigrationFromFileSystemEnabled" : false, // optional (deprecated, is now equivalent to "HybridMode": "WriteToObjectStorage")
+        "HybridMode": "WriteToDisk"     // "WriteToDisk", "WriteToObjectStorage", "Disabled"
     }
 ```
+
+### Testing the S3 plugin with minio
+
+```
+docker run -p 9000:9000 -p 9001:9001 -e MINIO_REGION=eu-west-1 -e MINIO_ROOT_USER=minio -e MINIO_ROOT_PASSWORD=miniopwd minio/minio server /data --console-address ":9001"
+```
+
+config file:
+```
+    "AwsS3Storage" : {
+        "BucketName": "orthanc",
+        "Region": "eu-west-1",
+        "Endpoint": "http://127.0.0.1:9000/",
+        "AccessKey": "minio",
+        "SecretKey": "miniopwd",
+        "VirtualAddressing": false
+
+        // "StorageEncryption" : {
+        //     "Enable": true,
+        //     "MasterKey": [1, "/home/test/encryption/test.key"],
+        //     "MaxConcurrentInputSize": 1024,
+        //     "Verbose": true         
+        // }                  // optional: see the section related to encryption
+      }
+
+```
+
+Test the hybrid mode
+- start in "HybridMode": "WriteToFileSystem", 
+  - upload instances 1 & 2
+- restart in "HybridMode": "WriteToObjectStorage", 
+  - check that you can read instance 1 and that you can delete it
+  - upload instances 3 & 4
+- restart in "HybridMode": "WriteToFileSystem",
+  - check that you can read instance 3 and that you can delete it
+- final check:
+  - there should be only one file in the disk storage
+  - there should be only one file in the S3 bucket
+
