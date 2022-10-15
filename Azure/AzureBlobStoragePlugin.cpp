@@ -29,7 +29,6 @@
 
 // Create aliases to make the code easier to read.
 namespace as = azure::storage;
-static const char* const PLUGIN_SECTION = "AzureBlobStorage";
 
 class AzureBlobStoragePlugin : public BaseStorage
 {
@@ -51,7 +50,6 @@ public:
   virtual IWriter* GetWriterForObject(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled);
   virtual IReader* GetReaderForObject(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled);
   virtual void DeleteObject(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled);
-  virtual const char* GetConfigurationSectionName() {return PLUGIN_SECTION;};
 };
 
 

@@ -23,7 +23,6 @@
 
 // Create aliases to make the code easier to read.
 namespace gcs = google::cloud::storage;
-static const char* const PLUGIN_SECTION = "GoogleCloudStorage";
 
 
 class GoogleStoragePlugin : public BaseStorage
@@ -46,7 +45,6 @@ public:
   virtual IWriter* GetWriterForObject(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled);
   virtual IReader* GetReaderForObject(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled);
   virtual bool DeleteObject(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled);
-  virtual const char* GetConfigurationSectionName() {return PLUGIN_SECTION;}
 };
 
 
