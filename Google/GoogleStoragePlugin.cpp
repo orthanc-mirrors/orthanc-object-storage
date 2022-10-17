@@ -238,14 +238,14 @@ IStorage* GoogleStoragePluginFactory::CreateStorage(const std::string& nameForLo
   bool enableLegacyStorageStructure;
   bool storageContainsUnknownFiles;
 
-  if (!orthancConfig.IsSection(PLUGIN_SECTION))
+  if (!orthancConfig.IsSection(GetConfigurationSectionName()))
   {
     OrthancPlugins::LogWarning(std::string(GetStoragePluginName()) + " plugin, section missing.  Plugin is not enabled.");
     return nullptr;
   }
 
   OrthancPlugins::OrthancConfiguration pluginSection;
-  orthancConfig.GetSection(pluginSection, PLUGIN_SECTION);
+  orthancConfig.GetSection(pluginSection, GetConfigurationSectionName());
 
   if (!BaseStorage::ReadCommonConfiguration(enableLegacyStorageStructure, storageContainsUnknownFiles, pluginSection))
   {

@@ -203,10 +203,10 @@ IStorage* AzureBlobStoragePluginFactory::CreateStorage(const std::string& nameFo
   bool storageContainsUnknownFiles;
   bool createContainerIfNotExists;
 
-  if (orthancConfig.IsSection(PLUGIN_SECTION))
+  if (orthancConfig.IsSection(GetConfigurationSectionName()))
   {
     OrthancPlugins::OrthancConfiguration pluginSection;
-    orthancConfig.GetSection(pluginSection, PLUGIN_SECTION);
+    orthancConfig.GetSection(pluginSection, GetConfigurationSectionName());
 
     if (!BaseStorage::ReadCommonConfiguration(enableLegacyStorageStructure, storageContainsUnknownFiles, pluginSection))
     {
