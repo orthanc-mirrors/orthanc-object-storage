@@ -44,7 +44,7 @@ public:
 
   virtual IWriter* GetWriterForObject(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled);
   virtual IReader* GetReaderForObject(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled);
-  virtual bool DeleteObject(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled);
+  virtual void DeleteObject(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled);
 };
 
 
@@ -313,7 +313,7 @@ IStorage::IReader* GoogleStoragePlugin::GetReaderForObject(const char* uuid, Ort
   return new Reader(bucketName_, paths, mainClient_);
 }
 
-bool GoogleStoragePlugin::DeleteObject(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled)
+void GoogleStoragePlugin::DeleteObject(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled)
 {
   gcs::Client client(mainClient_);
 
@@ -325,6 +325,4 @@ bool GoogleStoragePlugin::DeleteObject(const char* uuid, OrthancPluginContentTyp
   {
     throw StoragePluginException("GoogleCloudStorage: error while deleting file " + std::string(path) + ": " + deletionStatus.message());
   }
-
-  return false; // not 100% sure that the file has been deleted
 }
