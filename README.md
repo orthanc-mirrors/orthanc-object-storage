@@ -176,3 +176,6 @@ Test the hybrid mode
   - there should be only one file in the disk storage
   - there should be only one file in the S3 bucket
 
+test moving a study to file-system storage
+curl http://localhost:8043/move-storage -d '{"Resources": ["737c0c8d-ea890b4d-e36a43bb-fb8c8d41-aa0ed0a8"], "TargetStorage" : "file-system"}'
+curl http://localhost:8043/move-storage -d '{"Resources": ["737c0c8d-ea890b4d-e36a43bb-fb8c8d41-aa0ed0a8"], "TargetStorage" : "object-storage"}'

@@ -2,6 +2,8 @@
   from both storages.  Allowed values: "WriteToFileSystem", "WriteToObjectStorage", "Disabled".
   If disabled (default), the plugin writes all data to the object storage and tries to read them only from the
   object storage.
+* new /move-storage route when "HybridMode" is enabled.  This allows moving a study from one-storage to the other
+  to, e.g, have recent studies on the file-system and older studies on a cloud object storage.
 
 2022-08-30 - v 2.0.0
 ====================

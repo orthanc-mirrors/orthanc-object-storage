@@ -131,6 +131,8 @@ set(COMMON_SOURCES
   ${CMAKE_SOURCE_DIR}/../Common/EncryptionConfigurator.h
   ${CMAKE_SOURCE_DIR}/../Common/FileSystemStorage.h
   ${CMAKE_SOURCE_DIR}/../Common/FileSystemStorage.cpp
+  ${CMAKE_SOURCE_DIR}/../Common/MoveStorageJob.h
+  ${CMAKE_SOURCE_DIR}/../Common/MoveStorageJob.cpp
   ${CMAKE_SOURCE_DIR}/../Common/Resources/Orthanc/Plugins/OrthancPluginCppWrapper.cpp
 
   ${AWS_SOURCES}

@@ -1,0 +1,3 @@
+- test serialize/unserialize MoveStorageJob
+
+- /move-storage shall also move the attachments at Study/Series/Patient level, not only the Instances
