@@ -45,6 +45,9 @@
 #include <Logging.h>
 #include <SystemToolbox.h>
 #include "MoveStorageJob.h"
+#include "StoragePlugin.h"
+#include <Toolbox.h>
+
 
 static std::unique_ptr<IStorage> primaryStorage;
 static std::unique_ptr<IStorage> secondaryStorage;
@@ -316,6 +319,23 @@ static OrthancPluginErrorCode StorageRemove(const char* uuid,
 }
 
 
+static MoveStorageJob* CreateMoveStorageJob(const std::string& targetStorage, const std::vector<std::string>& instances, const Json::Value& resourcesForJobContent)
+{
+  std::unique_ptr<MoveStorageJob> job(new MoveStorageJob(targetStorage, instances, resourcesForJobContent, cryptoEnabled));
+
+  if (hybridMode == HybridMode_WriteToFileSystem)
+  {
+    job->SetStorages(primaryStorage.get(), secondaryStorage.get());
+  }
+  else
+  {
+    job->SetStorages(secondaryStorage.get(), primaryStorage.get());
+  }
+
+  return job.release();
+}
+
+
 static void AddResourceForJobContent(Json::Value& resourcesForJobContent /* out */, Orthanc::ResourceType resourceType, const std::string& resourceId)
 {
   const char* resourceGroup = Orthanc::GetResourceTypeText(resourceType, true, true);
@@ -350,33 +370,30 @@ void MoveStorage(OrthancPluginRestOutput* output,
   std::vector<std::string> instances;
   Json::Value resourcesForJobContent;
 
-  static const char* RESOURCES = "Resources";
-  static const char* TARGET_STORAGE = "TargetStorage";
-
   if (requestPayload.type() != Json::objectValue ||
-      !requestPayload.isMember(RESOURCES) ||
-      requestPayload[RESOURCES].type() != Json::arrayValue)
+      !requestPayload.isMember(KEY_RESOURCES) ||
+      requestPayload[KEY_RESOURCES].type() != Json::arrayValue)
   {
     throw Orthanc::OrthancException(
       Orthanc::ErrorCode_BadFileFormat,
       "A request to the move-storage endpoint must provide a JSON object "
-      "with the field \"" + std::string(RESOURCES) + 
+      "with the field \"" + std::string(KEY_RESOURCES) + 
       "\" containing an array of resources to be sent");
   }
 
-  if (!requestPayload.isMember(TARGET_STORAGE)
-      || requestPayload[TARGET_STORAGE].type() != Json::stringValue
-      || (requestPayload[TARGET_STORAGE].asString() != "file-system" && requestPayload[TARGET_STORAGE].asString() != "object-storage"))
+  if (!requestPayload.isMember(KEY_TARGET_STORAGE)
+      || requestPayload[KEY_TARGET_STORAGE].type() != Json::stringValue
+      || (requestPayload[KEY_TARGET_STORAGE].asString() != STORAGE_TYPE_FILE_SYSTEM && requestPayload[KEY_TARGET_STORAGE].asString() != STORAGE_TYPE_OBJECT_STORAGE))
   {
     throw Orthanc::OrthancException(
       Orthanc::ErrorCode_BadFileFormat,
       "A request to the move-storage endpoint must provide a JSON object "
-      "with the field \"" + std::string(TARGET_STORAGE) + 
-      "\" set to \"file-system\" or \"object-storage\"");
+      "with the field \"" + std::string(KEY_TARGET_STORAGE) + 
+      "\" set to \"" + std::string(STORAGE_TYPE_FILE_SYSTEM) + "\" or \"" + std::string(STORAGE_TYPE_OBJECT_STORAGE) +  "\"");
   }
 
-  const std::string& targetStorage = requestPayload[TARGET_STORAGE].asString();
-  const Json::Value& resources = requestPayload[RESOURCES];
+  const std::string& targetStorage = requestPayload[KEY_TARGET_STORAGE].asString();
+  const Json::Value& resources = requestPayload[KEY_RESOURCES];
 
   // Extract information about all the child instances
   for (Json::Value::ArrayIndex i = 0; i < resources.size(); i++)
@@ -413,10 +430,11 @@ void MoveStorage(OrthancPluginRestOutput* output,
         throw Orthanc::OrthancException(Orthanc::ErrorCode_InternalError);
       }
 
+      AddResourceForJobContent(resourcesForJobContent, Orthanc::StringToResourceType(tmpResource["Type"].asString().c_str()), resource);
+
       for (Json::Value::ArrayIndex j = 0; j < tmpInstances.size(); j++)
       {
         instances.push_back(tmpInstances[j]["ID"].asString());
-        AddResourceForJobContent(resourcesForJobContent, Orthanc::StringToResourceType(tmpResource["Type"].asString().c_str()), resource);
       }
     }
     else
@@ -427,19 +445,75 @@ void MoveStorage(OrthancPluginRestOutput* output,
 
   OrthancPlugins::LogInfo("Moving " + boost::lexical_cast<std::string>(instances.size()) + " instances to " + targetStorage);
 
-  std::unique_ptr<MoveStorageJob> job(new MoveStorageJob(targetStorage, instances, resourcesForJobContent, cryptoEnabled));
-
-  if (hybridMode == HybridMode_WriteToFileSystem)
-  {
-    job->SetStorages(primaryStorage.get(), secondaryStorage.get());
-  }
-  else
-  {
-    job->SetStorages(secondaryStorage.get(), primaryStorage.get());
-  }
+  std::unique_ptr<MoveStorageJob> job(CreateMoveStorageJob(targetStorage, instances, resourcesForJobContent));
 
   OrthancPlugins::OrthancJob::SubmitFromRestApiPost(output, requestPayload, job.release());
 }
+
+OrthancPluginJob* JobUnserializer(const char* jobType,
+                                  const char* serialized)
+{
+  if (jobType == NULL ||
+      serialized == NULL)
+  {
+    return NULL;
+  }
+
+  std::string type(jobType);
+
+  if (type != JOB_TYPE_MOVE_STORAGE)
+  {
+    return NULL;
+  }
+
+  try
+  {
+    std::string tmp(serialized);
+
+    Json::Value source;
+    if (Orthanc::Toolbox::ReadJson(source, tmp))
+    {
+      std::unique_ptr<OrthancPlugins::OrthancJob> job;
+
+      if (type == JOB_TYPE_MOVE_STORAGE)
+      {
+        std::vector<std::string> instances;
+
+        for (size_t i = 0; i < source[KEY_INSTANCES].size(); ++i)
+        {
+          instances.push_back(source[KEY_INSTANCES][static_cast<int>(i)].asString());
+        }
+
+        job.reset(CreateMoveStorageJob(source[KEY_TARGET_STORAGE].asString(), instances, source[KEY_CONTENT]));
+      }
+
+      if (job.get() == NULL)
+      {
+        throw Orthanc::OrthancException(Orthanc::ErrorCode_InternalError);
+      }
+      else
+      {
+        return OrthancPlugins::OrthancJob::Create(job.release());
+      }
+    }
+    else
+    {
+      throw Orthanc::OrthancException(Orthanc::ErrorCode_BadFileFormat);
+    }
+  }
+  catch (Orthanc::OrthancException& e)
+  {
+    LOG(ERROR) << "Error while unserializing a job from the " << StoragePluginFactory::GetStoragePluginName() << " plugin: "
+               << e.What();
+    return NULL;
+  }
+  catch (...)
+  {
+    LOG(ERROR) << "Error while unserializing a job from the " << StoragePluginFactory::GetStoragePluginName() << " plugin";
+    return NULL;
+  }
+}
+
 
 extern "C"
 {
@@ -588,6 +662,7 @@ extern "C"
         if (IsHybridModeEnabled())
         {
           OrthancPlugins::RegisterRestCallback<MoveStorage>("/move-storage", true);
+          OrthancPluginRegisterJobsUnserializer(context, JobUnserializer);
         }
 
       }

@@ -37,6 +37,7 @@ class MoveStorageJob : public OrthancPlugins::OrthancJob
   IStorage* objectStorage_;
   bool cryptoEnabled_;
 
+  void Serialize(Json::Value& target) const;
 public:
   MoveStorageJob(const std::string& targetStorage,
                   const std::vector<std::string>& instances,

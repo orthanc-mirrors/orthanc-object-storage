@@ -18,13 +18,14 @@
 
 #include "MoveStorageJob.h"
 #include "Logging.h"
+#include "StoragePlugin.h"
 
 
 MoveStorageJob::MoveStorageJob(const std::string& targetStorage,
                                const std::vector<std::string>& instances,
                                const Json::Value& resourceForJobContent,
                                bool cryptoEnabled)
-  : OrthancPlugins::OrthancJob("MoveStorage"),
+  : OrthancPlugins::OrthancJob(JOB_TYPE_MOVE_STORAGE),
     targetStorage_(targetStorage),
     instances_(instances),
     processedInstancesCount_(0),
@@ -33,6 +34,24 @@ MoveStorageJob::MoveStorageJob(const std::string& targetStorage,
     objectStorage_(NULL),
     cryptoEnabled_(cryptoEnabled)
 {
+  UpdateContent(resourceForJobContent);
+  
+  Json::Value serialized;
+  Serialize(serialized);
+  UpdateSerialized(serialized);
+}
+
+void MoveStorageJob::Serialize(Json::Value& target) const
+{
+  target[KEY_CONTENT] = resourceForJobContent_;
+  target[KEY_TARGET_STORAGE] = targetStorage_;
+  target[KEY_INSTANCES] = Json::arrayValue;
+
+  for (size_t i = 0; i < instances_.size(); ++i)
+  {
+    target[KEY_INSTANCES].append(instances_[i]);
+  }
+
 }
 
 void MoveStorageJob::SetStorages(IStorage* fileSystemStorage, IStorage* objectStorage)
@@ -124,12 +143,14 @@ OrthancPluginJobStepStatus MoveStorageJob::Step()
 {
   if (processedInstancesCount_ < instances_.size())
   {
-    IStorage* sourceStorage = (targetStorage_ == "file-system" ? objectStorage_ : fileSystemStorage_);
-    IStorage* targetStorage = (targetStorage_ == "file-system" ? fileSystemStorage_ : objectStorage_);
+    IStorage* sourceStorage = (targetStorage_ == STORAGE_TYPE_FILE_SYSTEM ? objectStorage_ : fileSystemStorage_);
+    IStorage* targetStorage = (targetStorage_ == STORAGE_TYPE_FILE_SYSTEM ? fileSystemStorage_ : objectStorage_);
 
     if (MoveInstance(instances_[processedInstancesCount_], sourceStorage, targetStorage, cryptoEnabled_))
     {
       processedInstancesCount_++;
+      UpdateProgress((float)processedInstancesCount_/(float)instances_.size());
+      
       return OrthancPluginJobStepStatus_Continue;
     }
     else
