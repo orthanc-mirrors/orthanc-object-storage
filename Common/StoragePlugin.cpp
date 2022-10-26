@@ -571,7 +571,7 @@ extern "C"
         }
         else
         {
-          OrthancPlugins::LogWarning(std::string(StoragePluginFactory::GetStoragePluginName()) + ": HybridMode is disabled enabled: writing to object-storage and reading only from object-storage");
+          OrthancPlugins::LogWarning(std::string(StoragePluginFactory::GetStoragePluginName()) + ": HybridMode is disabled: writing to object-storage and reading only from object-storage");
         }
 
         if (IsReadFromDisk())
