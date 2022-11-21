@@ -1,3 +1,7 @@
-- test serialize/unserialize MoveStorageJob
+- Test serialize/unserialize MoveStorageJob
 
-- /move-storage shall also move the attachments at Study/Series/Patient level, not only the Instances
+- /move-storage shall also move the attachments at
+  Study/Series/Patient level, not only the Instances
+
+- Test against AWS S3 Glacier:
+  https://groups.google.com/g/orthanc-users/c/CT1lkzHLAUg/m/h75HuXYpBwAJ
