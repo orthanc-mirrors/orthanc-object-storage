@@ -54,7 +54,6 @@ include_directories(
   ${ORTHANC_FRAMEWORK_ROOT}/../../OrthancServer/Plugins/Samples/Common
   )
 
-
 find_package(cryptopp CONFIG REQUIRED)
 
 # Azure stuff (from https://github.com/Microsoft/vcpkg/issues/6277)
@@ -77,13 +76,13 @@ else()  # inspired from https://github.com/phongcao/azure-storage-cpp-sas-sample
   set (CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /Zi")
   set (CMAKE_SHARED_LINKER_FLAGS_RELEASE "${CMAKE_SHARED_LINKER_FLAGS_RELEASE} /DEBUG /OPT:REF /OPT:ICF")
 
+  message(INFO "WASTORAGE_INCLUDE_DIR ${WASTORAGE_INCLUDE_DIR}")
+
   add_definitions(-D_NO_WASTORAGE_API=1)   # from https://github.com/Azure/azure-storage-cpp/issues/263
 endif()
 
+include_directories(${WASTORAGE_INCLUDE_DIR})
 
-if (NOT WIN32)
-  include_directories(${WASTORAGE_INCLUDE_DIR})
-endif()
 
 set(COMMON_SOURCES
     ${CMAKE_SOURCE_DIR}/../Common/IStorage.h
@@ -129,7 +128,7 @@ if (NOT WIN32)
 else()
   target_link_libraries(OrthancAzureBlobStorage
     PRIVATE
-    cryptopp-static
+    cryptopp::cryptopp
     ${OPENSSL_LIBRARY}
     ${WASTORAGE_LIBRARY} 
     ${CPPREST_LIBRARY} 

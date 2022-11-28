@@ -26,7 +26,6 @@
 #include "cpprest/rawptrstream.h"
 #include "cpprest/details/basic_types.h"
 
-
 // Create aliases to make the code easier to read.
 namespace as = azure::storage;
 
@@ -178,7 +177,7 @@ const char* AzureBlobStoragePluginFactory::GetStoragePluginName()
 bool IsSasTokenAccountLevel(utility::string_t sasToken)
 {
   // Use cpprestsdk's utility::string_t here since the expected argument is the return value of
-  // as::storage_credentials::sas_token(), which is type utility::string_t
+  // as::storage_credentials::sas_token(), which is type utility::string_t (which is a std::wstring on Windows and a std::string on Linux)
   size_t newIdx = 0;
   size_t prevIdx = 0;
   while ((newIdx = sasToken.find('&', prevIdx)) != utility::string_t::npos)
@@ -188,8 +187,15 @@ bool IsSasTokenAccountLevel(utility::string_t sasToken)
 
     size_t equalsIdx = kvpair.find('=');
     utility::string_t key = kvpair.substr(0, equalsIdx);
-    if (key == "srt") // only account SAS has this parameter
+  #ifdef WIN32
+    const wchar_t* srt = L"srt";
+  #else
+    const char* srt = "srt";
+  #endif
+//    if (key == utility::string_t(srt, srt + strlen(srt))) // only account SAS has this parameter
+    if (key == srt) // only account SAS has this parameter
       return true;
+
   }
 
   return false;
