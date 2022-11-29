@@ -118,7 +118,7 @@ if (NOT WIN32)
 
   target_link_libraries(OrthancAzureBlobStorage
     PRIVATE
-    cryptopp-static
+    cryptopp::cryptopp
     ${WASTORAGE_LIBRARY} 
     ${UUID_LIBRARY} 
     ${Boost_LIBRARIES} 
