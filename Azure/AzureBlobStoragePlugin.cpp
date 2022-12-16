@@ -192,7 +192,6 @@ bool IsSasTokenAccountLevel(utility::string_t sasToken)
   #else
     const char* srt = "srt";
   #endif
-//    if (key == utility::string_t(srt, srt + strlen(srt))) // only account SAS has this parameter
     if (key == srt) // only account SAS has this parameter
       return true;
 
