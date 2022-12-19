@@ -233,6 +233,11 @@ const char* GoogleStoragePluginFactory::GetStoragePluginName()
   return "Google Cloud Storage";
 }
 
+const char* GoogleStoragePluginFactory::GetStorageDescription()
+{
+  return "Stores the Orthanc storage area in Google Cloud";
+}
+
 IStorage* GoogleStoragePluginFactory::CreateStorage(const std::string& nameForLogs, const OrthancPlugins::OrthancConfiguration& orthancConfig)
 {
   bool enableLegacyStorageStructure;

@@ -253,6 +253,10 @@ const char* AwsS3StoragePluginFactory::GetStoragePluginName()
   return "AWS S3 Storage";
 }
 
+const char* AwsS3StoragePluginFactory::GetStorageDescription()
+{
+  return "Stores the Orthanc storage area in AWS S3";
+}
 
 static std::unique_ptr<Aws::Crt::ApiHandle>  api_;
 static std::unique_ptr<Aws::SDKOptions>  sdkOptions_;

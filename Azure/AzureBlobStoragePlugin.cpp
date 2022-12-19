@@ -174,6 +174,12 @@ const char* AzureBlobStoragePluginFactory::GetStoragePluginName()
   return "Azure Blob Storage";
 }
 
+const char* AzureBlobStoragePluginFactory::GetStorageDescription()
+{
+  return "Stores the Orthanc storage area in Azure Blob";
+}
+
+
 bool IsSasTokenAccountLevel(utility::string_t sasToken)
 {
   // Use cpprestsdk's utility::string_t here since the expected argument is the return value of
