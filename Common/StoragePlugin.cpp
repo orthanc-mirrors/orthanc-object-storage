@@ -547,130 +547,132 @@ extern "C"
       const char* pluginSectionName = StoragePluginFactory::GetConfigurationSectionName();
       static const char* const ENCRYPTION_SECTION = "StorageEncryption";
 
-      if (orthancConfig.IsSection(pluginSectionName))
+      if (!orthancConfig.IsSection(pluginSectionName))
       {
-        OrthancPlugins::OrthancConfiguration pluginSection;
-        orthancConfig.GetSection(pluginSection, pluginSectionName);
+        OrthancPlugins::LogWarning(std::string(StoragePluginFactory::GetStoragePluginName()) + ": no \"" + pluginSectionName +  "\" section found in configuration, plugin is disabled");
+        return 0;
+      }
 
-        bool migrationFromFileSystemEnabled = pluginSection.GetBooleanValue("MigrationFromFileSystemEnabled", false);
-        std::string hybridModeString = pluginSection.GetStringValue("HybridMode", "Disabled");
+      OrthancPlugins::OrthancConfiguration pluginSection;
+      orthancConfig.GetSection(pluginSection, pluginSectionName);
 
-        if (migrationFromFileSystemEnabled && hybridModeString == "Disabled")
-        {
-          hybridMode = HybridMode_WriteToObjectStorage;
-          OrthancPlugins::LogWarning(std::string(StoragePluginFactory::GetStoragePluginName()) + ": 'MigrationFromFileSystemEnabled' configuration is deprecated, use 'HybridMode': 'WriteToObjectStorage' instead");
-        }
-        else if (hybridModeString == "WriteToObjectStorage")
-        {
-          hybridMode = HybridMode_WriteToObjectStorage;
-          OrthancPlugins::LogWarning(std::string(StoragePluginFactory::GetStoragePluginName()) + ": WriteToObjectStorage HybridMode is enabled: writing to object-storage, try reading first from object-storage and, then, from file system");
-        }
-        else if (hybridModeString == "WriteToFileSystem")
-        {
-          hybridMode = HybridMode_WriteToFileSystem;
-          OrthancPlugins::LogWarning(std::string(StoragePluginFactory::GetStoragePluginName()) + ": WriteToFileSystem HybridMode is enabled: writing to file system, try reading first from file system and, then, from object-storage");
-        }
-        else
-        {
-          OrthancPlugins::LogWarning(std::string(StoragePluginFactory::GetStoragePluginName()) + ": HybridMode is disabled: writing to object-storage and reading only from object-storage");
-        }
+      bool migrationFromFileSystemEnabled = pluginSection.GetBooleanValue("MigrationFromFileSystemEnabled", false);
+      std::string hybridModeString = pluginSection.GetStringValue("HybridMode", "Disabled");
 
-        if (IsReadFromDisk())
-        {
-          fileSystemRootPath = orthancConfig.GetStringValue("StorageDirectory", "OrthancStorageNotDefined");
-          OrthancPlugins::LogWarning(std::string(StoragePluginFactory::GetStoragePluginName()) + ": HybridMode: reading from file system is enabled, source: " + fileSystemRootPath);
-        }
+      if (migrationFromFileSystemEnabled && hybridModeString == "Disabled")
+      {
+        hybridMode = HybridMode_WriteToObjectStorage;
+        OrthancPlugins::LogWarning(std::string(StoragePluginFactory::GetStoragePluginName()) + ": 'MigrationFromFileSystemEnabled' configuration is deprecated, use 'HybridMode': 'WriteToObjectStorage' instead");
+      }
+      else if (hybridModeString == "WriteToObjectStorage")
+      {
+        hybridMode = HybridMode_WriteToObjectStorage;
+        OrthancPlugins::LogWarning(std::string(StoragePluginFactory::GetStoragePluginName()) + ": WriteToObjectStorage HybridMode is enabled: writing to object-storage, try reading first from object-storage and, then, from file system");
+      }
+      else if (hybridModeString == "WriteToFileSystem")
+      {
+        hybridMode = HybridMode_WriteToFileSystem;
+        OrthancPlugins::LogWarning(std::string(StoragePluginFactory::GetStoragePluginName()) + ": WriteToFileSystem HybridMode is enabled: writing to file system, try reading first from file system and, then, from object-storage");
+      }
+      else
+      {
+        OrthancPlugins::LogWarning(std::string(StoragePluginFactory::GetStoragePluginName()) + ": HybridMode is disabled: writing to object-storage and reading only from object-storage");
+      }
 
-        objectsRootPath = pluginSection.GetStringValue("RootPath", std::string());
+      if (IsReadFromDisk())
+      {
+        fileSystemRootPath = orthancConfig.GetStringValue("StorageDirectory", "OrthancStorageNotDefined");
+        OrthancPlugins::LogWarning(std::string(StoragePluginFactory::GetStoragePluginName()) + ": HybridMode: reading from file system is enabled, source: " + fileSystemRootPath);
+      }
 
-        if (objectsRootPath.size() >= 1 && objectsRootPath[0] == '/')
-        {
-          OrthancPlugins::LogError(std::string(StoragePluginFactory::GetStoragePluginName()) + ": The RootPath shall not start with a '/': " + objectsRootPath);
-          return -1;
-        }
+      objectsRootPath = pluginSection.GetStringValue("RootPath", std::string());
 
-        std::string objecstStoragePluginName = StoragePluginFactory::GetStoragePluginName();
+      if (objectsRootPath.size() >= 1 && objectsRootPath[0] == '/')
+      {
+        OrthancPlugins::LogError(std::string(StoragePluginFactory::GetStoragePluginName()) + ": The RootPath shall not start with a '/': " + objectsRootPath);
+        return -1;
+      }
+
+      std::string objecstStoragePluginName = StoragePluginFactory::GetStoragePluginName();
+      if (hybridMode == HybridMode_WriteToFileSystem)
+      {
+        objecstStoragePluginName += " (Secondary: object-storage)";
+      }
+      else if (hybridMode == HybridMode_WriteToObjectStorage)
+      {
+        objecstStoragePluginName += " (Primary: object-storage)";
+      }
+
+      std::unique_ptr<IStorage> objectStoragePlugin(StoragePluginFactory::CreateStorage(objecstStoragePluginName, orthancConfig));
+
+      if (objectStoragePlugin.get() == nullptr)
+      {
+        return -1;
+      }
+
+      objectStoragePlugin->SetRootPath(objectsRootPath);
+
+      std::unique_ptr<IStorage> fileSystemStoragePlugin;
+      if (IsHybridModeEnabled())
+      {
+        bool fsync = orthancConfig.GetBooleanValue("SyncStorageArea", true);
+
+        std::string filesystemStoragePluginName = StoragePluginFactory::GetStoragePluginName();
         if (hybridMode == HybridMode_WriteToFileSystem)
         {
-          objecstStoragePluginName += " (Secondary: object-storage)";
+          filesystemStoragePluginName += " (Primary: file-system)";
         }
         else if (hybridMode == HybridMode_WriteToObjectStorage)
         {
-          objecstStoragePluginName += " (Primary: object-storage)";
+          filesystemStoragePluginName += " (Secondary: file-system)";
         }
 
-        std::unique_ptr<IStorage> objectStoragePlugin(StoragePluginFactory::CreateStorage(objecstStoragePluginName, orthancConfig));
+        fileSystemStoragePlugin.reset(new FileSystemStoragePlugin(filesystemStoragePluginName, fileSystemRootPath, fsync));
+      }
 
-        if (objectStoragePlugin.get() == nullptr)
+      if (hybridMode == HybridMode_Disabled || hybridMode == HybridMode_WriteToObjectStorage)
+      {
+        primaryStorage.reset(objectStoragePlugin.release());
+        
+        if (hybridMode == HybridMode_WriteToObjectStorage)
         {
-          return -1;
+          secondaryStorage.reset(fileSystemStoragePlugin.release());
         }
+      }
+      else if (hybridMode == HybridMode_WriteToFileSystem)
+      {
+        primaryStorage.reset(fileSystemStoragePlugin.release());
+        secondaryStorage.reset(objectStoragePlugin.release());
+      }
 
-        objectStoragePlugin->SetRootPath(objectsRootPath);
+      if (pluginSection.IsSection(ENCRYPTION_SECTION))
+      {
+        OrthancPlugins::OrthancConfiguration cryptoSection;
+        pluginSection.GetSection(cryptoSection, ENCRYPTION_SECTION);
 
-        std::unique_ptr<IStorage> fileSystemStoragePlugin;
-        if (IsHybridModeEnabled())
-        {
-          bool fsync = orthancConfig.GetBooleanValue("SyncStorageArea", true);
-
-          std::string filesystemStoragePluginName = StoragePluginFactory::GetStoragePluginName();
-          if (hybridMode == HybridMode_WriteToFileSystem)
-          {
-            filesystemStoragePluginName += " (Primary: file-system)";
-          }
-          else if (hybridMode == HybridMode_WriteToObjectStorage)
-          {
-            filesystemStoragePluginName += " (Secondary: file-system)";
-          }
-
-          fileSystemStoragePlugin.reset(new FileSystemStoragePlugin(filesystemStoragePluginName, fileSystemRootPath, fsync));
-        }
-
-        if (hybridMode == HybridMode_Disabled || hybridMode == HybridMode_WriteToObjectStorage)
-        {
-          primaryStorage.reset(objectStoragePlugin.release());
-          
-          if (hybridMode == HybridMode_WriteToObjectStorage)
-          {
-            secondaryStorage.reset(fileSystemStoragePlugin.release());
-          }
-        }
-        else if (hybridMode == HybridMode_WriteToFileSystem)
-        {
-          primaryStorage.reset(fileSystemStoragePlugin.release());
-          secondaryStorage.reset(objectStoragePlugin.release());
-        }
-
-        if (pluginSection.IsSection(ENCRYPTION_SECTION))
-        {
-          OrthancPlugins::OrthancConfiguration cryptoSection;
-          pluginSection.GetSection(cryptoSection, ENCRYPTION_SECTION);
-
-          crypto.reset(EncryptionConfigurator::CreateEncryptionHelpers(cryptoSection));
-          cryptoEnabled = crypto.get() != nullptr;
-        }
-
-        if (cryptoEnabled)
-        {
-          OrthancPlugins::LogWarning(std::string(StoragePluginFactory::GetStoragePluginName()) + ": client-side encryption is enabled");
-        }
-        else
-        {
-          OrthancPlugins::LogWarning(std::string(StoragePluginFactory::GetStoragePluginName()) + ": client-side encryption is disabled");
-        }
-
-
-        if (IsHybridModeEnabled())
-        {
-          OrthancPlugins::RegisterRestCallback<MoveStorage>("/move-storage", true);
-          OrthancPluginRegisterJobsUnserializer(context, JobUnserializer);
-        }
-
+        crypto.reset(EncryptionConfigurator::CreateEncryptionHelpers(cryptoSection));
+        cryptoEnabled = crypto.get() != nullptr;
       }
 
       if (cryptoEnabled)
       {
-        // with encrypted file, we do not want to support ReadRange.  Therefore, we register the old interface
+        OrthancPlugins::LogWarning(std::string(StoragePluginFactory::GetStoragePluginName()) + ": client-side encryption is enabled");
+      }
+      else
+      {
+        OrthancPlugins::LogWarning(std::string(StoragePluginFactory::GetStoragePluginName()) + ": client-side encryption is disabled");
+      }
+
+
+      if (IsHybridModeEnabled())
+      {
+        OrthancPlugins::RegisterRestCallback<MoveStorage>("/move-storage", true);
+        OrthancPluginRegisterJobsUnserializer(context, JobUnserializer);
+      }
+
+      if (cryptoEnabled)
+      {
+        // with encrypted file, we can not support ReadRange.  Therefore, we register the old interface
         OrthancPluginRegisterStorageArea(context, StorageCreate, StorageReadWholeLegacy, StorageRemove);
       }
       else

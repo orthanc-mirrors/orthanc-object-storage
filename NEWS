@@ -2,6 +2,7 @@ pending changes in the mainline
 ====================
 
 * Added a description for all plugins
+* Plugins are now disabled if their section is missing in the configuration file.
 
 
 2022-12-16 - v 2.1.1
