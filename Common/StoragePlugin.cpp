@@ -230,7 +230,7 @@ static OrthancPluginErrorCode StorageReadWhole(IStorage* storage,
   }
   catch (StoragePluginException& ex)
   {
-    logErrorFunction(storage->GetNameForLogs() + ": error while decrypting object " + std::string(uuid) + ": " + ex.what());
+    logErrorFunction(storage->GetNameForLogs() + ": error while reading object " + std::string(uuid) + ": " + ex.what());
     return OrthancPluginErrorCode_StorageAreaPlugin;
   }
 
