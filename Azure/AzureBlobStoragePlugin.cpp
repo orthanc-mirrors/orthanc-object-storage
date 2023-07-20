@@ -19,29 +19,26 @@
 
 #include "AzureBlobStoragePlugin.h"
 
-#include <was/storage_account.h>
-#include <was/blob.h>
+#include <azure/storage/blobs.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string.hpp>
-#include "cpprest/rawptrstream.h"
-#include "cpprest/details/basic_types.h"
+// #include "cpprest/rawptrstream.h"
+// #include "cpprest/details/basic_types.h"
 
 // Create aliases to make the code easier to read.
-namespace as = azure::storage;
+namespace as = Azure::Storage::Blobs;
 
 class AzureBlobStoragePlugin : public BaseStorage
 {
 public:
 
-  as::cloud_blob_client       blobClient_;
-  as::cloud_blob_container    blobContainer_;
+  as::BlobContainerClient       blobClient_;
   bool                        storageContainsUnknownFiles_;
 
 public:
 
   AzureBlobStoragePlugin(const std::string& nameForLogs,  
-                         const as::cloud_blob_client& blobClient, 
-                         const as::cloud_blob_container& blobContainer, 
+                         const as::BlobContainerClient& blobClient, 
                          bool enableLegacyStorageStructure,
                          bool storageContainsUnknownFiles
                          );
@@ -55,14 +52,12 @@ public:
 class Writer : public IStorage::IWriter
 {
   std::string   path_;
-  as::cloud_blob_client   client_;
-  as::cloud_blob_container container_;
+  as::BlobContainerClient client_;
 
 public:
-  Writer(const as::cloud_blob_container& container, const std::string& path, const as::cloud_blob_client& client)
+  Writer(const std::string& path, const as::BlobContainerClient& client)
     : path_(path),
-      client_(client),
-      container_(container)
+      client_(client)
   {
   }
 
@@ -74,10 +69,8 @@ public:
   {
     try
     {
-      concurrency::streams::istream inputStream = concurrency::streams::rawptr_stream<uint8_t>::open_istream(reinterpret_cast<const uint8_t*>(data), size);
-      azure::storage::cloud_block_blob blob = container_.get_block_blob_reference(utility::conversions::to_string_t(path_));
-      blob.upload_from_stream(inputStream);
-      inputStream.close().wait();
+      as::BlockBlobClient blobClient = client_.GetBlockBlobClient(path_);
+      blobClient.UploadFrom(reinterpret_cast<const uint8_t*>(data), size);
     }
     catch (std::exception& ex)
     {
@@ -90,14 +83,12 @@ public:
 class Reader : public IStorage::IReader
 {
   std::string path_;
-  as::cloud_blob_client   client_;
-  as::cloud_blob_container container_;
-  as::cloud_block_blob block_;
+  as::BlobContainerClient client_;
+  int64_t size_;
 
 public:
-  Reader(const as::cloud_blob_container& container, const std::list<std::string>& paths, const as::cloud_blob_client& client)
-    : client_(client),
-      container_(container)
+  Reader(const std::list<std::string>& paths, const as::BlobContainerClient& client)
+    : client_(client)
   {
     std::string firstExceptionMessage;
 
@@ -105,8 +96,9 @@ public:
     {
       try
       {
-        block_ = container_.get_block_blob_reference(utility::conversions::to_string_t(path));
-        block_.download_attributes(); // to retrieve the properties
+        as::BlockBlobClient blobClient = client_.GetBlockBlobClient(path);
+        auto properties = blobClient.GetProperties().Value;
+        size_ = properties.BlobSize;
         path_ = path;
         return;
       }
@@ -130,7 +122,7 @@ public:
   {
     try
     {
-      return block_.properties().size();
+      return static_cast<size_t>(size_);
     }
     catch (std::exception& ex)
     {
@@ -142,9 +134,8 @@ public:
   {
     try
     {
-      concurrency::streams::ostream outputStream = concurrency::streams::rawptr_stream<uint8_t>::open_ostream(reinterpret_cast<uint8_t*>(data), size);
-
-      block_.download_to_stream(outputStream);
+      as::BlockBlobClient blobClient = client_.GetBlockBlobClient(path_);
+      blobClient.DownloadTo(reinterpret_cast<uint8_t*>(data), static_cast<int64_t>(size));
     }
     catch (std::exception& ex)
     {
@@ -156,9 +147,13 @@ public:
   {
     try
     {
-      concurrency::streams::ostream outputStream = concurrency::streams::rawptr_stream<uint8_t>::open_ostream(reinterpret_cast<uint8_t*>(data), size);
+      as::BlockBlobClient blobClient = client_.GetBlockBlobClient(path_);
+      as::DownloadBlobToOptions options;
+      options.Range = Azure::Core::Http::HttpRange();
+      options.Range.Value().Length = static_cast<int64_t>(size);
+      options.Range.Value().Offset = static_cast<int64_t>(fromOffset);
 
-      block_.download_range_to_stream(outputStream, fromOffset, size);
+      blobClient.DownloadTo(reinterpret_cast<uint8_t*>(data), static_cast<int64_t>(size), options);
     }
     catch (std::exception& ex)
     {
@@ -180,31 +175,31 @@ const char* AzureBlobStoragePluginFactory::GetStorageDescription()
 }
 
 
-bool IsSasTokenAccountLevel(utility::string_t sasToken)
-{
-  // Use cpprestsdk's utility::string_t here since the expected argument is the return value of
-  // as::storage_credentials::sas_token(), which is type utility::string_t (which is a std::wstring on Windows and a std::string on Linux)
-  size_t newIdx = 0;
-  size_t prevIdx = 0;
-  while ((newIdx = sasToken.find('&', prevIdx)) != utility::string_t::npos)
-  {
-    utility::string_t kvpair = sasToken.substr(prevIdx, newIdx - prevIdx);
-    prevIdx = newIdx + 1; // start next time from char after '&'
+// bool IsSasTokenAccountLevel(utility::string_t sasToken)
+// {
+//   // Use cpprestsdk's utility::string_t here since the expected argument is the return value of
+//   // as::storage_credentials::sas_token(), which is type utility::string_t (which is a std::wstring on Windows and a std::string on Linux)
+//   size_t newIdx = 0;
+//   size_t prevIdx = 0;
+//   while ((newIdx = sasToken.find('&', prevIdx)) != utility::string_t::npos)
+//   {
+//     utility::string_t kvpair = sasToken.substr(prevIdx, newIdx - prevIdx);
+//     prevIdx = newIdx + 1; // start next time from char after '&'
 
-    size_t equalsIdx = kvpair.find('=');
-    utility::string_t key = kvpair.substr(0, equalsIdx);
-  #ifdef WIN32
-    const wchar_t* srt = L"srt";
-  #else
-    const char* srt = "srt";
-  #endif
-    if (key == srt) // only account SAS has this parameter
-      return true;
+//     size_t equalsIdx = kvpair.find('=');
+//     utility::string_t key = kvpair.substr(0, equalsIdx);
+//   #ifdef WIN32
+//     const wchar_t* srt = L"srt";
+//   #else
+//     const char* srt = "srt";
+//   #endif
+//     if (key == srt) // only account SAS has this parameter
+//       return true;
 
-  }
+//   }
 
-  return false;
-}
+//   return false;
+// }
 
 IStorage* AzureBlobStoragePluginFactory::CreateStorage(const std::string& nameForLogs, const OrthancPlugins::OrthancConfiguration& orthancConfig)
 {
@@ -285,27 +280,22 @@ IStorage* AzureBlobStoragePluginFactory::CreateStorage(const std::string& nameFo
   {
     OrthancPlugins::LogInfo("Connecting to Azure storage ...");
 
-    as::cloud_storage_account storageAccount = as::cloud_storage_account::parse(utility::conversions::to_string_t(connectionString));
-    OrthancPlugins::LogInfo("Storage account created");
-
-    as::cloud_blob_client blobClient = storageAccount.create_cloud_blob_client();
+    as::BlobContainerClient client = as::BlobContainerClient::CreateFromConnectionString(connectionString, containerName);
     OrthancPlugins::LogInfo("Blob client created");
 
-    as::cloud_blob_container blobContainer = blobClient.get_container_reference(utility::conversions::to_string_t(containerName));
-    OrthancPlugins::LogInfo("Accessing blob container");
-
-    // blobContainer.create_if_not_exists() throws an error if a service SAS (for a blob container)
-    // was used in the connectionString.
-    // Only allow the use of this function when using storage account-level credentials, whether
-    // through accountName/accountKey combo or account SAS.
-    if ((storageAccount.credentials().is_account_key() ||
-         (storageAccount.credentials().is_sas() && IsSasTokenAccountLevel(storageAccount.credentials().sas_token())))
-        && createContainerIfNotExists)
+    if (createContainerIfNotExists)
     {
-      // Return value is true if the container did not exist and was successfully created.
-      bool containerCreated = blobContainer.create_if_not_exists();
+      // Note: in version up to 2.1.2, we had this code:
+      // // blobContainer.create_if_not_exists() throws an error if a service SAS (for a blob container)
+      // // was used in the connectionString.
+      // // Only allow the use of this function when using storage account-level credentials, whether
+      // // through accountName/accountKey combo or account SAS.
+      // if ((storageAccount.credentials().is_account_key() ||
+      //      (storageAccount.credentials().is_sas() && IsSasTokenAccountLevel(storageAccount.credentials().sas_token())))
+      //     && createContainerIfNotExists)
 
-      if (containerCreated)
+      auto createResult = client.CreateIfNotExists();
+      if (createResult.Value.Created)
       {
         OrthancPlugins::LogWarning("Blob Storage Area container has been created.  **** check in the Azure console that your container is private ****");
       }
@@ -313,7 +303,7 @@ IStorage* AzureBlobStoragePluginFactory::CreateStorage(const std::string& nameFo
 
     OrthancPlugins::LogInfo("Blob storage initialized");
 
-    return new AzureBlobStoragePlugin(nameForLogs, blobClient, blobContainer, enableLegacyStorageStructure, storageContainsUnknownFiles);
+    return new AzureBlobStoragePlugin(nameForLogs, client, enableLegacyStorageStructure, storageContainsUnknownFiles);
   }
   catch (const std::exception& e)
   {
@@ -323,10 +313,9 @@ IStorage* AzureBlobStoragePluginFactory::CreateStorage(const std::string& nameFo
 
 }
 
-AzureBlobStoragePlugin::AzureBlobStoragePlugin(const std::string& nameForLogs, const as::cloud_blob_client& blobClient, const as::cloud_blob_container& blobContainer, bool enableLegacyStorageStructure, bool storageContainsUnknownFiles)
+AzureBlobStoragePlugin::AzureBlobStoragePlugin(const std::string& nameForLogs, const as::BlobContainerClient& blobClient, bool enableLegacyStorageStructure, bool storageContainsUnknownFiles)
   : BaseStorage(nameForLogs, enableLegacyStorageStructure),
     blobClient_(blobClient),
-    blobContainer_(blobContainer),
     storageContainsUnknownFiles_(storageContainsUnknownFiles)
 {
 
@@ -334,7 +323,7 @@ AzureBlobStoragePlugin::AzureBlobStoragePlugin(const std::string& nameForLogs, c
 
 IStorage::IWriter* AzureBlobStoragePlugin::GetWriterForObject(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled)
 {
-  return new Writer(blobContainer_, GetPath(uuid, type, encryptionEnabled), blobClient_);
+  return new Writer(GetPath(uuid, type, encryptionEnabled), blobClient_);
 }
 
 IStorage::IReader* AzureBlobStoragePlugin::GetReaderForObject(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled)
@@ -346,7 +335,7 @@ IStorage::IReader* AzureBlobStoragePlugin::GetReaderForObject(const char* uuid, 
     paths.push_back(GetPath(uuid, type, encryptionEnabled, true));
   }
 
-  return new Reader(blobContainer_, paths, blobClient_);
+  return new Reader(paths, blobClient_);
 }
 
 void AzureBlobStoragePlugin::DeleteObject(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled)
@@ -355,9 +344,8 @@ void AzureBlobStoragePlugin::DeleteObject(const char* uuid, OrthancPluginContent
 
   try
   {
-    as::cloud_block_blob blockBlob = blobContainer_.get_block_blob_reference(utility::conversions::to_string_t(path));
-
-    blockBlob.delete_blob();
+    as::BlockBlobClient blobClient = blobClient_.GetBlockBlobClient(path);
+    blobClient.Delete();
   }
   catch (std::exception& ex)
   {

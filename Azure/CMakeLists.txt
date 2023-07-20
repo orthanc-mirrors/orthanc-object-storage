@@ -57,32 +57,34 @@ include_directories(
 find_package(cryptopp CONFIG REQUIRED)
 
 # Azure stuff (from https://github.com/Microsoft/vcpkg/issues/6277)
-if (NOT WIN32)
-  find_package(cpprestsdk CONFIG REQUIRED)
-  find_path(WASTORAGE_INCLUDE_DIR was/blob.h)
-  find_library(WASTORAGE_LIBRARY azurestorage)
-  find_package(Boost REQUIRED COMPONENTS log)
-  find_library(UUID_LIBRARY uuid)
-  find_package(LibXml2 REQUIRED)
-else()  # inspired from https://github.com/phongcao/azure-storage-cpp-sas-sample/blob/master/CMakeLists.txt
-  find_path(WASTORAGE_INCLUDE_DIR was/blob.h)
-  find_library(CPPREST_LIBRARY
-    NAMES cpprest cpprest_2_10)
-  find_library(WASTORAGE_LIBRARY wastorage)
+find_package(azure-storage-blobs-cpp CONFIG REQUIRED)
 
-  set (CMAKE_CXX_STANDARD 11)
-  set (CMAKE_CXX_STANDARD_REQUIRED ON)
-  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHa")
-  set (CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /Zi")
-  set (CMAKE_SHARED_LINKER_FLAGS_RELEASE "${CMAKE_SHARED_LINKER_FLAGS_RELEASE} /DEBUG /OPT:REF /OPT:ICF")
+# if (NOT WIN32)
+#   find_package(cpprestsdk CONFIG REQUIRED)
+#   find_path(WASTORAGE_INCLUDE_DIR was/blob.h)
+#   find_library(WASTORAGE_LIBRARY azurestorage)
+#   find_package(Boost REQUIRED COMPONENTS log)
+#   find_library(UUID_LIBRARY uuid)
+#   find_package(LibXml2 REQUIRED)
+# else()  # inspired from https://github.com/phongcao/azure-storage-cpp-sas-sample/blob/master/CMakeLists.txt
+#   find_path(WASTORAGE_INCLUDE_DIR was/blob.h)
+#   find_library(CPPREST_LIBRARY
+#     NAMES cpprest cpprest_2_10)
+#   find_library(WASTORAGE_LIBRARY wastorage)
 
-  message(INFO "WASTORAGE_INCLUDE_DIR ${WASTORAGE_INCLUDE_DIR}")
+#   set (CMAKE_CXX_STANDARD 11)
+#   set (CMAKE_CXX_STANDARD_REQUIRED ON)
+#   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHa")
+#   set (CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /Zi")
+#   set (CMAKE_SHARED_LINKER_FLAGS_RELEASE "${CMAKE_SHARED_LINKER_FLAGS_RELEASE} /DEBUG /OPT:REF /OPT:ICF")
 
-  add_definitions(-D_NO_WASTORAGE_API=1)   # from https://github.com/Azure/azure-storage-cpp/issues/263
-endif()
+#   message(INFO "WASTORAGE_INCLUDE_DIR ${WASTORAGE_INCLUDE_DIR}")
 
-include_directories(${WASTORAGE_INCLUDE_DIR})
+#   add_definitions(-D_NO_WASTORAGE_API=1)   # from https://github.com/Azure/azure-storage-cpp/issues/263
+# endif()
 
+# include_directories(${WASTORAGE_INCLUDE_DIR})
+set (CMAKE_CXX_STANDARD 14)
 
 set(COMMON_SOURCES
     ${CMAKE_SOURCE_DIR}/../Common/IStorage.h
@@ -123,12 +125,12 @@ if (NOT WIN32)
     ${UUID_LIBRARY} 
     ${Boost_LIBRARIES} 
     ${LIBXML2_LIBRARIES} 
-    cpprestsdk::cpprest
+    Azure::azure-storage-blobs
     )
 else()
   target_link_libraries(OrthancAzureBlobStorage
     PRIVATE
-    cryptopp::cryptopp
+    Azure::azure-storage-blobs
     ${OPENSSL_LIBRARY}
     ${WASTORAGE_LIBRARY} 
     ${CPPREST_LIBRARY} 

@@ -1,3 +1,7 @@
+
+* Azure plugin:
+  * rewrote using the latest azure C++ sdk.
+
 2022-12-19 - v 2.1.2
 ====================
 
