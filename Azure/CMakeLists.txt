@@ -121,19 +121,16 @@ if (NOT WIN32)
   target_link_libraries(OrthancAzureBlobStorage
     PRIVATE
     cryptopp::cryptopp
-    ${WASTORAGE_LIBRARY} 
-    ${UUID_LIBRARY} 
-    ${Boost_LIBRARIES} 
-    ${LIBXML2_LIBRARIES} 
     Azure::azure-storage-blobs
+    ${UUID_LIBRARY} 
+    ${LIBXML2_LIBRARIES} 
     )
 else()
   target_link_libraries(OrthancAzureBlobStorage
     PRIVATE
+    cryptopp::cryptopp
     Azure::azure-storage-blobs
     ${OPENSSL_LIBRARY}
-    ${WASTORAGE_LIBRARY} 
-    ${CPPREST_LIBRARY} 
     Winhttp.lib
     Crypt32.lib
     xmllite.lib
