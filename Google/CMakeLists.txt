@@ -56,8 +56,10 @@ include_directories(
   )
 
 find_package(CURL REQUIRED)
-find_package(storage_client REQUIRED)
+find_package(google_cloud_cpp_storage REQUIRED)
 find_package(cryptopp CONFIG REQUIRED)
+
+set(CMAKE_CXX_STANDARD 14)
 
 set(COMMON_SOURCES
     ${CMAKE_SOURCE_DIR}/../Common/IStorage.h
@@ -91,8 +93,10 @@ set_target_properties(OrthancGoogleCloudStorage PROPERTIES
 
 target_link_libraries(OrthancGoogleCloudStorage
   PRIVATE
-  storage_client
-  cryptopp-static
+  CURL::libcurl 
+  google-cloud-cpp::storage 
+  google-cloud-cpp::experimental-storage-grpc
+  cryptopp::cryptopp
   )
 
 add_executable(UnitTests
@@ -106,7 +110,9 @@ add_executable(UnitTests
 
 target_link_libraries(UnitTests
   PRIVATE
-  cryptopp-static
-  storage_client
+  CURL::libcurl 
+  google-cloud-cpp::storage 
+  google-cloud-cpp::experimental-storage-grpc
+  cryptopp::cryptopp
   ${GOOGLE_TEST_LIBRARIES}
   )

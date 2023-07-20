@@ -26,7 +26,9 @@ Here's a sample configuration file of the `StorageEncryption` section of the plu
 
 ### Compile Google plugin ###
 
-* `./vcpkg install google-cloud-cpp`
+On Linux, with vcpkg version `2023.06.20`:
+
+* `./vcpkg install google-cloud-cpp[storage]`
 * `./vcpkg install cryptopp`
 * `hg clone ...`
 * `mkdir -p build/google`
@@ -55,19 +57,18 @@ Here's a sample configuration file of the `StorageEncryption` section of the plu
 
 ### Compile Azure plugin ###
 
-On Linux, with vcpkg version `2022.11.14`:
+On Linux, with vcpkg version `2023.06.20`:
 
-* `./vcpkg install cpprestsdk`
+* `./vcpkg install azure-core-cpp azure-storage-blobs-cpp`
 * `./vcpkg install cryptopp`
 * `hg clone ...`
 * `mkdir -p build/azure`
 * `cd build/azure` 
 * `cmake -DCMAKE_TOOLCHAIN_FILE=[vcpkg root]\scripts\buildsystems\vcpkg.cmake ../../orthanc-object-storage/Azure`
 
-On Windows, with vcpkg version `2022.11.14` :
+On Windows, with vcpkg version `2023.06.20` :
 
-* `.\vcpkg.exe install cpprestsdk:x64-windows-static`
-* `.\vcpkg.exe install azure-storage-cpp:x64-windows-static`
+* `.\vcpkg.exe install azure-storage-blobs-cpp:x64-windows-static`
 * `.\vcpkg.exe install cryptopp:x64-windows-static`
 * `hg clone ...`
 * `mkdir -p build/azure`

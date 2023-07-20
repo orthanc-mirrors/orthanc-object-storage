@@ -84,7 +84,7 @@ find_package(azure-storage-blobs-cpp CONFIG REQUIRED)
 # endif()
 
 # include_directories(${WASTORAGE_INCLUDE_DIR})
-set (CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 14)
 
 set(COMMON_SOURCES
     ${CMAKE_SOURCE_DIR}/../Common/IStorage.h
