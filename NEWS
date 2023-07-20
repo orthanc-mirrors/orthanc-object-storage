@@ -1,6 +1,9 @@
 
 * Azure plugin:
-  * rewrote using the latest azure C++ sdk.
+  * rewrote using the latest azure C++ sdk available with vcpkg tag 2023.06.20.
+
+* Google plugin:
+  * rewrote using the latest google C++ sdkavailable with vcpkg tag 2023.06.20.
 
 2022-12-19 - v 2.1.2
 ====================
