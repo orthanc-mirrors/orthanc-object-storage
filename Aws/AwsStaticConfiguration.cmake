@@ -156,6 +156,7 @@ list(APPEND AWS_SOURCES_SUBDIRS
   ${AWS_SDK_CPP_SOURCES_DIR}/aws-cpp-sdk-core/source/utils/xml/
   ${AWS_SDK_CPP_SOURCES_DIR}/aws-cpp-sdk-s3/source/
   ${AWS_SDK_CPP_SOURCES_DIR}/aws-cpp-sdk-s3/source/model/
+  ${AWS_SDK_CPP_SOURCES_DIR}/aws-cpp-sdk-transfer/source/transfer/
   )
 
 

@@ -112,7 +112,7 @@ if (NOT STATIC_BUILD AND USE_VCPKG_PACKAGES)
   # Use vcpkg by Microsoft
   option(BUILD_SHARED_LIBS "Build shared libraries" ON)
   find_package(cryptopp CONFIG REQUIRED)
-  find_package(AWSSDK REQUIRED COMPONENTS s3)
+  find_package(AWSSDK REQUIRED COMPONENTS s3 transfer)
   set(CRYPTOPP_LIBRARIES cryptopp-static)
   
 else()
