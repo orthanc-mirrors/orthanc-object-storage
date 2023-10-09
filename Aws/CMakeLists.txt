@@ -148,6 +148,8 @@ add_library(OrthancAwsS3Storage SHARED
   ${COMMON_SOURCES}
   )
 
+DefineSourceBasenameForTarget(OrthancAwsS3Storage)
+
 set_target_properties(OrthancAwsS3Storage PROPERTIES
   VERSION ${PLUGIN_VERSION}
   SOVERSION ${PLUGIN_VERSION}
