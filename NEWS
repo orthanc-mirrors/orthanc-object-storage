@@ -9,6 +9,7 @@ Pending changes in the mainline
     especially for large files.
   * now using the latest AWS SDK C++ (1.11.178).
 
+* in /move-storage: now detecting if file should be moved or not.
 
 2023-07-20 - v 2.2.0
 ====================

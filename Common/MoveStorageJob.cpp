@@ -67,7 +67,21 @@ static bool MoveAttachment(const std::string& uuid, int type, IStorage* sourceSt
   // read from source storage
   try
   {
-    OrthancPlugins::LogInfo("Move attachment: " + sourceStorage->GetNameForLogs() + ": reading attachment " + std::string(uuid) + " of type " + boost::lexical_cast<std::string>(type));
+    if (sourceStorage->HasFileExists() && !sourceStorage->FileExists(uuid, static_cast<OrthancPluginContentType>(type), cryptoEnabled))
+    {
+      OrthancPlugins::LogInfo("Move attachment: " + sourceStorage->GetNameForLogs() + " " + std::string(uuid) + " of type " + boost::lexical_cast<std::string>(type) + ", skipping, file is not on the source anymore");
+      return true;
+    }
+    else if (targetStorage->HasFileExists() && targetStorage->FileExists(uuid, static_cast<OrthancPluginContentType>(type), cryptoEnabled))
+    {
+      OrthancPlugins::LogInfo("Move attachment: " + targetStorage->GetNameForLogs() + " " + std::string(uuid) + " of type " + boost::lexical_cast<std::string>(type) + ", skipping, file already on the target");
+      return true;
+    }
+    else
+    {
+      OrthancPlugins::LogInfo("Move attachment: " + sourceStorage->GetNameForLogs() + ": reading attachment " + std::string(uuid) + " of type " + boost::lexical_cast<std::string>(type));
+    }
+
     std::unique_ptr<IStorage::IReader> reader(sourceStorage->GetReaderForObject(uuid.c_str(), static_cast<OrthancPluginContentType>(type), cryptoEnabled));
 
     size_t fileSize = reader->GetSize();
@@ -97,7 +111,7 @@ static bool MoveAttachment(const std::string& uuid, int type, IStorage* sourceSt
     }
   }
 
-  // everything went well so fare, we can delete from source storage
+  // everything went well so far, we can delete from source storage
   if (buffer.size() > 0)
   {
     try

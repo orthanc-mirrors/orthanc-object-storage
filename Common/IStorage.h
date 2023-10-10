@@ -80,4 +80,7 @@ public:
   virtual void DeleteObject(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled) = 0;  // returns true only if 100% sure that the file has been deleted, false otherwise
 
   const std::string& GetNameForLogs() {return nameForLogs_;}
+
+  virtual bool HasFileExists() = 0;
+  virtual bool FileExists(const std::string& uuid, OrthancPluginContentType type, bool encryptionEnabled) {return false;}
 };

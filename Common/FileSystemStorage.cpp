@@ -146,4 +146,12 @@ void FileSystemStoragePlugin::DeleteObject(const char* uuid, OrthancPluginConten
 
 }
 
+bool FileSystemStoragePlugin::FileExists(const std::string& uuid, OrthancPluginContentType type, bool encryptionEnabled)
+{
+  namespace fs = boost::filesystem;
+
+  fs::path path = BaseStorage::GetOrthancFileSystemPath(uuid, fileSystemRootPath_);
+
+  return Orthanc::SystemToolbox::IsExistingFile(path.string());
+}
 

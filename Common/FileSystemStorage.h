@@ -70,4 +70,7 @@ public:
   virtual IStorage::IWriter* GetWriterForObject(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled);
   virtual IStorage::IReader* GetReaderForObject(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled);
   virtual void DeleteObject(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled);
+
+  virtual bool HasFileExists() {return true;};
+  virtual bool FileExists(const std::string& uuid, OrthancPluginContentType type, bool encryptionEnabled);
 };

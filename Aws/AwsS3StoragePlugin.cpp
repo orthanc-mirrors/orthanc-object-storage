@@ -62,6 +62,7 @@ public:
   virtual IWriter* GetWriterForObject(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled);
   virtual IReader* GetReaderForObject(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled);
   virtual void DeleteObject(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled);
+  virtual bool HasFileExists() {return false;};
 };
 
 
