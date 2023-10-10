@@ -104,7 +104,7 @@ add_definitions(
 
 include_directories(
   ${CMAKE_SOURCE_DIR}/../Common/Resources/Orthanc/Plugins/
-  ${CMAKE_SOURCE_DIR}/../Common/Resources/Orthanc/Sdk-1.9.2/
+  ${CMAKE_SOURCE_DIR}/../Common/Resources/Orthanc/Sdk-1.12.1/
   )
 
 
