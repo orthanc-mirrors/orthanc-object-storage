@@ -435,9 +435,6 @@ IStorage* AwsS3StoragePluginFactory::CreateStorage(const std::string& nameForLog
   
   try
   {
-    Aws::SDKOptions options;
-    Aws::InitAPI(options);
-
     Aws::Client::ClientConfiguration configuration;
 
     configuration.region = region.c_str();

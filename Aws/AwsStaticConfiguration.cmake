@@ -15,75 +15,87 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 
-SET(AWS_C_COMMON_SOURCES_DIR ${CMAKE_BINARY_DIR}/aws-c-common-0.6.2)
-SET(AWS_C_COMMON_URL "http://orthanc.osimis.io/ThirdPartyDownloads/aws/aws-c-common-0.6.2.tar.gz")
-SET(AWS_C_COMMON_MD5 "aa6dc4bde2d035ad84ec40e3ea1e2bff")
+# version numbers can be obtained from https://github.com/aws/aws-sdk-cpp/blob/main/prefetch_crt_dependency.sh
+
+SET(AWS_C_COMMON_SOURCES_DIR ${CMAKE_BINARY_DIR}/aws-c-common-0.9.3)  # source =  https://github.com/awslabs/aws-c-common/archive/refs/tags/v0.9.3.tar.gz
+SET(AWS_C_COMMON_URL "https://orthanc.osimis.io/ThirdPartyDownloads/aws/aws-c-common-0.9.3.tar.gz")
+SET(AWS_C_COMMON_MD5 "d872ff682d5beca8ada6b19464235ca0")
 DownloadPackage(${AWS_C_COMMON_MD5} ${AWS_C_COMMON_URL} "${AWS_C_COMMON_SOURCES_DIR}")
 
-SET(AWS_CHECKSUMS_SOURCES_DIR ${CMAKE_BINARY_DIR}/aws-checksums-0.1.11)
-SET(AWS_CHECKSUMS_URL "http://orthanc.osimis.io/ThirdPartyDownloads/aws/aws-checksums-0.1.11.tar.gz")
-SET(AWS_CHECKSUMS_MD5 "4ec8e8065d0d3cd53c86e16692e79dcb")
+SET(AWS_CHECKSUMS_SOURCES_DIR ${CMAKE_BINARY_DIR}/aws-checksums-0.1.17)  # source =  https://github.com/awslabs/aws-checksums/archive/refs/tags/v0.1.17.tar.gz
+SET(AWS_CHECKSUMS_URL "http://orthanc.osimis.io/ThirdPartyDownloads/aws/aws-checksums-0.1.17.tar.gz")
+SET(AWS_CHECKSUMS_MD5 "c256144404dc74349a8344662111e353")
 DownloadPackage(${AWS_CHECKSUMS_MD5} ${AWS_CHECKSUMS_URL} "${AWS_CHECKSUMS_SOURCES_DIR}")
 
-SET(AWS_C_AUTH_SOURCES_DIR ${CMAKE_BINARY_DIR}/aws-c-auth-0.6.0)
-SET(AWS_C_AUTH_URL "http://orthanc.osimis.io/ThirdPartyDownloads/aws/aws-c-auth-0.6.0.tar.gz")
-SET(AWS_C_AUTH_MD5 "e82d991dbd1c1acee210d4ac1fd518dc")
+SET(AWS_C_AUTH_SOURCES_DIR ${CMAKE_BINARY_DIR}/aws-c-auth-0.7.1)  # source =  https://github.com/awslabs/aws-c-auth/archive/refs/tags/v0.7.1.tar.gz
+SET(AWS_C_AUTH_URL "http://orthanc.osimis.io/ThirdPartyDownloads/aws/aws-c-auth-0.7.1.tar.gz")
+SET(AWS_C_AUTH_MD5 "aa690622a5f697d47ca3095ba2ef3cca")
 DownloadPackage(${AWS_C_AUTH_MD5} ${AWS_C_AUTH_URL} "${AWS_C_AUTH_SOURCES_DIR}")
 
-SET(AWS_C_CAL_SOURCES_DIR ${CMAKE_BINARY_DIR}/aws-c-cal-0.5.11)
-SET(AWS_C_CAL_URL "http://orthanc.osimis.io/ThirdPartyDownloads/aws/aws-c-cal-0.5.11.tar.gz")
-SET(AWS_C_CAL_MD5 "2099fc945a02feda56b8ecd1ea77acf9")
+SET(AWS_C_CAL_SOURCES_DIR ${CMAKE_BINARY_DIR}/aws-c-cal-0.6.1)   # source =  https://github.com/awslabs/aws-c-cal/archive/refs/tags/v0.6.1.tar.gz
+SET(AWS_C_CAL_URL "http://orthanc.osimis.io/ThirdPartyDownloads/aws/aws-c-cal-0.6.1.tar.gz")
+SET(AWS_C_CAL_MD5 "6d7c05e2f1c173b923e77b6021cb660d")
 DownloadPackage(${AWS_C_CAL_MD5} ${AWS_C_CAL_URL} "${AWS_C_CAL_SOURCES_DIR}")
 
-SET(AWS_C_COMPRESSION_SOURCES_DIR ${CMAKE_BINARY_DIR}/aws-c-compression-0.2.13)
-SET(AWS_C_COMPRESSION_URL "http://orthanc.osimis.io/ThirdPartyDownloads/aws/aws-c-compression-0.2.13.tar.gz")
-SET(AWS_C_COMPRESSION_MD5 "e96ed91a832116a05a60e49e9946623e")
+SET(AWS_C_COMPRESSION_SOURCES_DIR ${CMAKE_BINARY_DIR}/aws-c-compression-0.2.17)  # source =  https://github.com/awslabs/aws-c-compression/archive/refs/tags/v0.2.17.tar.gz
+SET(AWS_C_COMPRESSION_URL "http://orthanc.osimis.io/ThirdPartyDownloads/aws/aws-c-compression-0.2.17.tar.gz")
+SET(AWS_C_COMPRESSION_MD5 "b8bc8bc9cf3749eb2d3f36098c9ead27")
 DownloadPackage(${AWS_C_COMPRESSION_MD5} ${AWS_C_COMPRESSION_URL} "${AWS_C_COMPRESSION_SOURCES_DIR}")
 
-SET(AWS_C_EVENT_STREAM_SOURCES_DIR ${CMAKE_BINARY_DIR}/aws-c-event-stream-0.2.7)
-SET(AWS_C_EVENT_STREAM_URL "http://orthanc.osimis.io/ThirdPartyDownloads/aws/aws-c-event-stream-0.2.7.tar.gz")
-SET(AWS_C_EVENT_STREAM_MD5 "5cf71f97962e22c4bc7fd75b9a8daf49")
+SET(AWS_C_EVENT_STREAM_SOURCES_DIR ${CMAKE_BINARY_DIR}/aws-c-event-stream-0.3.1)  # source =  https://github.com/awslabs/aws-c-event-stream/archive/refs/tags/v0.3.1.tar.gz
+SET(AWS_C_EVENT_STREAM_URL "http://orthanc.osimis.io/ThirdPartyDownloads/aws/aws-c-event-stream-0.3.1.tar.gz")
+SET(AWS_C_EVENT_STREAM_MD5 "e3261d89598a3331eebcd0476b523c73")
 DownloadPackage(${AWS_C_EVENT_STREAM_MD5} ${AWS_C_EVENT_STREAM_URL} "${AWS_C_EVENT_STREAM_SOURCES_DIR}")
 
-SET(AWS_C_HTTP_SOURCES_DIR ${CMAKE_BINARY_DIR}/aws-c-http-0.6.4)
-SET(AWS_C_HTTP_URL "http://orthanc.osimis.io/ThirdPartyDownloads/aws/aws-c-http-0.6.4.tar.gz")
-SET(AWS_C_HTTP_MD5 "7ac847811ff27f1671b31514e3493913")
+SET(AWS_C_HTTP_SOURCES_DIR ${CMAKE_BINARY_DIR}/aws-c-http-0.7.11)  # source =  https://github.com/awslabs/aws-c-http/archive/refs/tags/v0.7.11.tar.gz
+SET(AWS_C_HTTP_URL "http://orthanc.osimis.io/ThirdPartyDownloads/aws/aws-c-http-0.7.11.tar.gz")
+SET(AWS_C_HTTP_MD5 "b8ef3268d4d64b7fabe743b03518d2d7")
 DownloadPackage(${AWS_C_HTTP_MD5} ${AWS_C_HTTP_URL} "${AWS_C_HTTP_SOURCES_DIR}")
 
-SET(AWS_C_IO_SOURCES_DIR ${CMAKE_BINARY_DIR}/aws-c-io-0.10.5)
-SET(AWS_C_IO_URL "http://orthanc.osimis.io/ThirdPartyDownloads/aws/aws-c-io-0.10.5.tar.gz")
-SET(AWS_C_IO_MD5 "2a450a918184aaf7e80afc80b515397b")
+SET(AWS_C_IO_SOURCES_DIR ${CMAKE_BINARY_DIR}/aws-c-io-0.13.31)  # source =  https://github.com/awslabs/aws-c-io/archive/refs/tags/v0.13.31.tar.gz
+SET(AWS_C_IO_URL "http://orthanc.osimis.io/ThirdPartyDownloads/aws/aws-c-io-0.13.31.tar.gz")
+SET(AWS_C_IO_MD5 "9ae415cb81404e1b76d8e8267e585e34")
 DownloadPackage(${AWS_C_IO_MD5} ${AWS_C_IO_URL} "${AWS_C_IO_SOURCES_DIR}")
 
-SET(AWS_C_MQTT_SOURCES_DIR ${CMAKE_BINARY_DIR}/aws-c-mqtt-0.7.6)
-SET(AWS_C_MQTT_URL "http://orthanc.osimis.io/ThirdPartyDownloads/aws/aws-c-mqtt-0.7.6.tar.gz")
-SET(AWS_C_MQTT_MD5 "29aca202d29b9934f630a204f6731031")
+SET(AWS_C_MQTT_SOURCES_DIR ${CMAKE_BINARY_DIR}/aws-c-mqtt-0.9.5)  # source =  https://github.com/awslabs/aws-c-mqtt/archive/refs/tags/v0.9.5.tar.gz
+SET(AWS_C_MQTT_URL "http://orthanc.osimis.io/ThirdPartyDownloads/aws/aws-c-mqtt-0.9.5.tar.gz")
+SET(AWS_C_MQTT_MD5 "76d59d9f14f3999b0f9618e386e71db6")
 DownloadPackage(${AWS_C_MQTT_MD5} ${AWS_C_MQTT_URL} "${AWS_C_MQTT_SOURCES_DIR}")
 
-SET(AWS_C_S3_SOURCES_DIR ${CMAKE_BINARY_DIR}/aws-c-s3-0.1.19)
-SET(AWS_C_S3_URL "http://orthanc.osimis.io/ThirdPartyDownloads/aws/aws-c-s3-0.1.19.tar.gz")
-SET(AWS_C_S3_MD5 "ae5e98f70075fd40093af856b72a04fb")
+SET(AWS_C_S3_SOURCES_DIR ${CMAKE_BINARY_DIR}/aws-c-s3-0.3.14)  # source =  https://github.com/awslabs/aws-c-s3/archive/refs/tags/v0.3.14.tar.gz
+SET(AWS_C_S3_URL "http://orthanc.osimis.io/ThirdPartyDownloads/aws/aws-c-s3-0.3.14.tar.gz")
+SET(AWS_C_S3_MD5 "564bb0df1184ebe9ce41c23a0c18cf1a")
 DownloadPackage(${AWS_C_S3_MD5} ${AWS_C_S3_URL} "${AWS_C_S3_SOURCES_DIR}")
 
-SET(AWS_CRT_CPP_SOURCES_DIR ${CMAKE_BINARY_DIR}/aws-crt-cpp-0.14.0)
-SET(AWS_CRT_CPP_URL "http://orthanc.osimis.io/ThirdPartyDownloads/aws/aws-crt-cpp-0.14.0.tar.gz")
-SET(AWS_CRT_CPP_MD5 "4298ab05b95380f960c7b0184df5c078")
+SET(AWS_C_SDKUTILS_SOURCES_DIR ${CMAKE_BINARY_DIR}/aws-c-sdkutils-0.1.11)  # source =  https://github.com/awslabs/aws-c-sdkutils/archive/refs/tags/v0.1.11.tar.gz
+SET(AWS_C_SDKUTILS_URL "http://orthanc.osimis.io/ThirdPartyDownloads/aws/aws-c-sdkutils-0.1.11.tar.gz")
+SET(AWS_C_SDKUTILS_MD5 "713cac3392aa20d5dda852cf21ac1957")
+DownloadPackage(${AWS_C_SDKUTILS_MD5} ${AWS_C_SDKUTILS_URL} "${AWS_C_SDKUTILS_SOURCES_DIR}")
+
+SET(AWS_CRT_CPP_SOURCES_DIR ${CMAKE_BINARY_DIR}/aws-crt-cpp-0.24.1)  # source =  https://github.com/awslabs/aws-crt-cpp/archive/refs/tags/v0.24.1.tar.gz
+SET(AWS_CRT_CPP_URL "http://orthanc.osimis.io/ThirdPartyDownloads/aws/aws-crt-cpp-0.24.1.tar.gz")
+SET(AWS_CRT_CPP_MD5 "fa2cda44386bd56f1d4609c6a54a59f9")
 DownloadPackage(${AWS_CRT_CPP_MD5} ${AWS_CRT_CPP_URL} "${AWS_CRT_CPP_SOURCES_DIR}")
 
-SET(AWS_SDK_CPP_SOURCES_DIR ${CMAKE_BINARY_DIR}/aws-sdk-cpp-1.9.45)
-SET(AWS_SDK_CPP_URL "http://orthanc.osimis.io/ThirdPartyDownloads/aws/aws-sdk-cpp-1.9.45.tar.gz")
-SET(AWS_SDK_CPP_MD5 "f2f2d48b119fda2ef17d2604c0cca52e")
+SET(AWS_SDK_CPP_SOURCES_DIR ${CMAKE_BINARY_DIR}/aws-sdk-cpp-1.11.178)  # source =  https://github.com/aws/aws-sdk-cpp/archive/refs/tags/1.11.178.tar.gz
+SET(AWS_SDK_CPP_URL "http://orthanc.osimis.io/ThirdPartyDownloads/aws/aws-sdk-cpp-1.11.178.tar.gz")
+SET(AWS_SDK_CPP_MD5 "a3f45888e939bb71506e0f7eaa630e48")
 DownloadPackage(${AWS_SDK_CPP_MD5} ${AWS_SDK_CPP_URL} "${AWS_SDK_CPP_SOURCES_DIR}")
 
 
 configure_file(
-  ${AWS_SDK_CPP_SOURCES_DIR}/aws-cpp-sdk-core/include/aws/core/SDKConfig.h.in
-  ${AWS_SDK_CPP_SOURCES_DIR}/aws-cpp-sdk-core/include/aws/core/SDKConfig.h
+  ${AWS_SDK_CPP_SOURCES_DIR}/src/aws-cpp-sdk-core/include/aws/core/SDKConfig.h.in
+  ${AWS_SDK_CPP_SOURCES_DIR}/src/aws-cpp-sdk-core/include/aws/core/SDKConfig.h
   )
 
 configure_file(
   ${AWS_C_COMMON_SOURCES_DIR}/include/aws/common/config.h.in
   ${AWS_C_COMMON_SOURCES_DIR}/include/aws/common/config.h
+  )
+
+configure_file(
+  ${AWS_CRT_CPP_SOURCES_DIR}/include/aws/crt/Config.h.in
+  ${AWS_CRT_CPP_SOURCES_DIR}/include/aws/crt/Config.h
   )
 
 
@@ -96,17 +108,21 @@ include_directories(
   ${AWS_C_HTTP_SOURCES_DIR}/include/
   ${AWS_C_MQTT_SOURCES_DIR}/include/
   ${AWS_C_S3_SOURCES_DIR}/include/
+  ${AWS_C_SDKUTILS_SOURCES_DIR}/include/
   ${AWS_C_EVENT_STREAM_SOURCES_DIR}/include/
   ${AWS_CHECKSUMS_SOURCES_DIR}/include/
   ${AWS_CRT_CPP_SOURCES_DIR}/include/
-  ${AWS_SDK_CPP_SOURCES_DIR}/aws-cpp-sdk-core/include/
-  ${AWS_SDK_CPP_SOURCES_DIR}/aws-cpp-sdk-s3/include/
-  ${AWS_SDK_CPP_SOURCES_DIR}/aws-cpp-sdk-connect/include/
+  ${AWS_SDK_CPP_SOURCES_DIR}/src/aws-cpp-sdk-core/include/
+  ${AWS_SDK_CPP_SOURCES_DIR}/src/aws-cpp-sdk-transfer/include/
+  ${AWS_SDK_CPP_SOURCES_DIR}/generated/src/aws-cpp-sdk-s3/include/
+  # ${AWS_SDK_CPP_SOURCES_DIR}/src/aws-cpp-sdk-s3/include/
+  # ${AWS_SDK_CPP_SOURCES_DIR}/src/aws-cpp-sdk-connect/include/
   )
 
 
 list(APPEND AWS_SOURCES_SUBDIRS
   ${AWS_C_COMMON_SOURCES_DIR}/source/
+  ${AWS_C_COMMON_SOURCES_DIR}/source/external/
 
   ## C libraries
   
@@ -119,44 +135,57 @@ list(APPEND AWS_SOURCES_SUBDIRS
   ${AWS_C_IO_SOURCES_DIR}/source/
   ${AWS_C_MQTT_SOURCES_DIR}/source/
   ${AWS_C_S3_SOURCES_DIR}/source/
+  ${AWS_C_SDKUTILS_SOURCES_DIR}/source/
 
   ## C++ libraries
   
   ${AWS_CRT_CPP_SOURCES_DIR}/source/
   ${AWS_CRT_CPP_SOURCES_DIR}/source/auth/
   ${AWS_CRT_CPP_SOURCES_DIR}/source/crypto/
+  ${AWS_CRT_CPP_SOURCES_DIR}/source/endpoints/
   ${AWS_CRT_CPP_SOURCES_DIR}/source/http/
   ${AWS_CRT_CPP_SOURCES_DIR}/source/io/
   ${AWS_CRT_CPP_SOURCES_DIR}/source/external/
-  ${AWS_SDK_CPP_SOURCES_DIR}/aws-cpp-sdk-connect/source/
-  ${AWS_SDK_CPP_SOURCES_DIR}/aws-cpp-sdk-connect/source/model/
-  ${AWS_SDK_CPP_SOURCES_DIR}/aws-cpp-sdk-core/source/
-  ${AWS_SDK_CPP_SOURCES_DIR}/aws-cpp-sdk-core/source/auth/
-  ${AWS_SDK_CPP_SOURCES_DIR}/aws-cpp-sdk-core/source/client/
-  ${AWS_SDK_CPP_SOURCES_DIR}/aws-cpp-sdk-core/source/config/
-  ${AWS_SDK_CPP_SOURCES_DIR}/aws-cpp-sdk-core/source/external/cjson/
-  ${AWS_SDK_CPP_SOURCES_DIR}/aws-cpp-sdk-core/source/external/tinyxml2/
-  ${AWS_SDK_CPP_SOURCES_DIR}/aws-cpp-sdk-core/source/http/
-  ${AWS_SDK_CPP_SOURCES_DIR}/aws-cpp-sdk-core/source/http/curl/
-  ${AWS_SDK_CPP_SOURCES_DIR}/aws-cpp-sdk-core/source/http/standard/
-  ${AWS_SDK_CPP_SOURCES_DIR}/aws-cpp-sdk-core/source/internal/
-  ${AWS_SDK_CPP_SOURCES_DIR}/aws-cpp-sdk-core/source/monitoring/
-  ${AWS_SDK_CPP_SOURCES_DIR}/aws-cpp-sdk-core/source/net/
-  ${AWS_SDK_CPP_SOURCES_DIR}/aws-cpp-sdk-core/source/utils/
-  ${AWS_SDK_CPP_SOURCES_DIR}/aws-cpp-sdk-core/source/utils/base64/
-  ${AWS_SDK_CPP_SOURCES_DIR}/aws-cpp-sdk-core/source/utils/crypto/
-  ${AWS_SDK_CPP_SOURCES_DIR}/aws-cpp-sdk-core/source/utils/crypto/factory/
-  ${AWS_SDK_CPP_SOURCES_DIR}/aws-cpp-sdk-core/source/utils/crypto/openssl/
-  ${AWS_SDK_CPP_SOURCES_DIR}/aws-cpp-sdk-core/source/utils/event/
-  ${AWS_SDK_CPP_SOURCES_DIR}/aws-cpp-sdk-core/source/utils/json/
-  ${AWS_SDK_CPP_SOURCES_DIR}/aws-cpp-sdk-core/source/utils/logging/
-  ${AWS_SDK_CPP_SOURCES_DIR}/aws-cpp-sdk-core/source/utils/memory/
-  ${AWS_SDK_CPP_SOURCES_DIR}/aws-cpp-sdk-core/source/utils/stream/
-  ${AWS_SDK_CPP_SOURCES_DIR}/aws-cpp-sdk-core/source/utils/threading/
-  ${AWS_SDK_CPP_SOURCES_DIR}/aws-cpp-sdk-core/source/utils/xml/
-  ${AWS_SDK_CPP_SOURCES_DIR}/aws-cpp-sdk-s3/source/
-  ${AWS_SDK_CPP_SOURCES_DIR}/aws-cpp-sdk-s3/source/model/
-  ${AWS_SDK_CPP_SOURCES_DIR}/aws-cpp-sdk-transfer/source/transfer/
+  ${AWS_SDK_CPP_SOURCES_DIR}/src/aws-cpp-sdk-connect/source/
+  ${AWS_SDK_CPP_SOURCES_DIR}/src/aws-cpp-sdk-connect/source/model/
+  ${AWS_SDK_CPP_SOURCES_DIR}/src/aws-cpp-sdk-core/source/
+  ${AWS_SDK_CPP_SOURCES_DIR}/src/aws-cpp-sdk-core/source/auth/
+  ${AWS_SDK_CPP_SOURCES_DIR}/src/aws-cpp-sdk-core/source/auth/signer/
+  ${AWS_SDK_CPP_SOURCES_DIR}/src/aws-cpp-sdk-core/source/auth/signer-provider/
+  ${AWS_SDK_CPP_SOURCES_DIR}/src/aws-cpp-sdk-core/source/auth/bearer-token-provider/
+  ${AWS_SDK_CPP_SOURCES_DIR}/src/aws-cpp-sdk-core/source/client/
+  ${AWS_SDK_CPP_SOURCES_DIR}/src/aws-cpp-sdk-core/source/config/
+  ${AWS_SDK_CPP_SOURCES_DIR}/src/aws-cpp-sdk-core/source/config/defaults/
+  ${AWS_SDK_CPP_SOURCES_DIR}/src/aws-cpp-sdk-core/source/endpoint/
+  ${AWS_SDK_CPP_SOURCES_DIR}/src/aws-cpp-sdk-core/source/endpoint/internal/
+  ${AWS_SDK_CPP_SOURCES_DIR}/src/aws-cpp-sdk-core/source/external/cjson/
+  ${AWS_SDK_CPP_SOURCES_DIR}/src/aws-cpp-sdk-core/source/external/tinyxml2/
+  ${AWS_SDK_CPP_SOURCES_DIR}/src/aws-cpp-sdk-core/source/http/
+  ${AWS_SDK_CPP_SOURCES_DIR}/src/aws-cpp-sdk-core/source/http/curl/
+  ${AWS_SDK_CPP_SOURCES_DIR}/src/aws-cpp-sdk-core/source/http/standard/
+  ${AWS_SDK_CPP_SOURCES_DIR}/src/aws-cpp-sdk-core/source/internal/
+  ${AWS_SDK_CPP_SOURCES_DIR}/src/aws-cpp-sdk-core/source/monitoring/
+  ${AWS_SDK_CPP_SOURCES_DIR}/src/aws-cpp-sdk-core/source/net/
+  ${AWS_SDK_CPP_SOURCES_DIR}/src/aws-cpp-sdk-core/source/platform/linux-shared/
+  # ${AWS_SDK_CPP_SOURCES_DIR}/src/aws-cpp-sdk-core/source/platform/windows/
+  ${AWS_SDK_CPP_SOURCES_DIR}/src/aws-cpp-sdk-core/source/smithy/tracing/
+  ${AWS_SDK_CPP_SOURCES_DIR}/src/aws-cpp-sdk-core/source/utils/
+  ${AWS_SDK_CPP_SOURCES_DIR}/src/aws-cpp-sdk-core/source/utils/base64/
+  ${AWS_SDK_CPP_SOURCES_DIR}/src/aws-cpp-sdk-core/source/utils/component-registry/
+  ${AWS_SDK_CPP_SOURCES_DIR}/src/aws-cpp-sdk-core/source/utils/crypto/
+  ${AWS_SDK_CPP_SOURCES_DIR}/src/aws-cpp-sdk-core/source/utils/crypto/factory/
+  ${AWS_SDK_CPP_SOURCES_DIR}/src/aws-cpp-sdk-core/source/utils/crypto/openssl/
+  ${AWS_SDK_CPP_SOURCES_DIR}/src/aws-cpp-sdk-core/source/utils/event/
+  ${AWS_SDK_CPP_SOURCES_DIR}/src/aws-cpp-sdk-core/source/utils/json/
+  ${AWS_SDK_CPP_SOURCES_DIR}/src/aws-cpp-sdk-core/source/utils/logging/
+  ${AWS_SDK_CPP_SOURCES_DIR}/src/aws-cpp-sdk-core/source/utils/memory/
+  ${AWS_SDK_CPP_SOURCES_DIR}/src/aws-cpp-sdk-core/source/utils/memory/stl/
+  ${AWS_SDK_CPP_SOURCES_DIR}/src/aws-cpp-sdk-core/source/utils/stream/
+  ${AWS_SDK_CPP_SOURCES_DIR}/src/aws-cpp-sdk-core/source/utils/threading/
+  ${AWS_SDK_CPP_SOURCES_DIR}/src/aws-cpp-sdk-core/source/utils/xml/
+  ${AWS_SDK_CPP_SOURCES_DIR}/generated/src/aws-cpp-sdk-s3/source/
+  ${AWS_SDK_CPP_SOURCES_DIR}/generated/src/aws-cpp-sdk-s3/source/model/
+  ${AWS_SDK_CPP_SOURCES_DIR}/src/aws-cpp-sdk-transfer/source/transfer/
   )
 
 
