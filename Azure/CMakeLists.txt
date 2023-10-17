@@ -23,8 +23,9 @@ set(PLUGIN_VERSION "2.3.0")
 
 include(CheckIncludeFileCXX)
 
-set(ORTHANC_FRAMEWORK_SOURCE "hg" CACHE STRING "orthanc source")
-set(ORTHANC_FRAMEWORK_VERSION "mainline" CACHE STRING "orthanc framework version")  # TODO: update to 1.12.2 when availableset(ALLOW_DOWNLOADS ON)
+set(ORTHANC_FRAMEWORK_SOURCE "web" CACHE STRING "orthanc source")
+set(ORTHANC_FRAMEWORK_VERSION "daf4807631c5" CACHE STRING "orthanc framework version")  # TODO: update to 1.12.2 when available
+set(ALLOW_DOWNLOADS ON)
 
 # Download and setup the Orthanc framework
 
