@@ -19,7 +19,7 @@ cmake_minimum_required(VERSION 3.3)
 
 project(OrthancGoogleCloudStorage)
 
-set(PLUGIN_VERSION "mainline")
+set(PLUGIN_VERSION "2.3.0")
 
 include(CheckIncludeFileCXX)
 
