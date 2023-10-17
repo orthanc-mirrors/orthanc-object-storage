@@ -55,7 +55,7 @@ public:
 
 public:
 
-  AwsS3StoragePlugin(const std::string& nameForLogs,  std::shared_ptr<Aws::S3::S3Client> client, const std::string& bucketName, bool enableLegacyStorageStructure, bool storageContainsUnknownFiles, bool useTransferManager);
+  AwsS3StoragePlugin(const std::string& nameForLogs,  std::shared_ptr<Aws::S3::S3Client> client, const std::string& bucketName, bool enableLegacyStorageStructure, bool storageContainsUnknownFiles, bool useTransferManager, unsigned int transferThreadPoolSize, unsigned int transferBufferSizeMB);
 
   virtual ~AwsS3StoragePlugin();
 
@@ -454,30 +454,34 @@ IStorage* AwsS3StoragePluginFactory::CreateStorage(const std::string& nameForLog
       configuration.caFile = caFile;
     }
     
-    bool useTransferManager = true; // new in v 2.3.0
+    bool useTransferManager = false; // new in v 2.3.0
+    unsigned int transferPoolSize = 10;
+    unsigned int transferBufferSizeMB = 5;
+
     pluginSection.LookupBooleanValue(useTransferManager, "UseTransferManager");
+    pluginSection.LookupUnsignedIntegerValue(transferPoolSize, "TransferPoolSize");
+    pluginSection.LookupUnsignedIntegerValue(transferBufferSizeMB, "TransferBufferSize");
+
+
+    std::shared_ptr<Aws::S3::S3Client> client;
 
     if (pluginSection.LookupStringValue(accessKey, "AccessKey") && pluginSection.LookupStringValue(secretKey, "SecretKey"))
     {
       OrthancPlugins::LogInfo("AWS S3 Storage: using credentials from the configuration file");
       Aws::Auth::AWSCredentials credentials(accessKey.c_str(), secretKey.c_str());
       
-      std::shared_ptr<Aws::S3::S3Client> client = Aws::MakeShared<Aws::S3::S3Client>(ALLOCATION_TAG, credentials, configuration, Aws::Client::AWSAuthV4Signer::PayloadSigningPolicy::Never, virtualAddressing);
-      
-      OrthancPlugins::LogInfo("AWS S3 storage initialized");
-
-      return new AwsS3StoragePlugin(nameForLogs, client, bucketName, enableLegacyStorageStructure, storageContainsUnknownFiles, useTransferManager);
+      client = Aws::MakeShared<Aws::S3::S3Client>(ALLOCATION_TAG, credentials, configuration, Aws::Client::AWSAuthV4Signer::PayloadSigningPolicy::Never, virtualAddressing);
     } 
     else
     {
       // when using default credentials, credentials are not checked at startup but only the first time you try to access the bucket !
       OrthancPlugins::LogInfo("AWS S3 Storage: using default credentials provider");
-      std::shared_ptr<Aws::S3::S3Client> client = Aws::MakeShared<Aws::S3::S3Client>(ALLOCATION_TAG, configuration, Aws::Client::AWSAuthV4Signer::PayloadSigningPolicy::Never, virtualAddressing);
-
-      OrthancPlugins::LogInfo("AWS S3 storage initialized");
-
-      return new AwsS3StoragePlugin(nameForLogs, client, bucketName, enableLegacyStorageStructure, storageContainsUnknownFiles, useTransferManager);
+      client = Aws::MakeShared<Aws::S3::S3Client>(ALLOCATION_TAG, configuration, Aws::Client::AWSAuthV4Signer::PayloadSigningPolicy::Never, virtualAddressing);
     }  
+
+    OrthancPlugins::LogInfo("AWS S3 storage initialized");
+
+    return new AwsS3StoragePlugin(nameForLogs, client, bucketName, enableLegacyStorageStructure, storageContainsUnknownFiles, useTransferManager, transferPoolSize, transferBufferSizeMB);
   }
   catch (const std::exception& e)
   {
@@ -496,7 +500,14 @@ AwsS3StoragePlugin::~AwsS3StoragePlugin()
 }
 
 
-AwsS3StoragePlugin::AwsS3StoragePlugin(const std::string& nameForLogs, std::shared_ptr<Aws::S3::S3Client> client, const std::string& bucketName, bool enableLegacyStorageStructure, bool storageContainsUnknownFiles, bool useTransferManager)
+AwsS3StoragePlugin::AwsS3StoragePlugin(const std::string& nameForLogs, 
+                                       std::shared_ptr<Aws::S3::S3Client> client, 
+                                       const std::string& bucketName, 
+                                       bool enableLegacyStorageStructure, 
+                                       bool storageContainsUnknownFiles, 
+                                       bool useTransferManager,
+                                       unsigned int transferThreadPoolSize,
+                                       unsigned int transferBufferSizeMB)
   : BaseStorage(nameForLogs, enableLegacyStorageStructure),
     bucketName_(bucketName),
     storageContainsUnknownFiles_(storageContainsUnknownFiles),
@@ -505,9 +516,11 @@ AwsS3StoragePlugin::AwsS3StoragePlugin(const std::string& nameForLogs, std::shar
 {
   if (useTransferManager_)
   {
-    executor_ = Aws::MakeShared<Aws::Utils::Threading::PooledThreadExecutor>(ALLOCATION_TAG, 10);
+    executor_ = Aws::MakeShared<Aws::Utils::Threading::PooledThreadExecutor>(ALLOCATION_TAG, transferThreadPoolSize);
     Aws::Transfer::TransferManagerConfiguration transferConfig(executor_.get());
     transferConfig.s3Client = client_;
+    transferConfig.bufferSize = static_cast<uint64_t>(transferBufferSizeMB) * 1024 * 1024;
+    transferConfig.transferBufferMaxHeapSize = static_cast<uint64_t>(transferBufferSizeMB) * 1024 * 1024 * transferThreadPoolSize;
 
     transferManager_ = Aws::Transfer::TransferManager::Create(transferConfig);
   }
