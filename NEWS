@@ -2,7 +2,7 @@
 ====================
 
 * AWS plugin:
-  * Added a new configuration "UseTransferMode" (false by default).
+  * Added a new configuration "UseTransferManager" (false by default).
     When set to true, the Transfer Manager mode is used to upload/download
     whole files to/from the bucket.  If set to false, the default "object"
     mode is used.  The Transfer Manager mode is supposed to be faster,
