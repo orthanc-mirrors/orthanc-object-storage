@@ -17,6 +17,7 @@
  **/
 
 #include "AwsS3StoragePlugin.h"
+#include <Logging.h>
 
 #include <aws/core/Aws.h>
 #include <aws/s3/S3Client.h>
@@ -26,6 +27,9 @@
 #include <aws/s3/model/DeleteObjectRequest.h>
 #include <aws/core/auth/AWSCredentialsProvider.h>
 #include <aws/core/utils/HashingUtils.h>
+#include <aws/core/utils/logging/DefaultLogSystem.h>
+#include <aws/core/utils/logging/DefaultCRTLogSystem.h>
+#include <aws/core/utils/logging/AWSLogging.h>
 #include <aws/core/utils/memory/stl/AWSStreamFwd.h>
 #include <aws/core/utils/memory/stl/AWSStringStream.h>
 #include <aws/core/utils/memory/AWSMemory.h>
@@ -33,6 +37,7 @@
 #include <aws/core/utils/StringUtils.h>
 #include <aws/transfer/TransferManager.h>
 #include <aws/crt/Api.h>
+#include <iostream>
 #include <fstream>
 
 #include <boost/lexical_cast.hpp>
@@ -378,6 +383,85 @@ const char* AwsS3StoragePluginFactory::GetStorageDescription()
 static std::unique_ptr<Aws::Crt::ApiHandle>  api_;
 static std::unique_ptr<Aws::SDKOptions>  sdkOptions_;
 
+#include <stdarg.h>
+
+class AwsOrthancLogger : public Aws::Utils::Logging::LogSystemInterface
+{
+public:
+    virtual ~AwsOrthancLogger() {}
+
+    /**
+     * Gets the currently configured log level for this logger.
+     */
+    virtual Aws::Utils::Logging::LogLevel GetLogLevel() const
+    {
+      return Aws::Utils::Logging::LogLevel::Trace;
+    }
+    /**
+     * Does a printf style output to the output stream. Don't use this, it's unsafe. See LogStream
+     */
+    virtual void Log(Aws::Utils::Logging::LogLevel logLevel, const char* tag, const char* formatStr, ...)
+    {
+      Aws::StringStream ss;
+
+      va_list args;
+      va_start(args, formatStr);
+
+      va_list tmp_args; //unfortunately you cannot consume a va_list twice
+      va_copy(tmp_args, args); //so we have to copy it
+      #ifdef _WIN32
+          const int requiredLength = _vscprintf(formatStr, tmp_args) + 1;
+      #else
+          const int requiredLength = vsnprintf(nullptr, 0, formatStr, tmp_args) + 1;
+      #endif
+      va_end(tmp_args);
+
+      char outputBuff[requiredLength];
+      #ifdef _WIN32
+          vsnprintf_s(outputBuff, requiredLength, _TRUNCATE, formatStr, args);
+      #else
+          vsnprintf(outputBuff, requiredLength, formatStr, args);
+      #endif // _WIN32
+
+      if (logLevel == Aws::Utils::Logging::LogLevel::Debug || logLevel == Aws::Utils::Logging::LogLevel::Trace)
+      {
+        LOG(INFO) << reinterpret_cast<const char*>(&outputBuff[0]);
+      }
+      else if (logLevel == Aws::Utils::Logging::LogLevel::Warn)
+      {
+        LOG(WARNING) << reinterpret_cast<const char*>(&outputBuff[0]);
+      }
+      else
+      {
+        LOG(ERROR) << reinterpret_cast<const char*>(&outputBuff[0]);
+      }
+
+      va_end(args);
+    }
+    /**
+    * Writes the stream to the output stream.
+    */
+    virtual void LogStream(Aws::Utils::Logging::LogLevel logLevel, const char* tag, const Aws::OStringStream &messageStream)
+    {
+      if (logLevel == Aws::Utils::Logging::LogLevel::Debug || logLevel == Aws::Utils::Logging::LogLevel::Trace)
+      {
+        LOG(INFO) << tag << messageStream.str();
+      }
+      else if (logLevel == Aws::Utils::Logging::LogLevel::Warn)
+      {
+        LOG(WARNING) << tag << messageStream.str();
+      }
+      else
+      {
+        LOG(ERROR) << tag << messageStream.str();
+      }
+
+    }
+    /**
+     * Writes any buffered messages to the underlying device if the logger supports buffering.
+     */
+    virtual void Flush() {}
+};
 
 IStorage* AwsS3StoragePluginFactory::CreateStorage(const std::string& nameForLogs, const OrthancPlugins::OrthancConfiguration& orthancConfig)
 {
@@ -385,14 +469,6 @@ IStorage* AwsS3StoragePluginFactory::CreateStorage(const std::string& nameForLog
   {
     throw Orthanc::OrthancException(Orthanc::ErrorCode_BadSequenceOfCalls, "Cannot initialize twice");
   }
-
-  api_.reset(new Aws::Crt::ApiHandle);
-
-  sdkOptions_.reset(new Aws::SDKOptions);
-  sdkOptions_->cryptoOptions.initAndCleanupOpenSSL = false;  // Done by the Orthanc framework
-  sdkOptions_->httpOptions.initAndCleanupCurl = false;  // Done by the Orthanc framework
-  
-  Aws::InitAPI(*sdkOptions_);
 
   bool enableLegacyStorageStructure;
   bool storageContainsUnknownFiles;
@@ -432,8 +508,26 @@ IStorage* AwsS3StoragePluginFactory::CreateStorage(const std::string& nameForLog
   const unsigned int connectTimeout = pluginSection.GetUnsignedIntegerValue("ConnectTimeout", 30);
   const unsigned int requestTimeout = pluginSection.GetUnsignedIntegerValue("RequestTimeout", 1200);
   const bool virtualAddressing = pluginSection.GetBooleanValue("VirtualAddressing", true);
+  const bool enableAwsSdkLogs = pluginSection.GetBooleanValue("EnableAwsSdkLogs", false);
   const std::string caFile = orthancConfig.GetStringValue("HttpsCACertificates", "");
-  
+
+
+  api_.reset(new Aws::Crt::ApiHandle);
+
+  sdkOptions_.reset(new Aws::SDKOptions);
+  sdkOptions_->cryptoOptions.initAndCleanupOpenSSL = false;  // Done by the Orthanc framework
+  sdkOptions_->httpOptions.initAndCleanupCurl = false;  // Done by the Orthanc framework
+
+  if (enableAwsSdkLogs)
+  {
+    // Set up logging
+    Aws::Utils::Logging::InitializeAWSLogging(Aws::MakeShared<AwsOrthancLogger>(ALLOCATION_TAG));
+    // strangely, this seems to disable logging !!!! sdkOptions_->loggingOptions.logLevel = Aws::Utils::Logging::LogLevel::Trace;
+  }
+
+  Aws::InitAPI(*sdkOptions_);
+
+
   try
   {
     Aws::Client::ClientConfiguration configuration;
