@@ -88,6 +88,7 @@ static OrthancPluginErrorCode StorageCreate(const char* uuid,
 {
   try
   {
+    Orthanc::Toolbox::ElapsedTimer timer;
     OrthancPlugins::LogInfo(primaryStorage->GetNameForLogs() + ": creating attachment " + std::string(uuid) + " of type " + boost::lexical_cast<std::string>(type));
     std::unique_ptr<IStorage::IWriter> writer(primaryStorage->GetWriterForObject(uuid, type, cryptoEnabled));
 
@@ -111,6 +112,7 @@ static OrthancPluginErrorCode StorageCreate(const char* uuid,
     {
       writer->Write(reinterpret_cast<const char*>(content), size);
     }
+    OrthancPlugins::LogInfo(primaryStorage->GetNameForLogs() + ": created attachment " + std::string(uuid) + " (" + timer.GetHumanTransferSpeed(true, size) + ")");
   }
   catch (StoragePluginException& ex)
   {
@@ -133,11 +135,13 @@ static OrthancPluginErrorCode StorageReadRange(IStorage* storage,
 
   try
   {
+    Orthanc::Toolbox::ElapsedTimer timer;
     OrthancPlugins::LogInfo(storage->GetNameForLogs() + ": reading range of attachment " + std::string(uuid) + " of type " + boost::lexical_cast<std::string>(type));
     
     std::unique_ptr<IStorage::IReader> reader(storage->GetReaderForObject(uuid, type, cryptoEnabled));
     reader->ReadRange(reinterpret_cast<char*>(target->data), target->size, rangeStart);
     
+    OrthancPlugins::LogInfo(storage->GetNameForLogs() + ": read range of attachment " + std::string(uuid) + " (" + timer.GetHumanTransferSpeed(true, target->size) + ")");
     return OrthancPluginErrorCode_Success;
   }
   catch (StoragePluginException& ex)
@@ -181,6 +185,7 @@ static OrthancPluginErrorCode StorageReadWhole(IStorage* storage,
 {
   try
   {
+    Orthanc::Toolbox::ElapsedTimer timer;
     OrthancPlugins::LogInfo(storage->GetNameForLogs() + ": reading whole attachment " + std::string(uuid) + " of type " + boost::lexical_cast<std::string>(type));
     std::unique_ptr<IStorage::IReader> reader(storage->GetReaderForObject(uuid, type, cryptoEnabled));
 
@@ -227,6 +232,8 @@ static OrthancPluginErrorCode StorageReadWhole(IStorage* storage,
     {
       reader->ReadWhole(reinterpret_cast<char*>(target->data), fileSize);
     }
+
+    OrthancPlugins::LogInfo(storage->GetNameForLogs() + ": read whole attachment " + std::string(uuid) + " (" + timer.GetHumanTransferSpeed(true, fileSize) + ")");
   }
   catch (StoragePluginException& ex)
   {
