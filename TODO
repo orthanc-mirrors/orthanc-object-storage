@@ -5,3 +5,6 @@
 
 - Test against AWS S3 Glacier:
   https://groups.google.com/g/orthanc-users/c/CT1lkzHLAUg/m/h75HuXYpBwAJ
+
+- AWS: use the latest aws S3-crt client ?
+  https://github.com/aws/aws-sdk-cpp/wiki/Improving-S3-Throughput-with-AWS-SDK-for-CPP-v1.9
