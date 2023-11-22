@@ -2,7 +2,7 @@
 
 Orthanc object-storages plugin for main cloud providers (Google/Azure/AWS)
 
-Check the [Orthanc book](https://book.orthanc-server.com/plugins/object-storage.html) for complete documentation.
+Check the [Orthanc book](https://orthanc.uclouvain.be/book/plugins/object-storage.html) for complete documentation.
 
 ## info for developers ##
 

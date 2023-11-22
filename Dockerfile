@@ -11,7 +11,7 @@ WORKDIR /
 WORKDIR /sources
 
 # (framework version used to build the cloud storage plugins)
-RUN hg clone https://hg.orthanc-server.com/orthanc/ -r "Orthanc-1.10.1" 
+RUN hg clone https://orthanc.uclouvain.be/hg/orthanc/ -r "Orthanc-1.10.1" 
 
 RUN mkdir orthanc-object-storage
 
