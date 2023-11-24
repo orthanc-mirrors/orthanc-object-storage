@@ -25,7 +25,7 @@ if (PLUGIN_VERSION STREQUAL "mainline")
   set(ORTHANC_FRAMEWORK_DEFAULT_VERSION "mainline")
   set(ORTHANC_FRAMEWORK_DEFAULT_SOURCE "hg")
 else()
-  set(ORTHANC_FRAMEWORK_DEFAULT_VERSION "b83192e7ad10")  # TODO: update to web - 1.12.2 when available
+  set(ORTHANC_FRAMEWORK_DEFAULT_VERSION "mainline")  # TODO: update to web - 1.12.2 when available
   set(ORTHANC_FRAMEWORK_DEFAULT_SOURCE "hg")
 endif()
 

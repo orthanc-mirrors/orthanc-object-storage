@@ -21,11 +21,21 @@ project(OrthancAzureBlobStorage)
 
 set(PLUGIN_VERSION "mainline")
 
-include(CheckIncludeFileCXX)
+if (PLUGIN_VERSION STREQUAL "mainline")
+  set(ORTHANC_FRAMEWORK_DEFAULT_VERSION "mainline")
+  set(ORTHANC_FRAMEWORK_DEFAULT_SOURCE "hg")
+else()
+  set(ORTHANC_FRAMEWORK_DEFAULT_VERSION "mainline")  # TODO: update to web - 1.12.2 when available
+  set(ORTHANC_FRAMEWORK_DEFAULT_SOURCE "hg")
+endif()
 
-set(ORTHANC_FRAMEWORK_SOURCE "hg" CACHE STRING "orthanc source")
-set(ORTHANC_FRAMEWORK_VERSION "b83192e7ad10" CACHE STRING "orthanc framework version")  # TODO: update to web - 1.12.2 when available
+set(ORTHANC_FRAMEWORK_SOURCE "${ORTHANC_FRAMEWORK_DEFAULT_SOURCE}" CACHE STRING "Source of the Orthanc framework (can be \"system\", \"hg\", \"archive\", \"web\" or \"path\")")
+set(ORTHANC_FRAMEWORK_VERSION "${ORTHANC_FRAMEWORK_DEFAULT_VERSION}" CACHE STRING "Version of the Orthanc framework")
+set(ORTHANC_FRAMEWORK_ARCHIVE "" CACHE STRING "Path to the Orthanc archive, if ORTHANC_FRAMEWORK_SOURCE is \"archive\"")
+set(ORTHANC_FRAMEWORK_ROOT "" CACHE STRING "Path to the Orthanc source directory, if ORTHANC_FRAMEWORK_SOURCE is \"path\"")
 set(ALLOW_DOWNLOADS ON)
+
+include(CheckIncludeFileCXX)
 
 # Download and setup the Orthanc framework
 
