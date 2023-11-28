@@ -121,7 +121,9 @@ add_library(OrthancAzureBlobStorage SHARED
     ${COMMON_SOURCES}
   )
 
-DefineSourceBasenameForTarget(OrthancAzureBlobStorage)
+if (DEFINED DefineSourceBasenameForTarget)
+  DefineSourceBasenameForTarget(OrthancAzureBlobStorage)
+endif()
 
 set_target_properties(OrthancAzureBlobStorage PROPERTIES
   VERSION ${PLUGIN_VERSION}

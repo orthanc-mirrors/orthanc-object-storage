@@ -97,7 +97,10 @@ add_library(OrthancGoogleCloudStorage SHARED
     ${COMMON_SOURCES}
   )
 
-DefineSourceBasenameForTarget(OrthancGoogleCloudStorage)
+if (DEFINED DefineSourceBasenameForTarget)
+  DefineSourceBasenameForTarget(OrthancGoogleCloudStorage)
+endif()
+
 
 set_target_properties(OrthancGoogleCloudStorage PROPERTIES
   VERSION ${PLUGIN_VERSION}

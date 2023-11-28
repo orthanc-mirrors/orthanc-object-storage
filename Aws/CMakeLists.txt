@@ -148,7 +148,9 @@ add_library(OrthancAwsS3Storage SHARED
   ${COMMON_SOURCES}
   )
 
-DefineSourceBasenameForTarget(OrthancAwsS3Storage)
+if (DEFINED DefineSourceBasenameForTarget)
+  DefineSourceBasenameForTarget(OrthancAwsS3Storage)
+endif()
 
 set_target_properties(OrthancAwsS3Storage PROPERTIES
   VERSION ${PLUGIN_VERSION}
