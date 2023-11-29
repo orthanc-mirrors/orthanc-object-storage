@@ -115,6 +115,12 @@ target_link_libraries(OrthancGoogleCloudStorage
   cryptopp::cryptopp
   )
 
+install(
+  TARGETS OrthancGoogleCloudStorage
+  RUNTIME DESTINATION lib    # Destination for Windows
+  LIBRARY DESTINATION share/orthanc/plugins    # Destination for Linux
+)
+
 add_executable(UnitTests
     ${GOOGLE_TEST_SOURCES}
     ${COMMON_SOURCES}

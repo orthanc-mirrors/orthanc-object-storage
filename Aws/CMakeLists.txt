@@ -164,6 +164,14 @@ target_link_libraries(OrthancAwsS3Storage
   ${ORTHANC_FRAMEWORK_LIBRARIES}
   )
 
+
+install(
+  TARGETS OrthancAwsS3Storage
+  RUNTIME DESTINATION lib    # Destination for Windows
+  LIBRARY DESTINATION share/orthanc/plugins    # Destination for Linux
+)
+
+
 add_executable(UnitTests
   ${GOOGLE_TEST_SOURCES}
   ${COMMON_SOURCES}

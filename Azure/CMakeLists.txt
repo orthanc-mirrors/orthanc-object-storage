@@ -152,6 +152,12 @@ else()
 
 endif()
 
+install(
+  TARGETS OrthancAzureBlobStorage
+  RUNTIME DESTINATION lib    # Destination for Windows
+  LIBRARY DESTINATION share/orthanc/plugins    # Destination for Linux
+)
+
 
 # add_executable(UnitTests
 #     ${GOOGLE_TEST_SOURCES}
