@@ -148,7 +148,7 @@ add_library(OrthancAwsS3Storage SHARED
   ${COMMON_SOURCES}
   )
 
-if (DEFINED DefineSourceBasenameForTarget)
+if (COMMAND DefineSourceBasenameForTarget)
   DefineSourceBasenameForTarget(OrthancAwsS3Storage)
 endif()
 

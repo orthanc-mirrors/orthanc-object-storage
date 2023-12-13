@@ -121,7 +121,7 @@ add_library(OrthancAzureBlobStorage SHARED
     ${COMMON_SOURCES}
   )
 
-if (DEFINED DefineSourceBasenameForTarget)
+if (COMMAND DefineSourceBasenameForTarget)
   DefineSourceBasenameForTarget(OrthancAzureBlobStorage)
 endif()
 

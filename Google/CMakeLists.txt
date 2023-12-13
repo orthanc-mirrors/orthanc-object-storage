@@ -97,7 +97,7 @@ add_library(OrthancGoogleCloudStorage SHARED
     ${COMMON_SOURCES}
   )
 
-if (DEFINED DefineSourceBasenameForTarget)
+if (COMMAND DefineSourceBasenameForTarget)
   DefineSourceBasenameForTarget(OrthancGoogleCloudStorage)
 endif()
 
