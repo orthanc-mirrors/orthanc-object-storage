@@ -18,7 +18,7 @@
 if (STATIC_BUILD OR NOT USE_SYSTEM_CRYPTOPP)
   # The .tar.gz package was created by "./CryptoPPPackage.sh"
   SET(CRYPTOPP_SOURCES_DIR ${CMAKE_BINARY_DIR}/cryptopp-840)
-  SET(CRYPTOPP_URL "http://orthanc.osimis.io/ThirdPartyDownloads/cryptopp-840.tar.gz")
+  SET(CRYPTOPP_URL "https://orthanc.uclouvain.be/downloads/third-party-downloads/cryptopp-840.tar.gz")
   SET(CRYPTOPP_MD5 "d42363e8a12c06a000720335a4da70d3")
 
   DownloadPackage(${CRYPTOPP_MD5} ${CRYPTOPP_URL} "${CRYPTOPP_SOURCES_DIR}")
