@@ -1,6 +1,10 @@
 Pending changes in the mainline
 ===============================
 
+
+2023-12-20 - v 2.3.1
+====================
+
 * AWS plugin:
   * New configuration "EnableAwsSdkLogs" to include AWS SDK logs in Orthanc logs.
 * Now displaying size, duration and transfer speed for each read/write operation.

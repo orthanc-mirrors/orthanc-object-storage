@@ -25,8 +25,8 @@ if (PLUGIN_VERSION STREQUAL "mainline")
   set(ORTHANC_FRAMEWORK_DEFAULT_VERSION "mainline")
   set(ORTHANC_FRAMEWORK_DEFAULT_SOURCE "hg")
 else()
-  set(ORTHANC_FRAMEWORK_DEFAULT_VERSION "mainline")  # TODO: update to web - 1.12.2 when available
-  set(ORTHANC_FRAMEWORK_DEFAULT_SOURCE "hg")
+  set(ORTHANC_FRAMEWORK_DEFAULT_VERSION "1.12.2")
+  set(ORTHANC_FRAMEWORK_DEFAULT_SOURCE "web")
 endif()
 
 set(STATIC_BUILD OFF CACHE BOOL "Static build of the third-party libraries (necessary for Windows)")
