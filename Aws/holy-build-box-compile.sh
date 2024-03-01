@@ -41,7 +41,7 @@ fi
 
 ROOT_DIR=`dirname $(readlink -f $0)`/..
 
-DOCKER_IMAGE=phusion/holy-build-box-64:3.0.0
+DOCKER_IMAGE=phusion/holy-build-box-64:3.0.5
 
 mkdir -p ${ROOT_DIR}/holy-build-box
 

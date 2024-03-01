@@ -6,3 +6,9 @@ Native compilation under Ubuntu 22.04
 # cd Build
 # cmake .. -DCMAKE_BUILD_TYPE=Release -DUSE_VCPKG_PACKAGES=OFF -G Ninja
 # ninja
+
+
+Linux Standard Base compilation
+===============================
+
+# ./holy-build-box-compile.sh Release
