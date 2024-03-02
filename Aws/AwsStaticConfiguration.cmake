@@ -166,8 +166,6 @@ list(APPEND AWS_SOURCES_SUBDIRS
   ${AWS_SDK_CPP_SOURCES_DIR}/src/aws-cpp-sdk-core/source/internal/
   ${AWS_SDK_CPP_SOURCES_DIR}/src/aws-cpp-sdk-core/source/monitoring/
   ${AWS_SDK_CPP_SOURCES_DIR}/src/aws-cpp-sdk-core/source/net/
-  ${AWS_SDK_CPP_SOURCES_DIR}/src/aws-cpp-sdk-core/source/platform/linux-shared/
-  # ${AWS_SDK_CPP_SOURCES_DIR}/src/aws-cpp-sdk-core/source/platform/windows/
   ${AWS_SDK_CPP_SOURCES_DIR}/src/aws-cpp-sdk-core/source/smithy/tracing/
   ${AWS_SDK_CPP_SOURCES_DIR}/src/aws-cpp-sdk-core/source/utils/
   ${AWS_SDK_CPP_SOURCES_DIR}/src/aws-cpp-sdk-core/source/utils/base64/
@@ -196,14 +194,22 @@ add_definitions(
   -DENABLE_CURL_CLIENT=1
   )
 
-list(APPEND AWS_SOURCES_SUBDIRS
-  #${AWS_C_CAL_SOURCES_DIR}/source/unix/
-  #${AWS_SDK_CPP_SOURCES_DIR}/aws-cpp-sdk-core/source/net/linux-shared/
-  ${AWS_C_COMMON_SOURCES_DIR}/source/posix/
-  ${AWS_C_IO_SOURCES_DIR}/source/linux/
-  ${AWS_C_IO_SOURCES_DIR}/source/posix/
-  ${AWS_SDK_CPP_SOURCES_DIR}/aws-cpp-sdk-core/source/platform/linux-shared/
-  )
+if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+  list(APPEND AWS_SOURCES_SUBDIRS
+    ${AWS_C_COMMON_SOURCES_DIR}/source/windows/
+    ${AWS_C_IO_SOURCES_DIR}/source/windows/
+    ${AWS_SDK_CPP_SOURCES_DIR}/src/aws-cpp-sdk-core/source/platform/windows/
+    )
+else()
+  list(APPEND AWS_SOURCES_SUBDIRS
+    #${AWS_C_CAL_SOURCES_DIR}/source/unix/
+    #${AWS_SDK_CPP_SOURCES_DIR}/aws-cpp-sdk-core/source/net/linux-shared/
+    ${AWS_C_COMMON_SOURCES_DIR}/source/posix/
+    ${AWS_C_IO_SOURCES_DIR}/source/linux/
+    ${AWS_C_IO_SOURCES_DIR}/source/posix/
+    ${AWS_SDK_CPP_SOURCES_DIR}/src/aws-cpp-sdk-core/source/platform/linux-shared/
+    )
+endif()
 
 
 foreach(d ${AWS_SOURCES_SUBDIRS})
