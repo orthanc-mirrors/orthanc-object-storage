@@ -81,6 +81,7 @@ else()
   set(ENABLE_MODULE_DICOM OFF)
   set(ENABLE_MODULE_IMAGES OFF)
   set(ENABLE_MODULE_JOBS OFF)
+  set(ENABLE_OPENSSL_ENGINES ON)  # Necessary since OpenSSL 3.1.x
   set(ENABLE_WEB_CLIENT ON)  # Access options related to curl
   set(ORTHANC_FRAMEWORK_PLUGIN ON)
 

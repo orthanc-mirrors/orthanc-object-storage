@@ -416,24 +416,26 @@ public:
       #endif
       va_end(tmp_args);
 
-      char outputBuff[requiredLength];
+      assert(requiredLength > 0);
+      std::string outputBuff;
+      outputBuff.resize(requiredLength);
       #ifdef _WIN32
-          vsnprintf_s(outputBuff, requiredLength, _TRUNCATE, formatStr, args);
+          vsnprintf_s(&outputBuff[0], requiredLength, _TRUNCATE, formatStr, args);
       #else
-          vsnprintf(outputBuff, requiredLength, formatStr, args);
+          vsnprintf(&outputBuff[0], requiredLength, formatStr, args);
       #endif // _WIN32
 
       if (logLevel == Aws::Utils::Logging::LogLevel::Debug || logLevel == Aws::Utils::Logging::LogLevel::Trace)
       {
-        LOG(INFO) << reinterpret_cast<const char*>(&outputBuff[0]);
+        LOG(INFO) << outputBuff.c_str();
       }
       else if (logLevel == Aws::Utils::Logging::LogLevel::Warn)
       {
-        LOG(WARNING) << reinterpret_cast<const char*>(&outputBuff[0]);
+        LOG(WARNING) << outputBuff.c_str();
       }
       else
       {
-        LOG(ERROR) << reinterpret_cast<const char*>(&outputBuff[0]);
+        LOG(ERROR) << outputBuff.c_str();
       }
 
       va_end(args);

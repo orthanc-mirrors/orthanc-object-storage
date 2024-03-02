@@ -49,7 +49,9 @@ cmake /tmp/source-writeable/Aws/ \
       -DCMAKE_BUILD_TYPE=$1 -DSTATIC_BUILD=ON
 
 # Use only 2 processes (not `nproc`), as this is a very heavy compilation
-make -j2
+# make -j2
+
+make -j`nproc --all`
 
 ./UnitTests
 
