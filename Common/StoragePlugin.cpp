@@ -534,7 +534,7 @@ extern "C"
     OrthancPlugins::OrthancConfiguration orthancConfig;
 
     OrthancPlugins::LogWarning(std::string(StoragePluginFactory::GetStoragePluginName()) + " plugin is initializing");
-    OrthancPluginSetDescription(context, StoragePluginFactory::GetStorageDescription());
+    OrthancPlugins::SetDescription(StoragePluginFactory::GetStoragePluginName(), StoragePluginFactory::GetStorageDescription());
 
     /* Check the version of the Orthanc core */
     if (OrthancPluginCheckVersion(context) == 0)
