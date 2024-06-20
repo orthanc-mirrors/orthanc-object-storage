@@ -218,6 +218,7 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
   list(APPEND AWS_SOURCES_SUBDIRS
     ${AWS_C_COMMON_SOURCES_DIR}/source/windows/
     ${AWS_C_IO_SOURCES_DIR}/source/windows/
+    ${AWS_C_IO_SOURCES_DIR}/source/windows/iocp/
     ${AWS_SDK_CPP_SOURCES_DIR}/src/aws-cpp-sdk-core/source/platform/windows/
     )
 
@@ -248,10 +249,4 @@ endforeach()
 list(APPEND AWS_SOURCES
   ${AWS_C_COMMON_SOURCES_DIR}/source/arch/generic/cpuid.c
   ${AWS_CHECKSUMS_SOURCES_DIR}/source/generic/crc32c_null.c
-  )
-
-
-list(REMOVE_ITEM AWS_SOURCES
-  # WARNING: "//" *is* important (don't replace it with "/")
-  ${AWS_C_IO_SOURCES_DIR}/source/windows//secure_channel_tls_handler.c
   )
