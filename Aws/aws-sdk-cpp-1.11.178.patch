@@ -1,0 +1,30 @@
+diff -urEb aws-sdk-cpp-1.11.178.orig/src/aws-cpp-sdk-core/source/utils/crypto/openssl/CryptoImpl.cpp aws-sdk-cpp-1.11.178/src/aws-cpp-sdk-core/source/utils/crypto/openssl/CryptoImpl.cpp
+--- aws-sdk-cpp-1.11.178.orig/src/aws-cpp-sdk-core/source/utils/crypto/openssl/CryptoImpl.cpp	2024-06-20 17:16:09.512162194 +0200
++++ aws-sdk-cpp-1.11.178/src/aws-cpp-sdk-core/source/utils/crypto/openssl/CryptoImpl.cpp	2024-06-20 17:16:33.863888288 +0200
+@@ -221,7 +221,7 @@
+                 EVP_DigestInit_ex(ctx, EVP_md5(), nullptr);
+ 
+                 auto currentPos = stream.tellg();
+-                if (currentPos == -1)
++                if (currentPos == std::streampos(-1))
+                 {
+                     currentPos = 0;
+                     stream.clear();
+@@ -298,7 +298,7 @@
+                 EVP_DigestInit_ex(ctx, EVP_sha1(), nullptr);
+ 
+                 auto currentPos = stream.tellg();
+-                if (currentPos == -1)
++                if (currentPos == std::streampos(-1))
+                 {
+                     currentPos = 0;
+                     stream.clear();
+@@ -376,7 +376,7 @@
+                 EVP_DigestInit_ex(ctx, EVP_sha256(), nullptr);
+ 
+                 auto currentPos = stream.tellg();
+-                if (currentPos == -1)
++                if (currentPos == std::streampos(-1))
+                 {
+                     currentPos = 0;
+                     stream.clear();

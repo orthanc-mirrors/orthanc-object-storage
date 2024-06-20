@@ -27,7 +27,7 @@ if (PLUGIN_VERSION STREQUAL "mainline")
   set(ORTHANC_FRAMEWORK_DEFAULT_VERSION "mainline")
   set(ORTHANC_FRAMEWORK_DEFAULT_SOURCE "hg")
 else()
-  set(ORTHANC_FRAMEWORK_DEFAULT_VERSION "1.12.2")
+  set(ORTHANC_FRAMEWORK_DEFAULT_VERSION "1.12.4")
   set(ORTHANC_FRAMEWORK_DEFAULT_SOURCE "web")
 endif()
 
@@ -151,10 +151,6 @@ add_library(OrthancAwsS3Storage SHARED
   ${COMMON_SOURCES}
   )
 
-if (COMMAND DefineSourceBasenameForTarget)
-  DefineSourceBasenameForTarget(OrthancAwsS3Storage)
-endif()
-
 set_target_properties(OrthancAwsS3Storage PROPERTIES
   VERSION ${PLUGIN_VERSION}
   SOVERSION ${PLUGIN_VERSION}
@@ -194,4 +190,9 @@ target_link_libraries(UnitTests
 if (STATIC_BUILD OR NOT USE_VCPKG_PACKAGES)
   add_dependencies(OrthancAwsS3Storage AwsSdkCpp)
   add_dependencies(UnitTests AwsSdkCpp)
+endif()
+
+if (COMMAND DefineSourceBasenameForTarget)
+  DefineSourceBasenameForTarget(OrthancAwsS3Storage)
+  DefineSourceBasenameForTarget(UnitTests)
 endif()

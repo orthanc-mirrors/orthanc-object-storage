@@ -79,10 +79,28 @@ SET(AWS_CRT_CPP_URL "https://orthanc.uclouvain.be/downloads/third-party-download
 SET(AWS_CRT_CPP_MD5 "fa2cda44386bd56f1d4609c6a54a59f9")
 DownloadPackage(${AWS_CRT_CPP_MD5} ${AWS_CRT_CPP_URL} "${AWS_CRT_CPP_SOURCES_DIR}")
 
+
 SET(AWS_SDK_CPP_SOURCES_DIR ${CMAKE_BINARY_DIR}/aws-sdk-cpp-1.11.178)  # source =  https://github.com/aws/aws-sdk-cpp/archive/refs/tags/1.11.178.tar.gz
 SET(AWS_SDK_CPP_URL "https://orthanc.uclouvain.be/downloads/third-party-downloads/aws/aws-sdk-cpp-1.11.178.tar.gz")
 SET(AWS_SDK_CPP_MD5 "a3f45888e939bb71506e0f7eaa630e48")
+
+if (IS_DIRECTORY "${AWS_SDK_CPP_SOURCES_DIR}")
+  set(FirstRun OFF)
+else()
+  set(FirstRun ON)
+endif()
+
 DownloadPackage(${AWS_SDK_CPP_MD5} ${AWS_SDK_CPP_URL} "${AWS_SDK_CPP_SOURCES_DIR}")
+
+if (FirstRun)
+  # This is a patch for Microsoft Visual Studio 2015
+  execute_process(
+    COMMAND ${PATCH_EXECUTABLE} -p0 -N -i
+    ${CMAKE_CURRENT_LIST_DIR}/aws-sdk-cpp-1.11.178.patch
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+    RESULT_VARIABLE Failure
+    )
+endif()
 
 
 configure_file(
@@ -202,6 +220,14 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
     ${AWS_C_IO_SOURCES_DIR}/source/windows/
     ${AWS_SDK_CPP_SOURCES_DIR}/src/aws-cpp-sdk-core/source/platform/windows/
     )
+
+  set(AWSSDK_LINK_LIBRARIES
+    ncrypt
+    secur32
+    shlwapi
+    userenv
+    version
+    )
 else()
   list(APPEND AWS_SOURCES_SUBDIRS
     #${AWS_C_CAL_SOURCES_DIR}/source/unix/
@@ -222,4 +248,10 @@ endforeach()
 list(APPEND AWS_SOURCES
   ${AWS_C_COMMON_SOURCES_DIR}/source/arch/generic/cpuid.c
   ${AWS_CHECKSUMS_SOURCES_DIR}/source/generic/crc32c_null.c
+  )
+
+
+list(REMOVE_ITEM AWS_SOURCES
+  # WARNING: "//" *is* important (don't replace it with "/")
+  ${AWS_C_IO_SOURCES_DIR}/source/windows//secure_channel_tls_handler.c
   )
