@@ -224,6 +224,7 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
 
   add_definitions(
     -DAWS_USE_IO_COMPLETION_PORTS=1
+    -DCJSON_AS4CPP_HIDE_SYMBOLS=1    # Disable "dllexport" in cJSON
     )
 
   set(AWSSDK_LINK_LIBRARIES
