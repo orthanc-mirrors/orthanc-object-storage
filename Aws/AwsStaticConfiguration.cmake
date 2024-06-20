@@ -218,13 +218,17 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
   list(APPEND AWS_SOURCES_SUBDIRS
     ${AWS_C_COMMON_SOURCES_DIR}/source/windows/
     ${AWS_C_IO_SOURCES_DIR}/source/windows/
-    # ${AWS_C_IO_SOURCES_DIR}/source/windows/iocp/  # Don't add this one
+    ${AWS_C_IO_SOURCES_DIR}/source/windows/iocp/
     ${AWS_SDK_CPP_SOURCES_DIR}/src/aws-cpp-sdk-core/source/platform/windows/
     )
 
+  add_definitions(
+    -DAWS_USE_IO_COMPLETION_PORTS=1
+    )
+
   set(AWSSDK_LINK_LIBRARIES
+    # secur32
     ncrypt
-    secur32
     shlwapi
     userenv
     version
