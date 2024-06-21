@@ -66,10 +66,14 @@ public:
 
   virtual ~AwsS3StoragePlugin();
 
-  virtual IWriter* GetWriterForObject(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled);
-  virtual IReader* GetReaderForObject(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled);
-  virtual void DeleteObject(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled);
-  virtual bool HasFileExists() {return false;};
+  virtual IWriter* GetWriterForObject(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled) ORTHANC_OVERRIDE;
+  virtual IReader* GetReaderForObject(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled) ORTHANC_OVERRIDE;
+  virtual void DeleteObject(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled) ORTHANC_OVERRIDE;
+
+  virtual bool HasFileExists() ORTHANC_OVERRIDE
+  {
+    return false;
+  }
 };
 
 
@@ -91,7 +95,7 @@ public:
   {
   }
 
-  virtual void Write(const char* data, size_t size)
+  virtual void Write(const char* data, size_t size) ORTHANC_OVERRIDE
   {
     Aws::S3::Model::PutObjectRequest putObjectRequest;
 
@@ -139,7 +143,7 @@ public:
 
   }
 
-  virtual size_t GetSize()
+  virtual size_t GetSize() ORTHANC_OVERRIDE
   {
     std::string firstExceptionMessage;
 
@@ -161,12 +165,12 @@ public:
     throw StoragePluginException(firstExceptionMessage);
   }
 
-  virtual void ReadWhole(char* data, size_t size)
+  virtual void ReadWhole(char* data, size_t size) ORTHANC_OVERRIDE
   {
     _Read(data, size, 0, false);
   }
 
-  virtual void ReadRange(char* data, size_t size, size_t fromOffset)
+  virtual void ReadRange(char* data, size_t size, size_t fromOffset) ORTHANC_OVERRIDE
   {
     _Read(data, size, fromOffset, true);
   }
@@ -283,7 +287,7 @@ public:
   {
   }
 
-  virtual void Write(const char* data, size_t size)
+  virtual void Write(const char* data, size_t size) ORTHANC_OVERRIDE
   {
     boost::interprocess::bufferstream buffer(const_cast<char*>(static_cast<const char*>(data)), static_cast<size_t>(size));
     std::shared_ptr<Aws::IOStream> body = Aws::MakeShared<Aws::IOStream>(ALLOCATION_TAG, buffer.rdbuf());
@@ -315,7 +319,7 @@ public:
 
   }
 
-  virtual void ReadWhole(char* data, size_t size)
+  virtual void ReadWhole(char* data, size_t size) ORTHANC_OVERRIDE
   {
     std::string firstExceptionMessage;
 
@@ -395,14 +399,14 @@ public:
     /**
      * Gets the currently configured log level for this logger.
      */
-    virtual Aws::Utils::Logging::LogLevel GetLogLevel() const
+    virtual Aws::Utils::Logging::LogLevel GetLogLevel() const ORTHANC_OVERRIDE
     {
       return Aws::Utils::Logging::LogLevel::Trace;
     }
     /**
      * Does a printf style output to the output stream. Don't use this, it's unsafe. See LogStream
      */
-    virtual void Log(Aws::Utils::Logging::LogLevel logLevel, const char* tag, const char* formatStr, ...)
+    virtual void Log(Aws::Utils::Logging::LogLevel logLevel, const char* tag, const char* formatStr, ...) ORTHANC_OVERRIDE
     {
       Aws::StringStream ss;
 
@@ -445,7 +449,7 @@ public:
     /**
     * Writes the stream to the output stream.
     */
-    virtual void LogStream(Aws::Utils::Logging::LogLevel logLevel, const char* tag, const Aws::OStringStream &messageStream)
+    virtual void LogStream(Aws::Utils::Logging::LogLevel logLevel, const char* tag, const Aws::OStringStream &messageStream) ORTHANC_OVERRIDE
     {
       if (logLevel == Aws::Utils::Logging::LogLevel::Debug || logLevel == Aws::Utils::Logging::LogLevel::Trace)
       {
@@ -464,7 +468,7 @@ public:
     /**
      * Writes any buffered messages to the underlying device if the logger supports buffering.
      */
-    virtual void Flush() {}
+    virtual void Flush() ORTHANC_OVERRIDE {}
 };
 
 IStorage* AwsS3StoragePluginFactory::CreateStorage(const std::string& nameForLogs, const OrthancPlugins::OrthancConfiguration& orthancConfig)

@@ -27,7 +27,7 @@
 class StoragePluginException : public std::runtime_error
 {
 public:
-  StoragePluginException(const std::string& what)
+  explicit StoragePluginException(const std::string& what)
     : std::runtime_error(what)
   {
   }
@@ -44,7 +44,7 @@ public:
 //  IStorage* CreateStorage(const OrthancPlugins::OrthancConfiguration& orthancConfig);
 //};
 
-class IStorage
+class IStorage : public boost::noncopyable
 {
 public:
   class IWriter
@@ -74,6 +74,10 @@ public:
   IStorage(const std::string& nameForLogs):
     nameForLogs_(nameForLogs)
   {}
+
+  virtual ~IStorage()
+  {
+  }
 
   virtual void SetRootPath(const std::string& rootPath) = 0;
 

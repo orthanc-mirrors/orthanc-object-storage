@@ -22,6 +22,9 @@
 #pragma once
 
 #include "IStorage.h"
+
+#include <Compatibility.h>
+
 #include <boost/filesystem.hpp>
 
 namespace fs = boost::filesystem;
@@ -41,7 +44,7 @@ protected:
   std::string GetPath(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled, bool useAlternateExtension = false);
 
 public:
-  virtual void SetRootPath(const std::string& rootPath)
+  virtual void SetRootPath(const std::string& rootPath) ORTHANC_OVERRIDE
   {
     rootPath_ = rootPath;
   }

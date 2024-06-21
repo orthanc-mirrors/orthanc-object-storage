@@ -22,10 +22,7 @@
 
 #include "EncryptionHelpers.h"
 
-class EncryptionConfigurator
+namespace EncryptionConfigurator
 {
-
-public:
-  static EncryptionHelpers* CreateEncryptionHelpers(const OrthancPlugins::OrthancConfiguration& encryptionSection);
-
-};
+  EncryptionHelpers* CreateEncryptionHelpers(const OrthancPlugins::OrthancConfiguration& encryptionSection);
+}

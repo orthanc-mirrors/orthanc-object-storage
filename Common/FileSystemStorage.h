@@ -41,21 +41,21 @@ public:
     {}
 
     virtual ~FileSystemWriter() {}
-    virtual void Write(const char* data, size_t size);
+    virtual void Write(const char* data, size_t size) ORTHANC_OVERRIDE;
   };
 
   class FileSystemReader: public IStorage::IReader
   {
     const fs::path path_;
   public:
-    FileSystemReader(const fs::path& path)
+    explicit FileSystemReader(const fs::path& path)
     : path_(path)
     {}
 
     virtual ~FileSystemReader() {}
-    virtual size_t GetSize();
-    virtual void ReadWhole(char* data, size_t size);
-    virtual void ReadRange(char* data, size_t size, size_t fromOffset);
+    virtual size_t GetSize() ORTHANC_OVERRIDE;
+    virtual void ReadWhole(char* data, size_t size) ORTHANC_OVERRIDE;
+    virtual void ReadRange(char* data, size_t size, size_t fromOffset) ORTHANC_OVERRIDE;
   };
 
   std::string fileSystemRootPath_;
@@ -67,12 +67,12 @@ public:
     fsync_(fsync)
   {}
 
-  virtual void SetRootPath(const std::string& rootPath) {}
+  virtual void SetRootPath(const std::string& rootPath) ORTHANC_OVERRIDE {}
 
-  virtual IStorage::IWriter* GetWriterForObject(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled);
-  virtual IStorage::IReader* GetReaderForObject(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled);
-  virtual void DeleteObject(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled);
+  virtual IStorage::IWriter* GetWriterForObject(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled) ORTHANC_OVERRIDE;
+  virtual IStorage::IReader* GetReaderForObject(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled) ORTHANC_OVERRIDE;
+  virtual void DeleteObject(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled) ORTHANC_OVERRIDE;
 
-  virtual bool HasFileExists() {return true;};
-  virtual bool FileExists(const std::string& uuid, OrthancPluginContentType type, bool encryptionEnabled);
+  virtual bool HasFileExists() ORTHANC_OVERRIDE {return true;};
+  virtual bool FileExists(const std::string& uuid, OrthancPluginContentType type, bool encryptionEnabled) ORTHANC_OVERRIDE;
 };

@@ -47,10 +47,10 @@ public:
                          bool storageContainsUnknownFiles
                          );
 
-  virtual IWriter* GetWriterForObject(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled);
-  virtual IReader* GetReaderForObject(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled);
-  virtual void DeleteObject(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled);
-  virtual bool HasFileExists() {return false;};
+  virtual IWriter* GetWriterForObject(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled) ORTHANC_OVERRIDE;
+  virtual IReader* GetReaderForObject(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled) ORTHANC_OVERRIDE;
+  virtual void DeleteObject(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled) ORTHANC_OVERRIDE;
+  virtual bool HasFileExists() ORTHANC_OVERRIDE {return false;};
 };
 
 
@@ -70,7 +70,7 @@ public:
   {
   }
 
-  virtual void Write(const char* data, size_t size)
+  virtual void Write(const char* data, size_t size) ORTHANC_OVERRIDE
   {
     try
     {
@@ -123,7 +123,7 @@ public:
   {
   }
 
-  virtual size_t GetSize()
+  virtual size_t GetSize() ORTHANC_OVERRIDE
   {
     try
     {
@@ -135,7 +135,7 @@ public:
     }
   }
 
-  virtual void ReadWhole(char* data, size_t size)
+  virtual void ReadWhole(char* data, size_t size) ORTHANC_OVERRIDE
   {
     try
     {
@@ -148,7 +148,7 @@ public:
     }
   }
 
-  virtual void ReadRange(char* data, size_t size, size_t fromOffset)
+  virtual void ReadRange(char* data, size_t size, size_t fromOffset) ORTHANC_OVERRIDE
   {
     try
     {

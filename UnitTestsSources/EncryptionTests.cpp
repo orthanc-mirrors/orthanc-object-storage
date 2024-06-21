@@ -234,11 +234,12 @@ TEST(EncryptionHelpers, RotateMasterKeys)
 
 void MeasurePerformance(size_t sizeInMB, EncryptionHelpers& crypto)
 {
-  std::string largePlainText(sizeInMB * 1024 * 1024, 'A');
   std::string encryptedMessage;
   std::string decryptedMessage;
 
   {
+    const std::string largePlainText(sizeInMB * 1024 * 1024, 'A');
+
     auto start = boost::posix_time::microsec_clock::local_time();
     crypto.Encrypt(encryptedMessage, largePlainText);
 

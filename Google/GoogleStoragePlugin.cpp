@@ -46,10 +46,10 @@ public:
                       bool storageContainsUnknownFiles
                       );
 
-  virtual IWriter* GetWriterForObject(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled);
-  virtual IReader* GetReaderForObject(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled);
-  virtual void DeleteObject(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled);
-  virtual bool HasFileExists() {return false;};
+  virtual IWriter* GetWriterForObject(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled) ORTHANC_OVERRIDE;
+  virtual IReader* GetReaderForObject(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled) ORTHANC_OVERRIDE;
+  virtual void DeleteObject(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled) ORTHANC_OVERRIDE;
+  virtual bool HasFileExists() ORTHANC_OVERRIDE {return false;};
 };
 
 
@@ -71,7 +71,7 @@ public:
   {
   }
 
-  virtual void Write(const char* data, size_t size)
+  virtual void Write(const char* data, size_t size) ORTHANC_OVERRIDE
   {
     stream_ = client_.WriteObject(bucketName_, path_);
 
@@ -112,7 +112,7 @@ public:
 
   }
 
-  virtual size_t GetSize()
+  virtual size_t GetSize() ORTHANC_OVERRIDE
   {
     std::string firstExceptionMessage;
 
@@ -134,7 +134,7 @@ public:
     throw StoragePluginException(firstExceptionMessage);
   }
 
-  void ReadWhole(char* data, size_t size)
+  virtual void ReadWhole(char* data, size_t size) ORTHANC_OVERRIDE
   {
     std::string firstExceptionMessage;
 
@@ -156,7 +156,7 @@ public:
     throw StoragePluginException(firstExceptionMessage);
   }
 
-  void ReadRange(char* data, size_t size, size_t fromOffset)
+  virtual void ReadRange(char* data, size_t size, size_t fromOffset) ORTHANC_OVERRIDE
   {
     std::string firstExceptionMessage;
 
@@ -179,7 +179,7 @@ public:
   }
 
 private:
-  virtual void _ReadWhole(const std::string& path, char* data, size_t size)
+  virtual void _ReadWhole(const std::string& path, char* data, size_t size) ORTHANC_OVERRIDE
   {
     auto reader = client_.ReadObject(bucketName_, path);
 
@@ -196,7 +196,7 @@ private:
     }
   }
 
-  virtual void _ReadRange(const std::string& path, char* data, size_t size, size_t fromOffset)
+  virtual void _ReadRange(const std::string& path, char* data, size_t size, size_t fromOffset) ORTHANC_OVERRIDE
   {
     auto reader = client_.ReadObject(bucketName_, path, gcs::ReadRange(fromOffset, fromOffset + size));
 
@@ -213,7 +213,7 @@ private:
     }
   }
 
-  size_t _GetSize(const std::string& path)
+  virtual size_t _GetSize(const std::string& path) ORTHANC_OVERRIDE
   {
     auto objectMetadata = client_.GetObjectMetadata(bucketName_, path);
 

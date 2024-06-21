@@ -30,7 +30,7 @@
 class EncryptionException : public std::runtime_error
 {
 public:
-  EncryptionException(const std::string& what)
+  explicit EncryptionException(const std::string& what)
     : std::runtime_error(what)
   {
   }
