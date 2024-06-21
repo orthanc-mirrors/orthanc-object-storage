@@ -583,10 +583,10 @@ IStorage* AwsS3StoragePluginFactory::CreateStorage(const std::string& nameForLog
   }
   catch (const std::exception& e)
   {
+    Aws::ShutdownAPI(*sdkOptions_);
     OrthancPlugins::LogError(std::string("AWS S3 Storage plugin: failed to initialize plugin: ") + e.what());
     return nullptr;
   }
-
 }
 
 
@@ -595,6 +595,7 @@ AwsS3StoragePlugin::~AwsS3StoragePlugin()
   assert(sdkOptions_.get() != NULL);
   Aws::ShutdownAPI(*sdkOptions_);
   api_.reset();
+  sdkOptions_.reset();
 }
 
 

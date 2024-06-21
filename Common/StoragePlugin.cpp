@@ -530,13 +530,13 @@ extern "C"
   {
     OrthancPlugins::SetGlobalContext(context);
 
-    Orthanc::InitializeFramework("", false);
+#if ORTHANC_FRAMEWORK_VERSION_IS_ABOVE(1, 12, 4)
+    Orthanc::Logging::InitializePluginContext(context, StoragePluginFactory::GetStoragePluginName());
+#elif ORTHANC_FRAMEWORK_VERSION_IS_ABOVE(1, 7, 2)
     Orthanc::Logging::InitializePluginContext(context);
-
-    OrthancPlugins::OrthancConfiguration orthancConfig;
-
-    OrthancPlugins::LogWarning(std::string(StoragePluginFactory::GetStoragePluginName()) + " plugin is initializing");
-    OrthancPlugins::SetDescription(StoragePluginFactory::GetStoragePluginName(), StoragePluginFactory::GetStorageDescription());
+#else
+    Orthanc::Logging::Initialize(context);
+#endif
 
     /* Check the version of the Orthanc core */
     if (OrthancPluginCheckVersion(context) == 0)
@@ -550,6 +550,13 @@ extern "C"
       OrthancPlugins::LogError(info);
       return -1;
     }
+
+    Orthanc::InitializeFramework("", false);
+
+    OrthancPlugins::OrthancConfiguration orthancConfig;
+
+    OrthancPlugins::LogWarning(std::string(StoragePluginFactory::GetStoragePluginName()) + " plugin is initializing");
+    OrthancPlugins::SetDescription(StoragePluginFactory::GetStoragePluginName(), StoragePluginFactory::GetStorageDescription());
 
     try
     {
