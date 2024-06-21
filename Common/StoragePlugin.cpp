@@ -81,6 +81,16 @@ static bool IsHybridModeEnabled()
 
 typedef void LogErrorFunction(const std::string& message);
 
+static void LogErrorAsWarning(const std::string& message)
+{
+  LOG(WARNING) << message;
+}
+
+static void LogErrorAsError(const std::string& message)
+{
+  LOG(ERROR) << message;
+}
+
 
 
 static OrthancPluginErrorCode StorageCreate(const char* uuid,
@@ -91,7 +101,8 @@ static OrthancPluginErrorCode StorageCreate(const char* uuid,
   try
   {
     Orthanc::Toolbox::ElapsedTimer timer;
-    OrthancPlugins::LogInfo(primaryStorage->GetNameForLogs() + ": creating attachment " + std::string(uuid) + " of type " + boost::lexical_cast<std::string>(type));
+    LOG(INFO) << primaryStorage->GetNameForLogs() << ": creating attachment " << uuid
+              << " of type " << boost::lexical_cast<std::string>(type);
     std::unique_ptr<IStorage::IWriter> writer(primaryStorage->GetWriterForObject(uuid, type, cryptoEnabled));
 
     if (cryptoEnabled)
@@ -104,7 +115,7 @@ static OrthancPluginErrorCode StorageCreate(const char* uuid,
       }
       catch (EncryptionException& ex)
       {
-        OrthancPlugins::LogError(primaryStorage->GetNameForLogs() + ": error while encrypting object " + std::string(uuid) + ": " + ex.what());
+        LOG(ERROR) << primaryStorage->GetNameForLogs() << ": error while encrypting object " << uuid << ": " << ex.what();
         return OrthancPluginErrorCode_StorageAreaPlugin;
       }
 
@@ -114,11 +125,12 @@ static OrthancPluginErrorCode StorageCreate(const char* uuid,
     {
       writer->Write(reinterpret_cast<const char*>(content), size);
     }
-    OrthancPlugins::LogInfo(primaryStorage->GetNameForLogs() + ": created attachment " + std::string(uuid) + " (" + timer.GetHumanTransferSpeed(true, size) + ")");
+    LOG(INFO) << primaryStorage->GetNameForLogs() << ": created attachment " << uuid
+              << " (" << timer.GetHumanTransferSpeed(true, size) << ")";
   }
   catch (StoragePluginException& ex)
   {
-    OrthancPlugins::LogError(primaryStorage->GetNameForLogs() + ": error while creating object " + std::string(uuid) + ": " + ex.what());
+    LOG(ERROR) << primaryStorage->GetNameForLogs() << ": error while creating object " << uuid << ": " << ex.what();
     return OrthancPluginErrorCode_StorageAreaPlugin;
   }
 
@@ -138,12 +150,14 @@ static OrthancPluginErrorCode StorageReadRange(IStorage* storage,
   try
   {
     Orthanc::Toolbox::ElapsedTimer timer;
-    OrthancPlugins::LogInfo(storage->GetNameForLogs() + ": reading range of attachment " + std::string(uuid) + " of type " + boost::lexical_cast<std::string>(type));
+    LOG(INFO) << storage->GetNameForLogs() << ": reading range of attachment " << uuid
+              << " of type " << boost::lexical_cast<std::string>(type);
     
     std::unique_ptr<IStorage::IReader> reader(storage->GetReaderForObject(uuid, type, cryptoEnabled));
     reader->ReadRange(reinterpret_cast<char*>(target->data), target->size, rangeStart);
     
-    OrthancPlugins::LogInfo(storage->GetNameForLogs() + ": read range of attachment " + std::string(uuid) + " (" + timer.GetHumanTransferSpeed(true, target->size) + ")");
+    LOG(INFO) << storage->GetNameForLogs() << ": read range of attachment " << uuid
+              << " (" << timer.GetHumanTransferSpeed(true, target->size) << ")";
     return OrthancPluginErrorCode_Success;
   }
   catch (StoragePluginException& ex)
@@ -159,7 +173,7 @@ static OrthancPluginErrorCode StorageReadRange(OrthancPluginMemoryBuffer64* targ
                                                uint64_t rangeStart)
 {
   OrthancPluginErrorCode res = StorageReadRange(primaryStorage.get(),
-                                                (IsHybridModeEnabled() ? OrthancPlugins::LogWarning : OrthancPlugins::LogError), // log errors as warning on first try
+                                                (IsHybridModeEnabled() ? LogErrorAsWarning : LogErrorAsError), // log errors as warning on first try
                                                 target,
                                                 uuid,
                                                 type,
@@ -168,7 +182,7 @@ static OrthancPluginErrorCode StorageReadRange(OrthancPluginMemoryBuffer64* targ
   if (res != OrthancPluginErrorCode_Success && IsHybridModeEnabled())
   {
     res = StorageReadRange(secondaryStorage.get(),
-                           OrthancPlugins::LogError, // log errors as errors on second try
+                           LogErrorAsError, // log errors as errors on second try
                            target,
                            uuid,
                            type,
@@ -188,7 +202,8 @@ static OrthancPluginErrorCode StorageReadWhole(IStorage* storage,
   try
   {
     Orthanc::Toolbox::ElapsedTimer timer;
-    OrthancPlugins::LogInfo(storage->GetNameForLogs() + ": reading whole attachment " + std::string(uuid) + " of type " + boost::lexical_cast<std::string>(type));
+    LOG(INFO) << storage->GetNameForLogs() << ": reading whole attachment " << uuid
+              << " of type " << boost::lexical_cast<std::string>(type);
     std::unique_ptr<IStorage::IReader> reader(storage->GetReaderForObject(uuid, type, cryptoEnabled));
 
     size_t fileSize = reader->GetSize();
@@ -235,7 +250,8 @@ static OrthancPluginErrorCode StorageReadWhole(IStorage* storage,
       reader->ReadWhole(reinterpret_cast<char*>(target->data), fileSize);
     }
 
-    OrthancPlugins::LogInfo(storage->GetNameForLogs() + ": read whole attachment " + std::string(uuid) + " (" + timer.GetHumanTransferSpeed(true, fileSize) + ")");
+    LOG(INFO) << storage->GetNameForLogs() << ": read whole attachment " << uuid
+              << " (" << timer.GetHumanTransferSpeed(true, fileSize) << ")";
   }
   catch (StoragePluginException& ex)
   {
@@ -251,7 +267,7 @@ static OrthancPluginErrorCode StorageReadWhole(OrthancPluginMemoryBuffer64* targ
                                                OrthancPluginContentType type)
 {
   OrthancPluginErrorCode res = StorageReadWhole(primaryStorage.get(),
-                                                (IsHybridModeEnabled() ? OrthancPlugins::LogWarning : OrthancPlugins::LogError), // log errors as warning on first try
+                                                (IsHybridModeEnabled() ? LogErrorAsWarning : LogErrorAsError), // log errors as warning on first try
                                                 target,
                                                 uuid,
                                                 type);
@@ -259,7 +275,7 @@ static OrthancPluginErrorCode StorageReadWhole(OrthancPluginMemoryBuffer64* targ
   if (res != OrthancPluginErrorCode_Success && IsHybridModeEnabled())
   {
     res = StorageReadWhole(secondaryStorage.get(),
-                           OrthancPlugins::LogError, // log errors as errors on second try
+                           LogErrorAsError, // log errors as errors on second try
                            target,
                            uuid,
                            type);
@@ -292,7 +308,8 @@ static OrthancPluginErrorCode StorageRemove(IStorage* storage,
 {
   try
   {
-    OrthancPlugins::LogInfo(storage->GetNameForLogs() + ": deleting attachment " + std::string(uuid) + " of type " + boost::lexical_cast<std::string>(type));
+    LOG(INFO) << storage->GetNameForLogs() << ": deleting attachment " << uuid
+              << " of type " << boost::lexical_cast<std::string>(type);
     storage->DeleteObject(uuid, type, cryptoEnabled);
     if ((storage == primaryStorage.get()) && IsHybridModeEnabled())
     {
@@ -313,14 +330,14 @@ static OrthancPluginErrorCode StorageRemove(const char* uuid,
                                             OrthancPluginContentType type)
 {
   OrthancPluginErrorCode res = StorageRemove(primaryStorage.get(),
-                                             (IsHybridModeEnabled() ? OrthancPlugins::LogWarning : OrthancPlugins::LogError), // log errors as warning on first try
+                                             (IsHybridModeEnabled() ? LogErrorAsWarning : LogErrorAsError), // log errors as warning on first try
                                              uuid,
                                              type);
 
   if (res != OrthancPluginErrorCode_Success && IsHybridModeEnabled())
   {
     res = StorageRemove(secondaryStorage.get(),
-                        OrthancPlugins::LogError, // log errors as errors on second try
+                        LogErrorAsError, // log errors as errors on second try
                         uuid,
                         type);
   }
@@ -452,7 +469,7 @@ void MoveStorage(OrthancPluginRestOutput* output,
     }   
   }
 
-  OrthancPlugins::LogInfo("Moving " + boost::lexical_cast<std::string>(instances.size()) + " instances to " + targetStorage);
+  LOG(INFO) << "Moving " << instances.size() << " instances to " << targetStorage;
 
   std::unique_ptr<MoveStorageJob> job(CreateMoveStorageJob(targetStorage, instances, resourcesForJobContent));
 
@@ -547,7 +564,7 @@ extern "C"
               ORTHANC_PLUGINS_MINIMAL_MAJOR_NUMBER,
               ORTHANC_PLUGINS_MINIMAL_MINOR_NUMBER,
               ORTHANC_PLUGINS_MINIMAL_REVISION_NUMBER);
-      OrthancPlugins::LogError(info);
+      LOG(ERROR) << info;
       return -1;
     }
 
@@ -555,7 +572,7 @@ extern "C"
 
     OrthancPlugins::OrthancConfiguration orthancConfig;
 
-    OrthancPlugins::LogWarning(std::string(StoragePluginFactory::GetStoragePluginName()) + " plugin is initializing");
+    LOG(WARNING) << StoragePluginFactory::GetStoragePluginName() << " plugin is initializing";
     OrthancPlugins::SetDescription(StoragePluginFactory::GetStoragePluginName(), StoragePluginFactory::GetStorageDescription());
 
     try
@@ -565,7 +582,8 @@ extern "C"
 
       if (!orthancConfig.IsSection(pluginSectionName))
       {
-        OrthancPlugins::LogWarning(std::string(StoragePluginFactory::GetStoragePluginName()) + ": no \"" + pluginSectionName +  "\" section found in configuration, plugin is disabled");
+        LOG(WARNING) << StoragePluginFactory::GetStoragePluginName() << ": no \"" << pluginSectionName
+                     << "\" section found in configuration, plugin is disabled";
         return 0;
       }
 
@@ -578,34 +596,34 @@ extern "C"
       if (migrationFromFileSystemEnabled && hybridModeString == "Disabled")
       {
         hybridMode = HybridMode_WriteToObjectStorage;
-        OrthancPlugins::LogWarning(std::string(StoragePluginFactory::GetStoragePluginName()) + ": 'MigrationFromFileSystemEnabled' configuration is deprecated, use 'HybridMode': 'WriteToObjectStorage' instead");
+        LOG(WARNING) << StoragePluginFactory::GetStoragePluginName() << ": 'MigrationFromFileSystemEnabled' configuration is deprecated, use 'HybridMode': 'WriteToObjectStorage' instead";
       }
       else if (hybridModeString == "WriteToObjectStorage")
       {
         hybridMode = HybridMode_WriteToObjectStorage;
-        OrthancPlugins::LogWarning(std::string(StoragePluginFactory::GetStoragePluginName()) + ": WriteToObjectStorage HybridMode is enabled: writing to object-storage, try reading first from object-storage and, then, from file system");
+        LOG(WARNING) << StoragePluginFactory::GetStoragePluginName() << ": WriteToObjectStorage HybridMode is enabled: writing to object-storage, try reading first from object-storage and, then, from file system";
       }
       else if (hybridModeString == "WriteToFileSystem")
       {
         hybridMode = HybridMode_WriteToFileSystem;
-        OrthancPlugins::LogWarning(std::string(StoragePluginFactory::GetStoragePluginName()) + ": WriteToFileSystem HybridMode is enabled: writing to file system, try reading first from file system and, then, from object-storage");
+        LOG(WARNING) << StoragePluginFactory::GetStoragePluginName() << ": WriteToFileSystem HybridMode is enabled: writing to file system, try reading first from file system and, then, from object-storage";
       }
       else
       {
-        OrthancPlugins::LogWarning(std::string(StoragePluginFactory::GetStoragePluginName()) + ": HybridMode is disabled: writing to object-storage and reading only from object-storage");
+        LOG(WARNING) << StoragePluginFactory::GetStoragePluginName() << ": HybridMode is disabled: writing to object-storage and reading only from object-storage";
       }
 
       if (IsReadFromDisk())
       {
         fileSystemRootPath = orthancConfig.GetStringValue("StorageDirectory", "OrthancStorageNotDefined");
-        OrthancPlugins::LogWarning(std::string(StoragePluginFactory::GetStoragePluginName()) + ": HybridMode: reading from file system is enabled, source: " + fileSystemRootPath);
+        LOG(WARNING) << StoragePluginFactory::GetStoragePluginName() << ": HybridMode: reading from file system is enabled, source: " << fileSystemRootPath;
       }
 
       objectsRootPath = pluginSection.GetStringValue("RootPath", std::string());
 
       if (objectsRootPath.size() >= 1 && objectsRootPath[0] == '/')
       {
-        OrthancPlugins::LogError(std::string(StoragePluginFactory::GetStoragePluginName()) + ": The RootPath shall not start with a '/': " + objectsRootPath);
+        LOG(ERROR) << StoragePluginFactory::GetStoragePluginName() << ": The RootPath shall not start with a '/': " << objectsRootPath;
         return -1;
       }
 
@@ -672,11 +690,11 @@ extern "C"
 
       if (cryptoEnabled)
       {
-        OrthancPlugins::LogWarning(std::string(StoragePluginFactory::GetStoragePluginName()) + ": client-side encryption is enabled");
+        LOG(WARNING) << StoragePluginFactory::GetStoragePluginName() << ": client-side encryption is enabled";
       }
       else
       {
-        OrthancPlugins::LogWarning(std::string(StoragePluginFactory::GetStoragePluginName()) + ": client-side encryption is disabled");
+        LOG(WARNING) << StoragePluginFactory::GetStoragePluginName() << ": client-side encryption is disabled";
       }
 
 
@@ -708,7 +726,7 @@ extern "C"
 
   ORTHANC_PLUGINS_API void OrthancPluginFinalize()
   {
-    OrthancPlugins::LogWarning(std::string(StoragePluginFactory::GetStoragePluginName()) + " plugin is finalizing");
+    LOG(WARNING) << StoragePluginFactory::GetStoragePluginName() << " plugin is finalizing";
     primaryStorage.reset();
     secondaryStorage.reset();
     Orthanc::FinalizeFramework();

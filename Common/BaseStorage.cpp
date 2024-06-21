@@ -20,6 +20,9 @@
 
 
 #include "BaseStorage.h"
+
+#include <Logging.h>
+
 #include <boost/filesystem/fstream.hpp>
 
 boost::filesystem::path BaseStorage::GetOrthancFileSystemPath(const std::string& uuid, const std::string& fileSystemRootPath)
@@ -86,7 +89,7 @@ bool BaseStorage::ReadCommonConfiguration(bool& enableLegacyStorageStructure, bo
     enableLegacyStorageStructure = true;
     if (storageStructure != "legacy")
     {
-      OrthancPlugins::LogError("ObjectStorage/StorageStructure configuration invalid value: " + storageStructure + ", allowed values are 'flat' and 'legacy'");
+      LOG(ERROR) << "ObjectStorage/StorageStructure configuration invalid value: " << storageStructure << ", allowed values are 'flat' and 'legacy'";
       return false;
     }
   }

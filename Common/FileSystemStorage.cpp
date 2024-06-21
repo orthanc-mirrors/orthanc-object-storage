@@ -21,7 +21,9 @@
 #include "FileSystemStorage.h"
 #include "BaseStorage.h"
 
+#include <Logging.h>
 #include <SystemToolbox.h>
+
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
 
@@ -143,7 +145,7 @@ void FileSystemStoragePlugin::DeleteObject(const char* uuid, OrthancPluginConten
   }
   catch(Orthanc::OrthancException& e)
   {
-    OrthancPlugins::LogError(GetNameForLogs() + ": error while deleting object " + std::string(uuid) + ": " + std::string(e.What()));
+    LOG(ERROR) << GetNameForLogs() << ": error while deleting object " << uuid << ": " << e.What();
   }
 
 }

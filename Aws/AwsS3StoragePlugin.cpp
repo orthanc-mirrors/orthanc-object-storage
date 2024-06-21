@@ -429,15 +429,15 @@ public:
 
       if (logLevel == Aws::Utils::Logging::LogLevel::Debug || logLevel == Aws::Utils::Logging::LogLevel::Trace)
       {
-        LOG(INFO) << outputBuff.c_str();
+        LOG(INFO) << outputBuff;
       }
       else if (logLevel == Aws::Utils::Logging::LogLevel::Warn)
       {
-        LOG(WARNING) << outputBuff.c_str();
+        LOG(WARNING) << outputBuff;
       }
       else
       {
-        LOG(ERROR) << outputBuff.c_str();
+        LOG(ERROR) << outputBuff;
       }
 
       va_end(args);
@@ -479,7 +479,7 @@ IStorage* AwsS3StoragePluginFactory::CreateStorage(const std::string& nameForLog
 
   if (!orthancConfig.IsSection(GetConfigurationSectionName()))
   {
-    OrthancPlugins::LogWarning(std::string(GetStoragePluginName()) + " plugin, section missing.  Plugin is not enabled.");
+    LOG(WARNING) << GetStoragePluginName() << " plugin, section missing.  Plugin is not enabled.";
     return nullptr;
   }
 
@@ -498,13 +498,13 @@ IStorage* AwsS3StoragePluginFactory::CreateStorage(const std::string& nameForLog
 
   if (!pluginSection.LookupStringValue(bucketName, "BucketName"))
   {
-    OrthancPlugins::LogError("AwsS3Storage/BucketName configuration missing.  Unable to initialize plugin");
+    LOG(ERROR) << "AwsS3Storage/BucketName configuration missing.  Unable to initialize plugin";
     return nullptr;
   }
 
   if (!pluginSection.LookupStringValue(region, "Region"))
   {
-    OrthancPlugins::LogError("AwsS3Storage/Region configuration missing.  Unable to initialize plugin");
+    LOG(ERROR) << "AwsS3Storage/Region configuration missing.  Unable to initialize plugin";
     return nullptr;
   }
 
@@ -565,7 +565,7 @@ IStorage* AwsS3StoragePluginFactory::CreateStorage(const std::string& nameForLog
 
     if (pluginSection.LookupStringValue(accessKey, "AccessKey") && pluginSection.LookupStringValue(secretKey, "SecretKey"))
     {
-      OrthancPlugins::LogInfo("AWS S3 Storage: using credentials from the configuration file");
+      LOG(INFO) << "AWS S3 Storage: using credentials from the configuration file";
       Aws::Auth::AWSCredentials credentials(accessKey.c_str(), secretKey.c_str());
       
       client = Aws::MakeShared<Aws::S3::S3Client>(ALLOCATION_TAG, credentials, configuration, Aws::Client::AWSAuthV4Signer::PayloadSigningPolicy::Never, virtualAddressing);
@@ -573,18 +573,18 @@ IStorage* AwsS3StoragePluginFactory::CreateStorage(const std::string& nameForLog
     else
     {
       // when using default credentials, credentials are not checked at startup but only the first time you try to access the bucket !
-      OrthancPlugins::LogInfo("AWS S3 Storage: using default credentials provider");
+      LOG(INFO) << "AWS S3 Storage: using default credentials provider";
       client = Aws::MakeShared<Aws::S3::S3Client>(ALLOCATION_TAG, configuration, Aws::Client::AWSAuthV4Signer::PayloadSigningPolicy::Never, virtualAddressing);
     }  
 
-    OrthancPlugins::LogInfo("AWS S3 storage initialized");
+    LOG(INFO) << "AWS S3 storage initialized";
 
     return new AwsS3StoragePlugin(nameForLogs, client, bucketName, enableLegacyStorageStructure, storageContainsUnknownFiles, useTransferManager, transferPoolSize, transferBufferSizeMB);
   }
   catch (const std::exception& e)
   {
     Aws::ShutdownAPI(*sdkOptions_);
-    OrthancPlugins::LogError(std::string("AWS S3 Storage plugin: failed to initialize plugin: ") + e.what());
+    LOG(ERROR) << "AWS S3 Storage plugin: failed to initialize plugin: " << e.what();
     return nullptr;
   }
 }

@@ -23,6 +23,8 @@
 
 #include "google/cloud/storage/client.h"
 
+#include <Logging.h>
+
 // Create aliases to make the code easier to read.
 namespace gcs = google::cloud::storage;
 
@@ -223,7 +225,7 @@ private:
     }
     else
     {
-        throw StoragePluginException("error while getting the size of " + std::string(path) + ": " + objectMetadata.status().message());
+      throw StoragePluginException("error while getting the size of " + std::string(path) + ": " + objectMetadata.status().message());
     }
   }
 
@@ -248,7 +250,7 @@ IStorage* GoogleStoragePluginFactory::CreateStorage(const std::string& nameForLo
 
   if (!orthancConfig.IsSection(GetConfigurationSectionName()))
   {
-    OrthancPlugins::LogWarning(std::string(GetStoragePluginName()) + " plugin, section missing.  Plugin is not enabled.");
+    LOG(WARNING) << GetStoragePluginName() << " plugin, section missing.  Plugin is not enabled.";
     return nullptr;
   }
 
@@ -264,14 +266,14 @@ IStorage* GoogleStoragePluginFactory::CreateStorage(const std::string& nameForLo
 
   if (!pluginSection.LookupStringValue(pathToGoogleCredentials, "ServiceAccountFile"))
   {
-    OrthancPlugins::LogError("GoogleCloudStorage/ServiceAccountFile configuration missing.  Unable to initialize plugin");
+    LOG(ERROR) << "GoogleCloudStorage/ServiceAccountFile configuration missing.  Unable to initialize plugin";
     return nullptr;
   }
 
   std::string googleBucketName;
   if (!pluginSection.LookupStringValue(googleBucketName, "BucketName"))
   {
-    OrthancPlugins::LogError("GoogleCloudStorage/BucketName configuration missing.  Unable to initialize plugin");
+    LOG(ERROR) << "GoogleCloudStorage/BucketName configuration missing.  Unable to initialize plugin";
     return nullptr;
   }
 
@@ -279,7 +281,7 @@ IStorage* GoogleStoragePluginFactory::CreateStorage(const std::string& nameForLo
   auto creds = gcs::oauth2::CreateServiceAccountCredentialsFromJsonFilePath(pathToGoogleCredentials);
   if (!creds)
   {
-    OrthancPlugins::LogError("GoogleCloudStorage plugin: unable to validate credentials.  Check the ServiceAccountFile: " + creds.status().message());
+    LOG(ERROR) << "GoogleCloudStorage plugin: unable to validate credentials.  Check the ServiceAccountFile: " << creds.status().message();
     return nullptr;
   }
 
@@ -288,7 +290,7 @@ IStorage* GoogleStoragePluginFactory::CreateStorage(const std::string& nameForLo
 
   if (!mainClient)
   {
-    OrthancPlugins::LogError("GoogleCloudStorage plugin: unable to create client: " + mainClient.status().message());
+    LOG(ERROR) << "GoogleCloudStorage plugin: unable to create client: " << mainClient.status().message();
     return nullptr;
   }
 

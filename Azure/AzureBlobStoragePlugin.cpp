@@ -27,6 +27,8 @@
 // #include "cpprest/rawptrstream.h"
 // #include "cpprest/details/basic_types.h"
 
+#include <Logging.h>
+
 // Create aliases to make the code easier to read.
 namespace as = Azure::Storage::Blobs;
 
@@ -224,13 +226,13 @@ IStorage* AzureBlobStoragePluginFactory::CreateStorage(const std::string& nameFo
 
     if (!pluginSection.LookupStringValue(connectionString, "ConnectionString"))
     {
-      OrthancPlugins::LogError("AzureBlobStorage/ConnectionString configuration missing.  Unable to initialize plugin");
+      LOG(ERROR) << "AzureBlobStorage/ConnectionString configuration missing.  Unable to initialize plugin";
       return nullptr;
     }
 
     if (!pluginSection.LookupStringValue(containerName, "ContainerName"))
     {
-      OrthancPlugins::LogError("AzureBlobStorage/ContainerName configuration missing.  Unable to initialize plugin");
+      LOG(ERROR) << "AzureBlobStorage/ContainerName configuration missing.  Unable to initialize plugin";
       return nullptr;
     }
 
@@ -241,7 +243,7 @@ IStorage* AzureBlobStoragePluginFactory::CreateStorage(const std::string& nameFo
   }
   else if (orthancConfig.IsSection("BlobStorage")) // backward compatibility with the old plugin:
   {
-    OrthancPlugins::LogWarning("AzureBlobStorage: you're using an old configuration format for the plugin.");
+    LOG(WARNING) << "AzureBlobStorage: you're using an old configuration format for the plugin.";
 
     OrthancPlugins::OrthancConfiguration pluginSection;
     orthancConfig.GetSection(pluginSection, "BlobStorage");
@@ -251,19 +253,19 @@ IStorage* AzureBlobStoragePluginFactory::CreateStorage(const std::string& nameFo
 
     if (!pluginSection.LookupStringValue(containerName, "ContainerName"))
     {
-      OrthancPlugins::LogError("BlobStorage/AccountName configuration missing.  Unable to initialize plugin");
+      LOG(ERROR) << "BlobStorage/AccountName configuration missing.  Unable to initialize plugin";
       return nullptr;
     }
 
     if (!pluginSection.LookupStringValue(accountName, "AccountName"))
     {
-      OrthancPlugins::LogError("BlobStorage/AccountName configuration missing.  Unable to initialize plugin");
+      LOG(ERROR) << "BlobStorage/AccountName configuration missing.  Unable to initialize plugin";
       return nullptr;
     }
 
     if (!pluginSection.LookupStringValue(accountKey, "AccountKey"))
     {
-      OrthancPlugins::LogError("BlobStorage/ContainerName configuration missing.  Unable to initialize plugin");
+      LOG(ERROR) << "BlobStorage/ContainerName configuration missing.  Unable to initialize plugin";
       return nullptr;
     }
 
@@ -275,16 +277,16 @@ IStorage* AzureBlobStoragePluginFactory::CreateStorage(const std::string& nameFo
   }
   else
   {
-    OrthancPlugins::LogWarning(std::string(GetStoragePluginName()) + " plugin, section missing.  Plugin is not enabled.");
+    LOG(WARNING) << GetStoragePluginName() << " plugin, section missing.  Plugin is not enabled.";
     return nullptr;
   }
 
   try
   {
-    OrthancPlugins::LogInfo("Connecting to Azure storage ...");
+    LOG(INFO) << "Connecting to Azure storage ...";
 
     as::BlobContainerClient client = as::BlobContainerClient::CreateFromConnectionString(connectionString, containerName);
-    OrthancPlugins::LogInfo("Blob client created");
+    LOG(INFO) << "Blob client created";
 
     if (createContainerIfNotExists)
     {
@@ -300,17 +302,17 @@ IStorage* AzureBlobStoragePluginFactory::CreateStorage(const std::string& nameFo
       auto createResult = client.CreateIfNotExists();
       if (createResult.Value.Created)
       {
-        OrthancPlugins::LogWarning("Blob Storage Area container has been created.  **** check in the Azure console that your container is private ****");
+        LOG(WARNING) << "Blob Storage Area container has been created.  **** check in the Azure console that your container is private ****";
       }
     }
 
-    OrthancPlugins::LogInfo("Blob storage initialized");
+    LOG(INFO) << "Blob storage initialized";
 
     return new AzureBlobStoragePlugin(nameForLogs, client, enableLegacyStorageStructure, storageContainsUnknownFiles);
   }
   catch (const std::exception& e)
   {
-    OrthancPlugins::LogError(std::string("AzureBlobStorage plugin: failed to initialize plugin: ") + e.what());
+    LOG(ERROR) << "AzureBlobStorage plugin: failed to initialize plugin: " << e.what();
     return nullptr;
   }
 

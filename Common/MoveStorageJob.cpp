@@ -71,17 +71,20 @@ static bool MoveAttachment(const std::string& uuid, int type, IStorage* sourceSt
   {
     if (sourceStorage->HasFileExists() && !sourceStorage->FileExists(uuid, static_cast<OrthancPluginContentType>(type), cryptoEnabled))
     {
-      OrthancPlugins::LogInfo("Move attachment: " + sourceStorage->GetNameForLogs() + " " + std::string(uuid) + " of type " + boost::lexical_cast<std::string>(type) + ", skipping, file is not on the source anymore");
+      LOG(INFO) << "Move attachment: " << sourceStorage->GetNameForLogs() << " " << uuid
+                << " of type " << boost::lexical_cast<std::string>(type) << ", skipping, file is not on the source anymore";
       return true;
     }
     else if (targetStorage->HasFileExists() && targetStorage->FileExists(uuid, static_cast<OrthancPluginContentType>(type), cryptoEnabled))
     {
-      OrthancPlugins::LogInfo("Move attachment: " + targetStorage->GetNameForLogs() + " " + std::string(uuid) + " of type " + boost::lexical_cast<std::string>(type) + ", skipping, file already on the target");
+      LOG(INFO) << "Move attachment: " << targetStorage->GetNameForLogs() << " " << uuid
+                << " of type " << boost::lexical_cast<std::string>(type) << ", skipping, file already on the target";
       return true;
     }
     else
     {
-      OrthancPlugins::LogInfo("Move attachment: " + sourceStorage->GetNameForLogs() + ": reading attachment " + std::string(uuid) + " of type " + boost::lexical_cast<std::string>(type));
+      LOG(INFO) << "Move attachment: " << sourceStorage->GetNameForLogs() << ": reading attachment "
+                << uuid << " of type " << boost::lexical_cast<std::string>(type);
     }
 
     std::unique_ptr<IStorage::IReader> reader(sourceStorage->GetReaderForObject(uuid.c_str(), static_cast<OrthancPluginContentType>(type), cryptoEnabled));
@@ -93,7 +96,8 @@ static bool MoveAttachment(const std::string& uuid, int type, IStorage* sourceSt
   }
   catch (StoragePluginException& ex)
   {
-    OrthancPlugins::LogInfo("Move attachment: " + sourceStorage->GetNameForLogs() + ": error while reading attachment " + std::string(uuid) + " of type " + boost::lexical_cast<std::string>(type) + ", this likely means that the file is already on the right storage");
+    LOG(INFO) << "Move attachment: " << sourceStorage->GetNameForLogs() << ": error while reading attachment " << uuid
+              << " of type " << boost::lexical_cast<std::string>(type) << ", this likely means that the file is already on the right storage";
     return true;
   }
 
@@ -108,7 +112,8 @@ static bool MoveAttachment(const std::string& uuid, int type, IStorage* sourceSt
     }
     catch (StoragePluginException& ex)
     {
-      OrthancPlugins::LogError("Move attachment: " + targetStorage->GetNameForLogs() + ": error while writing attachment " + std::string(uuid) + " of type " + boost::lexical_cast<std::string>(type) + ": " + ex.what());
+      LOG(ERROR) << "Move attachment: " << targetStorage->GetNameForLogs() << ": error while writing attachment "
+                 << uuid << " of type " << boost::lexical_cast<std::string>(type) << ": " << ex.what();
       return false;
     }
   }
@@ -122,7 +127,8 @@ static bool MoveAttachment(const std::string& uuid, int type, IStorage* sourceSt
     }
     catch (StoragePluginException& ex)
     {
-      OrthancPlugins::LogError("Move attachment: " + sourceStorage->GetNameForLogs() + ": error while deleting attachment " + std::string(uuid) + " of type " + boost::lexical_cast<std::string>(type) + ": " + ex.what());
+      LOG(ERROR) << "Move attachment: " << sourceStorage->GetNameForLogs() << ": error while deleting attachment "
+                 << uuid << " of type " << boost::lexical_cast<std::string>(type) << ": " << ex.what();
       return false;
     }
   }

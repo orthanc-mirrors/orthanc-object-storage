@@ -24,11 +24,13 @@
 
 #include "EncryptionConfigurator.h"
 
+#include <Logging.h>
+
 bool ReadMasterKey(uint32_t& id, std::string& keyPath, const Json::Value& node)
 {
   if (!node.isArray() || node.size() != 2 || !node[0].isUInt() || !node[1].isString())
   {
-    OrthancPlugins::LogWarning("Encryption: Invalid master key configuration");
+    LOG(WARNING) << "Encryption: Invalid master key configuration";
     return false;
   }
 
@@ -52,7 +54,7 @@ EncryptionHelpers* EncryptionConfigurator::CreateEncryptionHelpers(const Orthanc
 
   if (!cryptoJson.isMember("MasterKey") || !cryptoJson["MasterKey"].isArray())
   {
-    OrthancPlugins::LogWarning("Encryption: MasterKey missing.  Unable to initialize encryption");
+    LOG(WARNING) << "Encryption: MasterKey missing.  Unable to initialize encryption";
     return nullptr;
   }
 
