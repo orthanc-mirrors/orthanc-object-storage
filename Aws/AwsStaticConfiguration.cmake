@@ -17,71 +17,85 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 
-# version numbers can be obtained from https://github.com/aws/aws-sdk-cpp/blob/main/prefetch_crt_dependency.sh
+# The versions below must match those in "./DownloadStaticPackages.sh"
+SET(AWS_CHECKSUMS_VERSION      0.1.17)
+SET(AWS_C_AUTH_VERSION         0.7.1)
+SET(AWS_C_CAL_VERSION          0.6.1)
+SET(AWS_C_COMMON_VERSION       0.9.3)
+SET(AWS_C_COMPRESSION_VERSION  0.2.17)
+SET(AWS_C_EVENT_STREAM_VERSION 0.3.1)
+SET(AWS_C_HTTP_VERSION         0.7.11)
+SET(AWS_C_IO_VERSION           0.13.31)
+SET(AWS_C_MQTT_VERSION         0.9.5)
+SET(AWS_C_S3_VERSION           0.3.14)
+SET(AWS_C_SDKUTILS_VERSION     0.1.11)
+SET(AWS_CRT_CPP_VERSION        0.24.1)
+SET(AWS_SDK_CPP_VERSION        1.11.178)
 
-SET(AWS_C_COMMON_SOURCES_DIR ${CMAKE_BINARY_DIR}/aws-c-common-0.9.3)  # source =  https://github.com/awslabs/aws-c-common/archive/refs/tags/v0.9.3.tar.gz
-SET(AWS_C_COMMON_URL "https://orthanc.uclouvain.be/downloads/third-party-downloads/aws/aws-c-common-0.9.3.tar.gz")
-SET(AWS_C_COMMON_MD5 "d872ff682d5beca8ada6b19464235ca0")
-DownloadPackage(${AWS_C_COMMON_MD5} ${AWS_C_COMMON_URL} "${AWS_C_COMMON_SOURCES_DIR}")
 
-SET(AWS_CHECKSUMS_SOURCES_DIR ${CMAKE_BINARY_DIR}/aws-checksums-0.1.17)  # source =  https://github.com/awslabs/aws-checksums/archive/refs/tags/v0.1.17.tar.gz
-SET(AWS_CHECKSUMS_URL "https://orthanc.uclouvain.be/downloads/third-party-downloads/aws/aws-checksums-0.1.17.tar.gz")
+SET(AWS_CHECKSUMS_SOURCES_DIR ${CMAKE_BINARY_DIR}/aws-checksums-${AWS_CHECKSUMS_VERSION})
+SET(AWS_CHECKSUMS_URL "https://orthanc.uclouvain.be/downloads/third-party-downloads/aws/aws-checksums-${AWS_CHECKSUMS_VERSION}.tar.gz")
 SET(AWS_CHECKSUMS_MD5 "c256144404dc74349a8344662111e353")
 DownloadPackage(${AWS_CHECKSUMS_MD5} ${AWS_CHECKSUMS_URL} "${AWS_CHECKSUMS_SOURCES_DIR}")
 
-SET(AWS_C_AUTH_SOURCES_DIR ${CMAKE_BINARY_DIR}/aws-c-auth-0.7.1)  # source =  https://github.com/awslabs/aws-c-auth/archive/refs/tags/v0.7.1.tar.gz
-SET(AWS_C_AUTH_URL "https://orthanc.uclouvain.be/downloads/third-party-downloads/aws/aws-c-auth-0.7.1.tar.gz")
+SET(AWS_C_AUTH_SOURCES_DIR ${CMAKE_BINARY_DIR}/aws-c-auth-${AWS_C_AUTH_VERSION})
+SET(AWS_C_AUTH_URL "https://orthanc.uclouvain.be/downloads/third-party-downloads/aws/aws-c-auth-${AWS_C_AUTH_VERSION}.tar.gz")
 SET(AWS_C_AUTH_MD5 "aa690622a5f697d47ca3095ba2ef3cca")
 DownloadPackage(${AWS_C_AUTH_MD5} ${AWS_C_AUTH_URL} "${AWS_C_AUTH_SOURCES_DIR}")
 
-SET(AWS_C_CAL_SOURCES_DIR ${CMAKE_BINARY_DIR}/aws-c-cal-0.6.1)   # source =  https://github.com/awslabs/aws-c-cal/archive/refs/tags/v0.6.1.tar.gz
-SET(AWS_C_CAL_URL "https://orthanc.uclouvain.be/downloads/third-party-downloads/aws/aws-c-cal-0.6.1.tar.gz")
+SET(AWS_C_CAL_SOURCES_DIR ${CMAKE_BINARY_DIR}/aws-c-cal-${AWS_C_CAL_VERSION})
+SET(AWS_C_CAL_URL "https://orthanc.uclouvain.be/downloads/third-party-downloads/aws/aws-c-cal-${AWS_C_CAL_VERSION}.tar.gz")
 SET(AWS_C_CAL_MD5 "6d7c05e2f1c173b923e77b6021cb660d")
 DownloadPackage(${AWS_C_CAL_MD5} ${AWS_C_CAL_URL} "${AWS_C_CAL_SOURCES_DIR}")
 
-SET(AWS_C_COMPRESSION_SOURCES_DIR ${CMAKE_BINARY_DIR}/aws-c-compression-0.2.17)  # source =  https://github.com/awslabs/aws-c-compression/archive/refs/tags/v0.2.17.tar.gz
-SET(AWS_C_COMPRESSION_URL "https://orthanc.uclouvain.be/downloads/third-party-downloads/aws/aws-c-compression-0.2.17.tar.gz")
+SET(AWS_C_COMMON_SOURCES_DIR ${CMAKE_BINARY_DIR}/aws-c-common-${AWS_C_COMMON_VERSION})
+SET(AWS_C_COMMON_URL "https://orthanc.uclouvain.be/downloads/third-party-downloads/aws/aws-c-common-${AWS_C_COMMON_VERSION}.tar.gz")
+SET(AWS_C_COMMON_MD5 "d872ff682d5beca8ada6b19464235ca0")
+DownloadPackage(${AWS_C_COMMON_MD5} ${AWS_C_COMMON_URL} "${AWS_C_COMMON_SOURCES_DIR}")
+
+SET(AWS_C_COMPRESSION_SOURCES_DIR ${CMAKE_BINARY_DIR}/aws-c-compression-${AWS_C_COMPRESSION_VERSION})
+SET(AWS_C_COMPRESSION_URL "https://orthanc.uclouvain.be/downloads/third-party-downloads/aws/aws-c-compression-${AWS_C_COMPRESSION_VERSION}.tar.gz")
 SET(AWS_C_COMPRESSION_MD5 "b8bc8bc9cf3749eb2d3f36098c9ead27")
 DownloadPackage(${AWS_C_COMPRESSION_MD5} ${AWS_C_COMPRESSION_URL} "${AWS_C_COMPRESSION_SOURCES_DIR}")
 
-SET(AWS_C_EVENT_STREAM_SOURCES_DIR ${CMAKE_BINARY_DIR}/aws-c-event-stream-0.3.1)  # source =  https://github.com/awslabs/aws-c-event-stream/archive/refs/tags/v0.3.1.tar.gz
-SET(AWS_C_EVENT_STREAM_URL "https://orthanc.uclouvain.be/downloads/third-party-downloads/aws/aws-c-event-stream-0.3.1.tar.gz")
+SET(AWS_C_EVENT_STREAM_SOURCES_DIR ${CMAKE_BINARY_DIR}/aws-c-event-stream-${AWS_C_EVENT_STREAM_VERSION})
+SET(AWS_C_EVENT_STREAM_URL "https://orthanc.uclouvain.be/downloads/third-party-downloads/aws/aws-c-event-stream-${AWS_C_EVENT_STREAM_VERSION}.tar.gz")
 SET(AWS_C_EVENT_STREAM_MD5 "e3261d89598a3331eebcd0476b523c73")
 DownloadPackage(${AWS_C_EVENT_STREAM_MD5} ${AWS_C_EVENT_STREAM_URL} "${AWS_C_EVENT_STREAM_SOURCES_DIR}")
 
-SET(AWS_C_HTTP_SOURCES_DIR ${CMAKE_BINARY_DIR}/aws-c-http-0.7.11)  # source =  https://github.com/awslabs/aws-c-http/archive/refs/tags/v0.7.11.tar.gz
-SET(AWS_C_HTTP_URL "https://orthanc.uclouvain.be/downloads/third-party-downloads/aws/aws-c-http-0.7.11.tar.gz")
+SET(AWS_C_HTTP_SOURCES_DIR ${CMAKE_BINARY_DIR}/aws-c-http-${AWS_C_HTTP_VERSION})
+SET(AWS_C_HTTP_URL "https://orthanc.uclouvain.be/downloads/third-party-downloads/aws/aws-c-http-${AWS_C_HTTP_VERSION}.tar.gz")
 SET(AWS_C_HTTP_MD5 "b8ef3268d4d64b7fabe743b03518d2d7")
 DownloadPackage(${AWS_C_HTTP_MD5} ${AWS_C_HTTP_URL} "${AWS_C_HTTP_SOURCES_DIR}")
 
-SET(AWS_C_IO_SOURCES_DIR ${CMAKE_BINARY_DIR}/aws-c-io-0.13.31)  # source =  https://github.com/awslabs/aws-c-io/archive/refs/tags/v0.13.31.tar.gz
-SET(AWS_C_IO_URL "https://orthanc.uclouvain.be/downloads/third-party-downloads/aws/aws-c-io-0.13.31.tar.gz")
+SET(AWS_C_IO_SOURCES_DIR ${CMAKE_BINARY_DIR}/aws-c-io-${AWS_C_IO_VERSION})
+SET(AWS_C_IO_URL "https://orthanc.uclouvain.be/downloads/third-party-downloads/aws/aws-c-io-${AWS_C_IO_VERSION}.tar.gz")
 SET(AWS_C_IO_MD5 "9ae415cb81404e1b76d8e8267e585e34")
 DownloadPackage(${AWS_C_IO_MD5} ${AWS_C_IO_URL} "${AWS_C_IO_SOURCES_DIR}")
 
-SET(AWS_C_MQTT_SOURCES_DIR ${CMAKE_BINARY_DIR}/aws-c-mqtt-0.9.5)  # source =  https://github.com/awslabs/aws-c-mqtt/archive/refs/tags/v0.9.5.tar.gz
-SET(AWS_C_MQTT_URL "https://orthanc.uclouvain.be/downloads/third-party-downloads/aws/aws-c-mqtt-0.9.5.tar.gz")
+SET(AWS_C_MQTT_SOURCES_DIR ${CMAKE_BINARY_DIR}/aws-c-mqtt-${AWS_C_MQTT_VERSION})
+SET(AWS_C_MQTT_URL "https://orthanc.uclouvain.be/downloads/third-party-downloads/aws/aws-c-mqtt-${AWS_C_MQTT_VERSION}.tar.gz")
 SET(AWS_C_MQTT_MD5 "76d59d9f14f3999b0f9618e386e71db6")
 DownloadPackage(${AWS_C_MQTT_MD5} ${AWS_C_MQTT_URL} "${AWS_C_MQTT_SOURCES_DIR}")
 
-SET(AWS_C_S3_SOURCES_DIR ${CMAKE_BINARY_DIR}/aws-c-s3-0.3.14)  # source =  https://github.com/awslabs/aws-c-s3/archive/refs/tags/v0.3.14.tar.gz
-SET(AWS_C_S3_URL "https://orthanc.uclouvain.be/downloads/third-party-downloads/aws/aws-c-s3-0.3.14.tar.gz")
+SET(AWS_C_S3_SOURCES_DIR ${CMAKE_BINARY_DIR}/aws-c-s3-${AWS_C_S3_VERSION})
+SET(AWS_C_S3_URL "https://orthanc.uclouvain.be/downloads/third-party-downloads/aws/aws-c-s3-${AWS_C_S3_VERSION}.tar.gz")
 SET(AWS_C_S3_MD5 "564bb0df1184ebe9ce41c23a0c18cf1a")
 DownloadPackage(${AWS_C_S3_MD5} ${AWS_C_S3_URL} "${AWS_C_S3_SOURCES_DIR}")
 
-SET(AWS_C_SDKUTILS_SOURCES_DIR ${CMAKE_BINARY_DIR}/aws-c-sdkutils-0.1.11)  # source =  https://github.com/awslabs/aws-c-sdkutils/archive/refs/tags/v0.1.11.tar.gz
-SET(AWS_C_SDKUTILS_URL "https://orthanc.uclouvain.be/downloads/third-party-downloads/aws/aws-c-sdkutils-0.1.11.tar.gz")
+SET(AWS_C_SDKUTILS_SOURCES_DIR ${CMAKE_BINARY_DIR}/aws-c-sdkutils-${AWS_C_SDKUTILS_VERSION})
+SET(AWS_C_SDKUTILS_URL "https://orthanc.uclouvain.be/downloads/third-party-downloads/aws/aws-c-sdkutils-${AWS_C_SDKUTILS_VERSION}.tar.gz")
 SET(AWS_C_SDKUTILS_MD5 "713cac3392aa20d5dda852cf21ac1957")
 DownloadPackage(${AWS_C_SDKUTILS_MD5} ${AWS_C_SDKUTILS_URL} "${AWS_C_SDKUTILS_SOURCES_DIR}")
 
-SET(AWS_CRT_CPP_SOURCES_DIR ${CMAKE_BINARY_DIR}/aws-crt-cpp-0.24.1)  # source =  https://github.com/awslabs/aws-crt-cpp/archive/refs/tags/v0.24.1.tar.gz
-SET(AWS_CRT_CPP_URL "https://orthanc.uclouvain.be/downloads/third-party-downloads/aws/aws-crt-cpp-0.24.1.tar.gz")
+SET(AWS_CRT_CPP_SOURCES_DIR ${CMAKE_BINARY_DIR}/aws-crt-cpp-${AWS_CRT_CPP_VERSION})
+SET(AWS_CRT_CPP_URL "https://orthanc.uclouvain.be/downloads/third-party-downloads/aws/aws-crt-cpp-${AWS_CRT_CPP_VERSION}.tar.gz")
 SET(AWS_CRT_CPP_MD5 "fa2cda44386bd56f1d4609c6a54a59f9")
 DownloadPackage(${AWS_CRT_CPP_MD5} ${AWS_CRT_CPP_URL} "${AWS_CRT_CPP_SOURCES_DIR}")
 
 
-SET(AWS_SDK_CPP_SOURCES_DIR ${CMAKE_BINARY_DIR}/aws-sdk-cpp-1.11.178)  # source =  https://github.com/aws/aws-sdk-cpp/archive/refs/tags/1.11.178.tar.gz
-SET(AWS_SDK_CPP_URL "https://orthanc.uclouvain.be/downloads/third-party-downloads/aws/aws-sdk-cpp-1.11.178.tar.gz")
+SET(AWS_SDK_CPP_SOURCES_DIR ${CMAKE_BINARY_DIR}/aws-sdk-cpp-${AWS_SDK_CPP_VERSION})
+SET(AWS_SDK_CPP_URL "https://orthanc.uclouvain.be/downloads/third-party-downloads/aws/aws-sdk-cpp-${AWS_SDK_CPP_VERSION}.tar.gz")
 SET(AWS_SDK_CPP_MD5 "a3f45888e939bb71506e0f7eaa630e48")
 
 if (IS_DIRECTORY "${AWS_SDK_CPP_SOURCES_DIR}")
@@ -96,7 +110,7 @@ if (FirstRun)
   # This is a patch for Microsoft Visual Studio 2015
   execute_process(
     COMMAND ${PATCH_EXECUTABLE} -p0 -N -i
-    ${CMAKE_CURRENT_LIST_DIR}/aws-sdk-cpp-1.11.178.patch
+    ${CMAKE_CURRENT_LIST_DIR}/aws-sdk-cpp-${AWS_SDK_CPP_VERSION}.patch
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
     RESULT_VARIABLE Failure
     )
