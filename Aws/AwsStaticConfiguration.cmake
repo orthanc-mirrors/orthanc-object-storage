@@ -18,32 +18,32 @@
 
 
 # The versions below must match those in "./DownloadStaticPackages.sh"
-SET(AWS_CHECKSUMS_VERSION      0.1.17)
+SET(AWS_CHECKSUMS_VERSION      0.1.18)
 SET(AWS_CRT_CPP_VERSION        0.24.1)
-SET(AWS_C_AUTH_VERSION         0.7.1)
-SET(AWS_C_CAL_VERSION          0.6.1)
-SET(AWS_C_COMMON_VERSION       0.9.3)
-SET(AWS_C_COMPRESSION_VERSION  0.2.17)
-SET(AWS_C_EVENT_STREAM_VERSION 0.3.1)
-SET(AWS_C_HTTP_VERSION         0.7.11)
-SET(AWS_C_IO_VERSION           0.13.31)
-SET(AWS_C_MQTT_VERSION         0.9.5)
-SET(AWS_C_S3_VERSION           0.3.14)
-SET(AWS_C_SDKUTILS_VERSION     0.1.11)
+SET(AWS_C_AUTH_VERSION         0.7.22)
+SET(AWS_C_CAL_VERSION          0.7.0)
+SET(AWS_C_COMMON_VERSION       0.9.23)
+SET(AWS_C_COMPRESSION_VERSION  0.2.18)
+SET(AWS_C_EVENT_STREAM_VERSION 0.4.2)
+SET(AWS_C_HTTP_VERSION         0.8.2)
+SET(AWS_C_IO_VERSION           0.14.9)
+SET(AWS_C_MQTT_VERSION         0.10.4)
+SET(AWS_C_S3_VERSION           0.5.10)
+SET(AWS_C_SDKUTILS_VERSION     0.1.16)
 SET(AWS_SDK_CPP_VERSION        1.11.178)
 
-SET(AWS_CHECKSUMS_MD5       "c256144404dc74349a8344662111e353")
+SET(AWS_CHECKSUMS_MD5       "ab640e05f6e8ffc20d619599b5ff7c92")
 SET(AWS_CRT_CPP_MD5         "fa2cda44386bd56f1d4609c6a54a59f9")
-SET(AWS_C_AUTH_MD5          "aa690622a5f697d47ca3095ba2ef3cca")
-SET(AWS_C_CAL_MD5           "6d7c05e2f1c173b923e77b6021cb660d")
-SET(AWS_C_COMMON_MD5        "d872ff682d5beca8ada6b19464235ca0")
-SET(AWS_C_COMPRESSION_MD5   "b8bc8bc9cf3749eb2d3f36098c9ead27")
-SET(AWS_C_EVENT_STREAM_MD5  "e3261d89598a3331eebcd0476b523c73")
-SET(AWS_C_HTTP_MD5          "b8ef3268d4d64b7fabe743b03518d2d7")
-SET(AWS_C_IO_MD5            "9ae415cb81404e1b76d8e8267e585e34")
-SET(AWS_C_MQTT_MD5          "76d59d9f14f3999b0f9618e386e71db6")
-SET(AWS_C_S3_MD5            "564bb0df1184ebe9ce41c23a0c18cf1a")
-SET(AWS_C_SDKUTILS_MD5      "713cac3392aa20d5dda852cf21ac1957")
+SET(AWS_C_AUTH_MD5          "d2655feb998f57af8f9e985bf358face")
+SET(AWS_C_CAL_MD5           "522cad001d0b259e792b7468cd4d4c84")
+SET(AWS_C_COMMON_MD5        "a36562c3eb99227cbb131c7c56602b86")
+SET(AWS_C_COMPRESSION_MD5   "f1510a8769637d4997e43d2783807113")
+SET(AWS_C_EVENT_STREAM_MD5  "9d0f9a4f81927fcffccfa989baebf024")
+SET(AWS_C_HTTP_MD5          "20156836ae45b982cc56f2762cc9f27e")
+SET(AWS_C_IO_MD5            "c95a51d07c1eace423205af3a5407121")
+SET(AWS_C_MQTT_MD5          "43de8c035d383ac33652e0de0e4b2b7a")
+SET(AWS_C_S3_MD5            "5db9d3ec2caa4ebe1b4b3bf27a45c513")
+SET(AWS_C_SDKUTILS_MD5      "a215ee5a0d082df1bff812b24456c0a2")
 SET(AWS_SDK_CPP_MD5         "a3f45888e939bb71506e0f7eaa630e48")
 
 
@@ -136,6 +136,7 @@ configure_file(
 
 include_directories(
   ${AWS_C_COMMON_SOURCES_DIR}/include/
+  ${AWS_C_COMMON_SOURCES_DIR}/source/external/libcbor
   ${AWS_C_AUTH_SOURCES_DIR}/include/
   ${AWS_C_CAL_SOURCES_DIR}/include/
   ${AWS_C_COMPRESSION_SOURCES_DIR}/include/
@@ -158,6 +159,9 @@ include_directories(
 list(APPEND AWS_SOURCES_SUBDIRS
   ${AWS_C_COMMON_SOURCES_DIR}/source/
   ${AWS_C_COMMON_SOURCES_DIR}/source/external/
+  ${AWS_C_COMMON_SOURCES_DIR}/source/external/libcbor/
+  ${AWS_C_COMMON_SOURCES_DIR}/source/external/libcbor/cbor/
+  ${AWS_C_COMMON_SOURCES_DIR}/source/external/libcbor/cbor/internal/
 
   ## C libraries
   
@@ -227,6 +231,7 @@ add_definitions(
   -DBYO_CRYPTO  # To have "aws_tls_server_ctx_new()" defined
   -DENABLE_OPENSSL_ENCRYPTION=1
   -DENABLE_CURL_CLIENT=1
+  -DINTEL_NO_ITTNOTIFY_API=1
   )
 
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
@@ -253,6 +258,7 @@ else()
   list(APPEND AWS_SOURCES_SUBDIRS
     #${AWS_C_CAL_SOURCES_DIR}/source/unix/
     #${AWS_SDK_CPP_SOURCES_DIR}/aws-cpp-sdk-core/source/net/linux-shared/
+    ${AWS_C_COMMON_SOURCES_DIR}/source/linux/
     ${AWS_C_COMMON_SOURCES_DIR}/source/posix/
     ${AWS_C_IO_SOURCES_DIR}/source/linux/
     ${AWS_C_IO_SOURCES_DIR}/source/posix/

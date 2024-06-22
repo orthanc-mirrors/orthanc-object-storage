@@ -27,18 +27,18 @@
 
 set -e
 
-AWS_CHECKSUMS_VERSION=0.1.17       # https://github.com/awslabs/aws-checksums/tags
+AWS_CHECKSUMS_VERSION=0.1.18       # https://github.com/awslabs/aws-checksums/tags
 AWS_CRT_CPP_VERSION=0.24.1         # https://github.com/awslabs/aws-crt-cpp/tags
-AWS_C_AUTH_VERSION=0.7.1           # https://github.com/awslabs/aws-c-auth/tags
-AWS_C_CAL_VERSION=0.6.1            # https://github.com/awslabs/aws-c-cal/tags
-AWS_C_COMMON_VERSION=0.9.3         # https://github.com/awslabs/aws-c-common/tags
-AWS_C_COMPRESSION_VERSION=0.2.17   # https://github.com/awslabs/aws-c-compression/tags
-AWS_C_EVENT_STREAM_VERSION=0.3.1   # https://github.com/awslabs/aws-c-event-stream/tags
-AWS_C_HTTP_VERSION=0.7.11          # https://github.com/awslabs/aws-c-http/tags
-AWS_C_IO_VERSION=0.13.31           # https://github.com/awslabs/aws-c-io/tags
-AWS_C_MQTT_VERSION=0.9.5           # https://github.com/awslabs/aws-c-mqtt/tags
-AWS_C_S3_VERSION=0.3.14            # https://github.com/awslabs/aws-c-s3/tags
-AWS_C_SDKUTILS_VERSION=0.1.11      # https://github.com/awslabs/aws-c-sdkutils/tags
+AWS_C_AUTH_VERSION=0.7.22          # https://github.com/awslabs/aws-c-auth/tags
+AWS_C_CAL_VERSION=0.7.0            # https://github.com/awslabs/aws-c-cal/tags
+AWS_C_COMMON_VERSION=0.9.23        # https://github.com/awslabs/aws-c-common/tags
+AWS_C_COMPRESSION_VERSION=0.2.18   # https://github.com/awslabs/aws-c-compression/tags
+AWS_C_EVENT_STREAM_VERSION=0.4.2   # https://github.com/awslabs/aws-c-event-stream/tags
+AWS_C_HTTP_VERSION=0.8.2           # https://github.com/awslabs/aws-c-http/tags
+AWS_C_IO_VERSION=0.14.9            # https://github.com/awslabs/aws-c-io/tags
+AWS_C_MQTT_VERSION=0.10.4          # https://github.com/awslabs/aws-c-mqtt/tags
+AWS_C_S3_VERSION=0.5.10            # https://github.com/awslabs/aws-c-s3/tags
+AWS_C_SDKUTILS_VERSION=0.1.16      # https://github.com/awslabs/aws-c-sdkutils/tags
 AWS_SDK_CPP_VERSION=1.11.178       # https://github.com/awslabs/aws-sdk-cpp/tags
 
 TARGET=/tmp/aws
