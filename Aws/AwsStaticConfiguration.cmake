@@ -244,7 +244,8 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
 
   add_definitions(
     -DAWS_USE_IO_COMPLETION_PORTS=1
-    -DCJSON_AS4CPP_HIDE_SYMBOLS=1    # Disable "dllexport" in cJSON
+    # -DCJSON_AS4CPP_HIDE_SYMBOLS=1    # Disable "dllexport" in cJSON => doesn't seem to work
+    -DCJSON_HIDE_SYMBOLS=1
     )
 
   set(AWSSDK_LINK_LIBRARIES
@@ -254,6 +255,11 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
     userenv
     version
     )
+
+  # Target Windows 7, as "PPROCESSOR_NUMBER" is needed by AWS
+  remove_definitions(-DWINVER=0x0501 -D_WIN32_WINNT=0x0501)
+  add_definitions(-DWINVER=0x0601 -D_WIN32_WINNT=0x0601)
+
 else()
   list(APPEND AWS_SOURCES_SUBDIRS
     #${AWS_C_CAL_SOURCES_DIR}/source/unix/
