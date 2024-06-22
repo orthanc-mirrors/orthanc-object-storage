@@ -28,6 +28,7 @@
 set -e
 
 AWS_CHECKSUMS_VERSION=0.1.17       # https://github.com/awslabs/aws-checksums/tags
+AWS_CRT_CPP_VERSION=0.24.1         # https://github.com/awslabs/aws-crt-cpp/tags
 AWS_C_AUTH_VERSION=0.7.1           # https://github.com/awslabs/aws-c-auth/tags
 AWS_C_CAL_VERSION=0.6.1            # https://github.com/awslabs/aws-c-cal/tags
 AWS_C_COMMON_VERSION=0.9.3         # https://github.com/awslabs/aws-c-common/tags
@@ -38,7 +39,6 @@ AWS_C_IO_VERSION=0.13.31           # https://github.com/awslabs/aws-c-io/tags
 AWS_C_MQTT_VERSION=0.9.5           # https://github.com/awslabs/aws-c-mqtt/tags
 AWS_C_S3_VERSION=0.3.14            # https://github.com/awslabs/aws-c-s3/tags
 AWS_C_SDKUTILS_VERSION=0.1.11      # https://github.com/awslabs/aws-c-sdkutils/tags
-AWS_CRT_CPP_VERSION=0.24.1         # https://github.com/awslabs/aws-crt-cpp/tags
 AWS_SDK_CPP_VERSION=1.11.178       # https://github.com/awslabs/aws-sdk-cpp/tags
 
 TARGET=/tmp/aws
@@ -52,6 +52,8 @@ mkdir -p ${TARGET}
 
 wget https://github.com/awslabs/aws-checksums/archive/refs/tags/v${AWS_CHECKSUMS_VERSION}.tar.gz \
      -O ${TARGET}/aws-checksums-${AWS_CHECKSUMS_VERSION}.tar.gz
+wget https://github.com/awslabs/aws-crt-cpp/archive/refs/tags/v${AWS_CRT_CPP_VERSION}.tar.gz \
+     -O ${TARGET}/aws-crt-cpp-${AWS_CRT_CPP_VERSION}.tar.gz
 wget https://github.com/awslabs/aws-c-auth/archive/refs/tags/v${AWS_C_AUTH_VERSION}.tar.gz \
      -O ${TARGET}/aws-c-auth-${AWS_C_AUTH_VERSION}.tar.gz
 wget https://github.com/awslabs/aws-c-cal/archive/refs/tags/v${AWS_C_CAL_VERSION}.tar.gz \
@@ -72,7 +74,5 @@ wget https://github.com/awslabs/aws-c-s3/archive/refs/tags/v${AWS_C_S3_VERSION}.
      -O ${TARGET}/aws-c-s3-${AWS_C_S3_VERSION}.tar.gz
 wget https://github.com/awslabs/aws-c-sdkutils/archive/refs/tags/v${AWS_C_SDKUTILS_VERSION}.tar.gz \
      -O ${TARGET}/aws-c-sdkutils-${AWS_C_SDKUTILS_VERSION}.tar.gz
-wget https://github.com/awslabs/aws-crt-cpp/archive/refs/tags/v${AWS_CRT_CPP_VERSION}.tar.gz \
-     -O ${TARGET}/aws-crt-cpp-${AWS_CRT_CPP_VERSION}.tar.gz
 wget https://github.com/awslabs/aws-sdk-cpp/archive/refs/tags/${AWS_SDK_CPP_VERSION}.tar.gz \
      -O ${TARGET}/aws-sdk-cpp-${AWS_SDK_CPP_VERSION}.tar.gz
