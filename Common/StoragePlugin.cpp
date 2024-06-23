@@ -50,6 +50,12 @@
 #include "StoragePlugin.h"
 #include <Toolbox.h>
 
+#ifdef _WIN32
+// This is a hotfix for: https://orthanc.uclouvain.be/hg/orthanc/rev/e4d9a872998f
+#  undef ORTHANC_PLUGINS_API
+#  define ORTHANC_PLUGINS_API __declspec(dllexport)
+#endif
+
 
 static std::unique_ptr<IStorage> primaryStorage;
 static std::unique_ptr<IStorage> secondaryStorage;

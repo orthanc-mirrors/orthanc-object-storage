@@ -234,7 +234,7 @@ add_definitions(
   -DINTEL_NO_ITTNOTIFY_API=1
   )
 
-if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+if (CMAKE_SYSTEM_NAME STREQUAL "Windows")
   list(APPEND AWS_SOURCES_SUBDIRS
     ${AWS_C_COMMON_SOURCES_DIR}/source/windows/
     ${AWS_C_IO_SOURCES_DIR}/source/windows/
@@ -284,13 +284,22 @@ list(APPEND AWS_SOURCES
   )
 
 
-if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+if (CMAKE_SYSTEM_NAME STREQUAL "Windows")
+  # WARNING: "//" *are* important below (don't replace them with "/")
+  if (MINGW)
+    list(REMOVE_ITEM AWS_SOURCES
+      ${AWS_C_COMMON_SOURCES_DIR}/source/windows//system_info.c
+      )
+    list(APPEND AWS_SOURCES
+      ${AWS_C_COMMON_SOURCES_DIR}/source/posix/system_info.c
+      )
+  endif()
+
   list(APPEND AWS_SOURCES
     ${AWS_C_COMMON_SOURCES_DIR}/source/platform_fallback_stubs/system_info.c
     )
 
   list(REMOVE_ITEM AWS_SOURCES
-    # WARNING: "//" *is* important (don't replace it with "/")
     ${AWS_C_IO_SOURCES_DIR}/source/windows//secure_channel_tls_handler.c
     )
 endif()
