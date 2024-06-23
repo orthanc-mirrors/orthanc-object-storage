@@ -79,9 +79,28 @@ SET(AWS_C_HTTP_SOURCES_DIR ${CMAKE_BINARY_DIR}/aws-c-http-${AWS_C_HTTP_VERSION})
 SET(AWS_C_HTTP_URL "https://orthanc.uclouvain.be/downloads/third-party-downloads/aws/aws-c-http-${AWS_C_HTTP_VERSION}.tar.gz")
 DownloadPackage(${AWS_C_HTTP_MD5} ${AWS_C_HTTP_URL} "${AWS_C_HTTP_SOURCES_DIR}")
 
+
 SET(AWS_C_IO_SOURCES_DIR ${CMAKE_BINARY_DIR}/aws-c-io-${AWS_C_IO_VERSION})
 SET(AWS_C_IO_URL "https://orthanc.uclouvain.be/downloads/third-party-downloads/aws/aws-c-io-${AWS_C_IO_VERSION}.tar.gz")
+
+if (IS_DIRECTORY "${AWS_C_IO_SOURCES_DIR}")
+  set(FirstRun OFF)
+else()
+  set(FirstRun ON)
+endif()
+
 DownloadPackage(${AWS_C_IO_MD5} ${AWS_C_IO_URL} "${AWS_C_IO_SOURCES_DIR}")
+
+if (FirstRun)
+  # This is a patch for MinGW
+  execute_process(
+    COMMAND ${PATCH_EXECUTABLE} -p0 -N -i
+    ${CMAKE_CURRENT_LIST_DIR}/aws-c-io-${AWS_C_IO_VERSION}.patch
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+    RESULT_VARIABLE Failure
+    )
+endif()
+
 
 SET(AWS_C_MQTT_SOURCES_DIR ${CMAKE_BINARY_DIR}/aws-c-mqtt-${AWS_C_MQTT_VERSION})
 SET(AWS_C_MQTT_URL "https://orthanc.uclouvain.be/downloads/third-party-downloads/aws/aws-c-mqtt-${AWS_C_MQTT_VERSION}.tar.gz")
@@ -108,7 +127,7 @@ endif()
 DownloadPackage(${AWS_SDK_CPP_MD5} ${AWS_SDK_CPP_URL} "${AWS_SDK_CPP_SOURCES_DIR}")
 
 if (FirstRun)
-  # This is a patch for Microsoft Visual Studio 2015
+  # This is a patch for Microsoft Visual Studio 2015 and MinGW
   execute_process(
     COMMAND ${PATCH_EXECUTABLE} -p0 -N -i
     ${CMAKE_CURRENT_LIST_DIR}/aws-sdk-cpp-${AWS_SDK_CPP_VERSION}.patch
@@ -289,9 +308,11 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Windows")
   if (MINGW)
     list(REMOVE_ITEM AWS_SOURCES
       ${AWS_C_COMMON_SOURCES_DIR}/source/windows//system_info.c
+      ${AWS_SDK_CPP_SOURCES_DIR}/src/aws-cpp-sdk-core/source/platform/windows//Environment.cpp
       )
     list(APPEND AWS_SOURCES
       ${AWS_C_COMMON_SOURCES_DIR}/source/posix/system_info.c
+      ${AWS_SDK_CPP_SOURCES_DIR}/src/aws-cpp-sdk-core/source/platform/linux-shared/Environment.cpp
       )
   endif()
 
