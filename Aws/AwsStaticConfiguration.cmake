@@ -63,9 +63,33 @@ SET(AWS_C_CAL_SOURCES_DIR ${CMAKE_BINARY_DIR}/aws-c-cal-${AWS_C_CAL_VERSION})
 SET(AWS_C_CAL_URL "https://orthanc.uclouvain.be/downloads/third-party-downloads/aws/aws-c-cal-${AWS_C_CAL_VERSION}.tar.gz")
 DownloadPackage(${AWS_C_CAL_MD5} ${AWS_C_CAL_URL} "${AWS_C_CAL_SOURCES_DIR}")
 
+
 SET(AWS_C_COMMON_SOURCES_DIR ${CMAKE_BINARY_DIR}/aws-c-common-${AWS_C_COMMON_VERSION})
 SET(AWS_C_COMMON_URL "https://orthanc.uclouvain.be/downloads/third-party-downloads/aws/aws-c-common-${AWS_C_COMMON_VERSION}.tar.gz")
+
+if (IS_DIRECTORY "${AWS_C_COMMON_SOURCES_DIR}")
+  set(FirstRun OFF)
+else()
+  set(FirstRun ON)
+endif()
+
 DownloadPackage(${AWS_C_COMMON_MD5} ${AWS_C_COMMON_URL} "${AWS_C_COMMON_SOURCES_DIR}")
+
+if (FirstRun)
+  # This is a patch for MinGW
+  execute_process(
+    COMMAND ${PATCH_EXECUTABLE} -p0 -N -i
+    ${CMAKE_CURRENT_LIST_DIR}/aws-c-common-${AWS_C_COMMON_VERSION}.patch
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+    RESULT_VARIABLE Failure
+    )
+
+  if (Failure)
+    message(FATAL_ERROR "Error while patching a file")
+  endif()
+endif()
+
+
 
 SET(AWS_C_COMPRESSION_SOURCES_DIR ${CMAKE_BINARY_DIR}/aws-c-compression-${AWS_C_COMPRESSION_VERSION})
 SET(AWS_C_COMPRESSION_URL "https://orthanc.uclouvain.be/downloads/third-party-downloads/aws/aws-c-compression-${AWS_C_COMPRESSION_VERSION}.tar.gz")
@@ -99,6 +123,10 @@ if (FirstRun)
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
     RESULT_VARIABLE Failure
     )
+
+  if (Failure)
+    message(FATAL_ERROR "Error while patching a file")
+  endif()
 endif()
 
 
@@ -134,6 +162,10 @@ if (FirstRun)
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
     RESULT_VARIABLE Failure
     )
+
+  if (Failure)
+    message(FATAL_ERROR "Error while patching a file")
+  endif()
 endif()
 
 

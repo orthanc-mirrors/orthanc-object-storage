@@ -17,5 +17,23 @@ Linux Standard Base compilation
 MinGW
 =====
 
-MinGW is not supported, at least not on Ubuntu <= 22.04, as AWS uses
-C++17 constructions that are not available in gcc 10.x.
+The minimum MinGW version to compile the AWS C++ SDK is 13.x. 
+
+To build Windows 32 binaries:
+
+# ./mingw-compile.sh Release i686
+# ls ../mingw-binaries-i686/
+
+To build Windows 64 binaries:
+
+# ./mingw-compile.sh Release x86_64
+# ls ../mingw-binaries-x86_64/
+
+
+Microsoft Visual Studio
+=======================
+
+The minimum version to compile the AWS C++ SDK is Visual Studio 2015.
+
+WARNING: The binaries that are produced with Visual Studio currently
+do not work. They write empty files to the S3 storage.
