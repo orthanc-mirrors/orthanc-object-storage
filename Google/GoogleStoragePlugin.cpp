@@ -179,7 +179,7 @@ public:
   }
 
 private:
-  virtual void _ReadWhole(const std::string& path, char* data, size_t size) ORTHANC_OVERRIDE
+  void _ReadWhole(const std::string& path, char* data, size_t size)
   {
     auto reader = client_.ReadObject(bucketName_, path);
 
@@ -196,7 +196,7 @@ private:
     }
   }
 
-  virtual void _ReadRange(const std::string& path, char* data, size_t size, size_t fromOffset) ORTHANC_OVERRIDE
+  void _ReadRange(const std::string& path, char* data, size_t size, size_t fromOffset)
   {
     auto reader = client_.ReadObject(bucketName_, path, gcs::ReadRange(fromOffset, fromOffset + size));
 
@@ -213,7 +213,7 @@ private:
     }
   }
 
-  virtual size_t _GetSize(const std::string& path) ORTHANC_OVERRIDE
+  size_t _GetSize(const std::string& path)
   {
     auto objectMetadata = client_.GetObjectMetadata(bucketName_, path);
 
