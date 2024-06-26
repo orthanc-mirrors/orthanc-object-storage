@@ -1,5 +1,5 @@
 /**
- * Transfers accelerator plugin for Orthanc
+ * Cloud storage plugins for Orthanc
  * Copyright (C) 2018-2023 Osimis S.A., Belgium
  * Copyright (C) 2024-2024 Orthanc Team SRL, Belgium
  * Copyright (C) 2021-2024 Sebastien Jodogne, ICTEAM UCLouvain, Belgium
