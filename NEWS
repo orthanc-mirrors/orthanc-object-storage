@@ -1,6 +1,10 @@
 Pending changes in the mainline
 ===============================
 
+
+2024-06-26 - v 2.4.0
+====================
+
 * Support static build of AWS plugin for GNU/Linux and Microsoft Windows
 
 
@@ -10,6 +14,7 @@ Pending changes in the mainline
 * AWS plugin:
   * New configuration "EnableAwsSdkLogs" to include AWS SDK logs in Orthanc logs.
 * Now displaying size, duration and transfer speed for each read/write operation.
+
 
 2023-10-17 - v 2.3.0
 ====================
@@ -28,6 +33,7 @@ Pending changes in the mainline
 
 * in /move-storage: now detecting if file should be moved or not.
 
+
 2023-07-20 - v 2.2.0
 ====================
 
@@ -36,6 +42,7 @@ Pending changes in the mainline
 
 * Google plugin:
   * now using the latest google C++ sdk available with vcpkg tag 2023.06.20.
+
 
 2022-12-19 - v 2.1.2
 ====================

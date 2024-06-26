@@ -21,7 +21,7 @@ cmake_minimum_required(VERSION 3.3)
 
 project(OrthancAzureBlobStorage)
 
-set(PLUGIN_VERSION "mainline")
+set(PLUGIN_VERSION "2.4.0")
 
 if (PLUGIN_VERSION STREQUAL "mainline")
   set(ORTHANC_FRAMEWORK_DEFAULT_VERSION "mainline")
