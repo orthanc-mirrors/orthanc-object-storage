@@ -3,6 +3,9 @@
 - /move-storage shall also move the attachments at
   Study/Series/Patient level, not only the Instances
 
+- in Hybrid mode, add a Rest API method to know where the files are stored.
+  https://discourse.orthanc-server.org/t/the-question-about-migrating-to-object-storage/4841/4
+
 - Test against AWS S3 Glacier:
   https://groups.google.com/g/orthanc-users/c/CT1lkzHLAUg/m/h75HuXYpBwAJ
 
