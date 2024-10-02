@@ -1,3 +1,6 @@
+- Remove false Error log when working in hybrid mode
+  https://discourse.orthanc-server.org/t/object-storage-hybrid-mode/5218  
+
 - Test serialize/unserialize MoveStorageJob
 
 - /move-storage shall also move the attachments at
