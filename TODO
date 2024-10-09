@@ -1,5 +1,8 @@
 - Remove false Error log when working in hybrid mode
-  https://discourse.orthanc-server.org/t/object-storage-hybrid-mode/5218  
+  https://discourse.orthanc-server.org/t/object-storage-hybrid-mode/5218
+
+- Investigate use of soft-delete with Google Cloud Storage
+  https://discourse.orthanc-server.org/t/object-storage-hybrid-mode/5218/7
 
 - Test serialize/unserialize MoveStorageJob
 
