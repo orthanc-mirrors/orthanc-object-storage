@@ -59,10 +59,11 @@ public:
   std::shared_ptr<Aws::S3::S3Client>               client_;
   std::shared_ptr<Aws::Utils::Threading::Executor> executor_;
   std::shared_ptr<Aws::Transfer::TransferManager>  transferManager_;
+  Aws::S3::Model::StorageClass                     storageClass_;
 
 public:
 
-  AwsS3StoragePlugin(const std::string& nameForLogs,  std::shared_ptr<Aws::S3::S3Client> client, const std::string& bucketName, bool enableLegacyStorageStructure, bool storageContainsUnknownFiles, bool useTransferManager, unsigned int transferThreadPoolSize, unsigned int transferBufferSizeMB);
+  AwsS3StoragePlugin(const std::string& nameForLogs,  std::shared_ptr<Aws::S3::S3Client> client, const std::string& bucketName, bool enableLegacyStorageStructure, bool storageContainsUnknownFiles, bool useTransferManager, unsigned int transferThreadPoolSize, unsigned int transferBufferSizeMB, Aws::S3::Model::StorageClass storageClass);
 
   virtual ~AwsS3StoragePlugin();
 
@@ -79,15 +80,17 @@ public:
 
 class DirectWriter : public IStorage::IWriter
 {
-  std::string             path_;
-  std::shared_ptr<Aws::S3::S3Client>       client_;
-  std::string             bucketName_;
+  std::string                           path_;
+  std::shared_ptr<Aws::S3::S3Client>    client_;
+  std::string                           bucketName_;
+  Aws::S3::Model::StorageClass          storageClass_;
 
 public:
-  DirectWriter(std::shared_ptr<Aws::S3::S3Client> client, const std::string& bucketName, const std::string& path)
+  DirectWriter(std::shared_ptr<Aws::S3::S3Client> client, const std::string& bucketName, const std::string& path, Aws::S3::Model::StorageClass storageClass)
     : path_(path),
       client_(client),
-      bucketName_(bucketName)
+      bucketName_(bucketName),
+      storageClass_(storageClass)
   {
   }
 
@@ -101,6 +104,11 @@ public:
 
     putObjectRequest.SetBucket(bucketName_.c_str());
     putObjectRequest.SetKey(path_.c_str());
+
+    if (storageClass_ != Aws::S3::Model::StorageClass::NOT_SET)
+    {
+      putObjectRequest.SetStorageClass(storageClass_);
+    }
 
     std::shared_ptr<Aws::StringStream> stream = Aws::MakeShared<Aws::StringStream>(ALLOCATION_TAG, std::ios_base::in | std::ios_base::binary);
 
@@ -124,10 +132,10 @@ public:
 class DirectReader : public IStorage::IReader
 {
 protected:
-  std::shared_ptr<Aws::S3::S3Client>       client_;
-  std::string             bucketName_;
-  std::list<std::string>  paths_;
-  std::string             uuid_;
+  std::shared_ptr<Aws::S3::S3Client>    client_;
+  std::string                           bucketName_;
+  std::list<std::string>                paths_;
+  std::string                           uuid_;
 
 public:
   DirectReader(std::shared_ptr<Aws::S3::S3Client> client, const std::string& bucketName, const std::list<std::string>& paths, const char* uuid)
@@ -271,15 +279,17 @@ private:
 
 class TransferWriter : public IStorage::IWriter
 {
-  std::string             path_;
-  std::shared_ptr<Aws::Transfer::TransferManager>  transferManager_;
-  std::string             bucketName_;
+  std::string                                       path_;
+  std::shared_ptr<Aws::Transfer::TransferManager>   transferManager_;
+  std::string                                       bucketName_;
+  Aws::S3::Model::StorageClass                      storageClass_;
 
 public:
-  TransferWriter(std::shared_ptr<Aws::Transfer::TransferManager> transferManager, const std::string& bucketName, const std::string& path)
+  TransferWriter(std::shared_ptr<Aws::Transfer::TransferManager> transferManager, const std::string& bucketName, const std::string& path, Aws::S3::Model::StorageClass storageClass)
     : path_(path),
       transferManager_(transferManager),
-      bucketName_(bucketName)
+      bucketName_(bucketName),
+      storageClass_(storageClass)
   {
   }
 
@@ -559,11 +569,60 @@ IStorage* AwsS3StoragePluginFactory::CreateStorage(const std::string& nameForLog
     bool useTransferManager = false; // new in v 2.3.0
     unsigned int transferPoolSize = 10;
     unsigned int transferBufferSizeMB = 5;
+    std::string strStorageClass;
+    Aws::S3::Model::StorageClass storageClass = Aws::S3::Model::StorageClass::NOT_SET;
 
     pluginSection.LookupBooleanValue(useTransferManager, "UseTransferManager");
     pluginSection.LookupUnsignedIntegerValue(transferPoolSize, "TransferPoolSize");
     pluginSection.LookupUnsignedIntegerValue(transferBufferSizeMB, "TransferBufferSize");
-
+    if (pluginSection.LookupStringValue(strStorageClass, "StorageClass"))
+    {
+      if (strStorageClass == "STANDARD")
+      {
+        storageClass = Aws::S3::Model::StorageClass::STANDARD;
+      }
+      else if (strStorageClass == "REDUCED_REDUNDANCY")
+      {
+        storageClass = Aws::S3::Model::StorageClass::REDUCED_REDUNDANCY;
+      }
+      else if (strStorageClass == "STANDARD_IA")
+      {
+        storageClass = Aws::S3::Model::StorageClass::STANDARD_IA;
+      }
+      else if (strStorageClass == "ONEZONE_IA")
+      {
+        storageClass = Aws::S3::Model::StorageClass::ONEZONE_IA;
+      }
+      else if (strStorageClass == "INTELLIGENT_TIERING")
+      {
+        storageClass = Aws::S3::Model::StorageClass::INTELLIGENT_TIERING;
+      }
+      else if (strStorageClass == "GLACIER")
+      {
+        storageClass = Aws::S3::Model::StorageClass::GLACIER;
+      }
+      else if (strStorageClass == "DEEP_ARCHIVE")
+      {
+        storageClass = Aws::S3::Model::StorageClass::DEEP_ARCHIVE;
+      }
+      else if (strStorageClass == "OUTPOSTS")
+      {
+        storageClass = Aws::S3::Model::StorageClass::OUTPOSTS;
+      }
+      else if (strStorageClass == "GLACIER_IR")
+      {
+        storageClass = Aws::S3::Model::StorageClass::GLACIER_IR;
+      }
+      else if (strStorageClass == "SNOW")
+      {
+        storageClass = Aws::S3::Model::StorageClass::SNOW;
+      }
+      else
+      {
+        LOG(ERROR) << "AWS S3 Storage plugin: unrecognized value for \"StorageClass\": " << strStorageClass;
+        return nullptr;
+      }
+    }
 
     std::shared_ptr<Aws::S3::S3Client> client;
 
@@ -583,7 +642,7 @@ IStorage* AwsS3StoragePluginFactory::CreateStorage(const std::string& nameForLog
 
     LOG(INFO) << "AWS S3 storage initialized";
 
-    return new AwsS3StoragePlugin(nameForLogs, client, bucketName, enableLegacyStorageStructure, storageContainsUnknownFiles, useTransferManager, transferPoolSize, transferBufferSizeMB);
+    return new AwsS3StoragePlugin(nameForLogs, client, bucketName, enableLegacyStorageStructure, storageContainsUnknownFiles, useTransferManager, transferPoolSize, transferBufferSizeMB, storageClass);
   }
   catch (const std::exception& e)
   {
@@ -610,12 +669,14 @@ AwsS3StoragePlugin::AwsS3StoragePlugin(const std::string& nameForLogs,
                                        bool storageContainsUnknownFiles, 
                                        bool useTransferManager,
                                        unsigned int transferThreadPoolSize,
-                                       unsigned int transferBufferSizeMB)
+                                       unsigned int transferBufferSizeMB,
+                                       Aws::S3::Model::StorageClass storageClass)
   : BaseStorage(nameForLogs, enableLegacyStorageStructure),
     bucketName_(bucketName),
     storageContainsUnknownFiles_(storageContainsUnknownFiles),
     useTransferManager_(useTransferManager),
-    client_(client)
+    client_(client),
+    storageClass_(storageClass)
 {
   if (useTransferManager_)
   {
@@ -624,6 +685,10 @@ AwsS3StoragePlugin::AwsS3StoragePlugin(const std::string& nameForLogs,
     transferConfig.s3Client = client_;
     transferConfig.bufferSize = static_cast<uint64_t>(transferBufferSizeMB) * 1024 * 1024;
     transferConfig.transferBufferMaxHeapSize = static_cast<uint64_t>(transferBufferSizeMB) * 1024 * 1024 * transferThreadPoolSize;
+    if (storageClass_ != Aws::S3::Model::StorageClass::NOT_SET)
+    {
+      transferConfig.putObjectTemplate.SetStorageClass(storageClass_);
+    }
 
     transferManager_ = Aws::Transfer::TransferManager::Create(transferConfig);
   }
@@ -633,11 +698,11 @@ IStorage::IWriter* AwsS3StoragePlugin::GetWriterForObject(const char* uuid, Orth
 {
   if (useTransferManager_)
   {
-    return new TransferWriter(transferManager_, bucketName_, GetPath(uuid, type, encryptionEnabled));
+    return new TransferWriter(transferManager_, bucketName_, GetPath(uuid, type, encryptionEnabled), storageClass_);
   }
   else
   {
-    return new DirectWriter(client_, bucketName_, GetPath(uuid, type, encryptionEnabled));
+    return new DirectWriter(client_, bucketName_, GetPath(uuid, type, encryptionEnabled), storageClass_);
   }
 }
 

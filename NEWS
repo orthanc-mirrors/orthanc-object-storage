@@ -1,6 +1,14 @@
 Pending changes in the mainline
 ===============================
 
+* AWS plugin:
+  * New configuration "StorageClass" to set the Storage class of the uploaded files.
+    Allowed values are "STANDARD", "REDUCED_REDUNDANCY", "STANDARD_IA", "ONEZONE_IA", 
+    "INTELLIGENT_TIERING", "GLACIER", "DEEP_ARCHIVE", "OUTPOSTS", "GLACIER_IR", "SNOW".
+    Note that, so far, Orthanc has not been tested against "cold" storage classes.
+    If the configuration is not set, Orthanc won't force any value and the default value
+    defined by AWS will be used (the "STANDARD" class at the time of this release).
+
 
 2024-06-26 - v 2.4.0
 ====================
