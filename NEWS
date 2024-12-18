@@ -1,5 +1,5 @@
-Pending changes in the mainline
-===============================
+2024-12-18 - v 2.5.0
+====================
 
 * AWS plugin:
   * New configuration "StorageClass" to set the Storage class of the uploaded files.
