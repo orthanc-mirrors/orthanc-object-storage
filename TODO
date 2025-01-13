@@ -17,3 +17,6 @@
 
 - AWS: use the latest aws S3-crt client ?
   https://github.com/aws/aws-sdk-cpp/wiki/Improving-S3-Throughput-with-AWS-SDK-for-CPP-v1.9
+
+- Adopt files and implement an "indexer like plugin" supporting object storages: 
+  https://discourse.orthanc-server.org/t/file-indexing-on-an-azure-blob-storage/5451/2
