@@ -1,3 +1,11 @@
+2025-03-28 - v 2.5.1
+====================
+
+* Google plugin:
+  * now using the latest google C++ sdk available with vcpkg tag 2025.03.19.
+    No functional changes.
+
+
 2024-12-18 - v 2.5.0
 ====================
 
