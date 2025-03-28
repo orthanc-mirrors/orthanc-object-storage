@@ -113,7 +113,6 @@ target_link_libraries(OrthancGoogleCloudStorage
   PRIVATE
   CURL::libcurl 
   google-cloud-cpp::storage 
-  google-cloud-cpp::experimental-storage-grpc
   cryptopp::cryptopp
   )
 
@@ -136,7 +135,6 @@ target_link_libraries(UnitTests
   PRIVATE
   CURL::libcurl 
   google-cloud-cpp::storage 
-  google-cloud-cpp::experimental-storage-grpc
   cryptopp::cryptopp
   ${GOOGLE_TEST_LIBRARIES}
   )
