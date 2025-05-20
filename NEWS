@@ -1,3 +1,11 @@
+Pending changes in the mainline
+===============================
+
+* AWS plugin:
+  * "ConnectTimeout" has been renamed into "ConnectionTimeout" to match the documentation.
+    Both names are still accepted.
+
+
 2025-03-28 - v 2.5.1
 ====================
 

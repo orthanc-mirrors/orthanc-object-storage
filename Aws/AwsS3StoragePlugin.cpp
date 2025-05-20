@@ -523,7 +523,9 @@ IStorage* AwsS3StoragePluginFactory::CreateStorage(const std::string& nameForLog
   }
 
   const std::string endpoint = pluginSection.GetStringValue("Endpoint", "");
-  const unsigned int connectTimeout = pluginSection.GetUnsignedIntegerValue("ConnectTimeout", 30);
+  const unsigned int connectTimeout = pluginSection.GetUnsignedIntegerValue("ConnectTimeout", 30);  // till v 2.5.1
+  pluginSection.GetUnsignedIntegerValue("ConnectionTimeout", connectTimeout); // from v 2.5.1+, both ConnectTimeout and ConnectionTimeout are supported
+
   const unsigned int requestTimeout = pluginSection.GetUnsignedIntegerValue("RequestTimeout", 1200);
   const bool virtualAddressing = pluginSection.GetBooleanValue("VirtualAddressing", true);
   const bool enableAwsSdkLogs = pluginSection.GetBooleanValue("EnableAwsSdkLogs", false);
