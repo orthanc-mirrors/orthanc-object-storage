@@ -27,6 +27,8 @@
 #include <aws/s3/model/GetObjectRequest.h>
 #include <aws/s3/model/ListObjectsRequest.h>
 #include <aws/s3/model/DeleteObjectRequest.h>
+#include <aws/s3/model/PutObjectTaggingRequest.h>
+#include <aws/s3/model/Tag.h>
 #include <aws/core/auth/AWSCredentialsProvider.h>
 #include <aws/core/utils/HashingUtils.h>
 #include <aws/core/utils/logging/DefaultLogSystem.h>
@@ -60,10 +62,20 @@ public:
   std::shared_ptr<Aws::Utils::Threading::Executor> executor_;
   std::shared_ptr<Aws::Transfer::TransferManager>  transferManager_;
   Aws::S3::Model::StorageClass                     storageClass_;
+  std::map<std::string, std::string> tags_;
 
 public:
 
-  AwsS3StoragePlugin(const std::string& nameForLogs,  std::shared_ptr<Aws::S3::S3Client> client, const std::string& bucketName, bool enableLegacyStorageStructure, bool storageContainsUnknownFiles, bool useTransferManager, unsigned int transferThreadPoolSize, unsigned int transferBufferSizeMB, Aws::S3::Model::StorageClass storageClass);
+  AwsS3StoragePlugin(const std::string& nameForLogs, 
+                     std::shared_ptr<Aws::S3::S3Client> client, 
+                     const std::string& bucketName, 
+                     bool enableLegacyStorageStructure, 
+                     bool storageContainsUnknownFiles, 
+                     bool useTransferManager, 
+                     unsigned int transferThreadPoolSize, 
+                     unsigned int transferBufferSizeMB, 
+                     Aws::S3::Model::StorageClass storageClass,
+                     const std::map<std::string, std::string>& tags);
 
   virtual ~AwsS3StoragePlugin();
 
@@ -77,6 +89,34 @@ public:
   }
 };
 
+static void SetTags(std::shared_ptr<Aws::S3::S3Client> client, const std::string& bucketName, const std::string& path, const std::map<std::string, std::string>& tags)
+{
+  if (tags.size() > 0)
+  {
+    Aws::S3::Model::PutObjectTaggingRequest taggingRequest;
+    taggingRequest.SetBucket(bucketName.c_str());
+    taggingRequest.SetKey(path.c_str());
+
+    Aws::S3::Model::Tagging tagging;
+
+    for (std::map<std::string, std::string>::const_iterator it = tags.begin(); it != tags.end(); ++it)
+    {
+      Aws::S3::Model::Tag tag;
+      tag.SetKey(it->first);
+      tag.SetValue(it->second);
+      tagging.AddTagSet(tag);
+    }
+    
+    taggingRequest.SetTagging(tagging);
+    auto taggingResult = client->PutObjectTagging(taggingRequest);
+
+    if (!taggingResult.IsSuccess())
+    {
+      throw StoragePluginException(std::string("error while tagging file ") + path + ": response code = " + boost::lexical_cast<std::string>((int)taggingResult.GetError().GetResponseCode()) + " " + taggingResult.GetError().GetExceptionName().c_str() + " " + taggingResult.GetError().GetMessage().c_str());
+    }
+  }
+}
+
 
 class DirectWriter : public IStorage::IWriter
 {
@@ -84,13 +124,15 @@ class DirectWriter : public IStorage::IWriter
   std::shared_ptr<Aws::S3::S3Client>    client_;
   std::string                           bucketName_;
   Aws::S3::Model::StorageClass          storageClass_;
+  std::map<std::string, std::string>    tags_;
 
 public:
-  DirectWriter(std::shared_ptr<Aws::S3::S3Client> client, const std::string& bucketName, const std::string& path, Aws::S3::Model::StorageClass storageClass)
+  DirectWriter(std::shared_ptr<Aws::S3::S3Client> client, const std::string& bucketName, const std::string& path, Aws::S3::Model::StorageClass storageClass, const std::map<std::string, std::string>& tags)
     : path_(path),
       client_(client),
       bucketName_(bucketName),
-      storageClass_(storageClass)
+      storageClass_(storageClass),
+      tags_(tags)
   {
   }
 
@@ -125,6 +167,8 @@ public:
     {
       throw StoragePluginException(std::string("error while writing file ") + path_ + ": response code = " + boost::lexical_cast<std::string>((int)result.GetError().GetResponseCode()) + " " + result.GetError().GetExceptionName().c_str() + " " + result.GetError().GetMessage().c_str());
     }
+
+    SetTags(client_, bucketName_, path_, tags_);
   }
 };
 
@@ -279,17 +323,21 @@ private:
 
 class TransferWriter : public IStorage::IWriter
 {
+  std::shared_ptr<Aws::S3::S3Client>                client_;
   std::string                                       path_;
   std::shared_ptr<Aws::Transfer::TransferManager>   transferManager_;
   std::string                                       bucketName_;
   Aws::S3::Model::StorageClass                      storageClass_;
+  std::map<std::string, std::string>                tags_;
 
 public:
-  TransferWriter(std::shared_ptr<Aws::Transfer::TransferManager> transferManager, const std::string& bucketName, const std::string& path, Aws::S3::Model::StorageClass storageClass)
-    : path_(path),
+  TransferWriter(std::shared_ptr<Aws::S3::S3Client> client, std::shared_ptr<Aws::Transfer::TransferManager> transferManager, const std::string& bucketName, const std::string& path, Aws::S3::Model::StorageClass storageClass, const std::map<std::string, std::string>& tags)
+    : client_(client),
+      path_(path),
       transferManager_(transferManager),
       bucketName_(bucketName),
-      storageClass_(storageClass)
+      storageClass_(storageClass),
+      tags_(tags)
   {
   }
 
@@ -309,6 +357,8 @@ public:
     {
       throw StoragePluginException(std::string("error while writing file ") + path_ + ": response code = " + boost::lexical_cast<std::string>(static_cast<int>(transferHandle->GetLastError().GetResponseCode())) + " " + transferHandle->GetLastError().GetMessage());
     }
+
+    SetTags(client_, bucketName_, path_, tags_);
   }
 };
 
@@ -642,9 +692,12 @@ IStorage* AwsS3StoragePluginFactory::CreateStorage(const std::string& nameForLog
       client = Aws::MakeShared<Aws::S3::S3Client>(ALLOCATION_TAG, configuration, Aws::Client::AWSAuthV4Signer::PayloadSigningPolicy::Never, virtualAddressing);
     }  
 
+    std::map<std::string, std::string> tags;
+    pluginSection.GetDictionary(tags, "Tags");
+
     LOG(INFO) << "AWS S3 storage initialized";
 
-    return new AwsS3StoragePlugin(nameForLogs, client, bucketName, enableLegacyStorageStructure, storageContainsUnknownFiles, useTransferManager, transferPoolSize, transferBufferSizeMB, storageClass);
+    return new AwsS3StoragePlugin(nameForLogs, client, bucketName, enableLegacyStorageStructure, storageContainsUnknownFiles, useTransferManager, transferPoolSize, transferBufferSizeMB, storageClass, tags);
   }
   catch (const std::exception& e)
   {
@@ -672,13 +725,15 @@ AwsS3StoragePlugin::AwsS3StoragePlugin(const std::string& nameForLogs,
                                        bool useTransferManager,
                                        unsigned int transferThreadPoolSize,
                                        unsigned int transferBufferSizeMB,
-                                       Aws::S3::Model::StorageClass storageClass)
+                                       Aws::S3::Model::StorageClass storageClass,
+                                       const std::map<std::string, std::string>& tags)
   : BaseStorage(nameForLogs, enableLegacyStorageStructure),
     bucketName_(bucketName),
     storageContainsUnknownFiles_(storageContainsUnknownFiles),
     useTransferManager_(useTransferManager),
     client_(client),
-    storageClass_(storageClass)
+    storageClass_(storageClass),
+    tags_(tags)
 {
   if (useTransferManager_)
   {
@@ -700,11 +755,11 @@ IStorage::IWriter* AwsS3StoragePlugin::GetWriterForObject(const char* uuid, Orth
 {
   if (useTransferManager_)
   {
-    return new TransferWriter(transferManager_, bucketName_, GetPath(uuid, type, encryptionEnabled), storageClass_);
+    return new TransferWriter(client_, transferManager_, bucketName_, GetPath(uuid, type, encryptionEnabled), storageClass_, tags_);
   }
   else
   {
-    return new DirectWriter(client_, bucketName_, GetPath(uuid, type, encryptionEnabled), storageClass_);
+    return new DirectWriter(client_, bucketName_, GetPath(uuid, type, encryptionEnabled), storageClass_, tags_);
   }
 }
 

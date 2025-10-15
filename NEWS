@@ -4,6 +4,8 @@ Pending changes in the mainline
 * AWS plugin:
   * "ConnectTimeout" has been renamed into "ConnectionTimeout" to match the documentation.
     Both names are still accepted.
+  * New configuration "Tags" (dictionary) to add tags to the objects after they
+    have been written to the bucket.
 
 
 2025-03-28 - v 2.5.1
