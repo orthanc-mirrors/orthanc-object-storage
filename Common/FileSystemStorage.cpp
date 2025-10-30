@@ -156,6 +156,5 @@ bool FileSystemStoragePlugin::FileExists(const std::string& uuid, OrthancPluginC
 
   fs::path path = BaseStorage::GetOrthancFileSystemPath(uuid, fileSystemRootPath_);
 
-  return Orthanc::SystemToolbox::IsExistingFile(path.string());
+  return Orthanc::SystemToolbox::IsRegularFile(path.string());
 }
-
