@@ -9,7 +9,7 @@
 - /move-storage shall also move the attachments at
   Study/Series/Patient level, not only the Instances
 
-- in Hybrid mode, add a Rest API method to know where the files are stored.
+- in Hybrid mode, add a REST API method to know where the files are stored.
   https://discourse.orthanc-server.org/t/the-question-about-migrating-to-object-storage/4841/4
   https://discourse.orthanc-server.org/t/question-about-data-storage/6358
   
