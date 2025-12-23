@@ -54,7 +54,8 @@ Pending changes in the mainline
     2 related configurations have been added too:
     - "TransferPoolSize" to define the number of threads to be used by
       the Transfer Manager (default = 10)
-    - "TransferBufferSize" to define the size (in MB) 
+    - "TransferBufferSize" to define the size (in MB) of buffers used
+      in the TransferManager mode (default value = 5)
   * now using the latest AWS SDK C++ (1.11.178).
 
 * in /move-storage: now detecting if file should be moved or not.
