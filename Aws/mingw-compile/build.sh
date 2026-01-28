@@ -43,6 +43,7 @@ cp -r /source/UnitTestsSources /tmp/aws/
 
 cd /tmp/aws/Build/
 cmake ../Aws -DCMAKE_BUILD_TYPE=Release -DUSE_VCPKG_PACKAGES=OFF -DSTATIC_BUILD=ON \
+      -DUSE_LEGACY_BOOST=ON \
       -DCMAKE_TOOLCHAIN_FILE=/source/Common/Resources/Orthanc/Toolchains/${TOOLCHAIN}
 make -j`nproc --all`
 
