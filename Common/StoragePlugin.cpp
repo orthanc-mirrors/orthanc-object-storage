@@ -40,9 +40,9 @@
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
 
-#include "../Common/EncryptionHelpers.h"
-#include "../Common/EncryptionConfigurator.h"
-#include "../Common/FileSystemStorage.h"
+#include "EncryptionHelpers.h"
+#include "EncryptionConfigurator.h"
+#include "FileSystemStorage.h"
 
 #include <Logging.h>
 #include <SystemToolbox.h>
@@ -117,7 +117,7 @@ static OrthancPluginErrorCode StorageCreate(const char* uuid,
 
       try
       {
-        crypto->Encrypt(encryptedFile, (const char*)content, size);
+        crypto->Encrypt(encryptedFile, reinterpret_cast<const char*>(content), size);
       }
       catch (EncryptionException& ex)
       {

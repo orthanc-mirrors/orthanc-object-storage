@@ -77,7 +77,7 @@ public:
                      Aws::S3::Model::StorageClass storageClass,
                      const std::map<std::string, std::string>& tags);
 
-  virtual ~AwsS3StoragePlugin();
+  virtual ~AwsS3StoragePlugin() ORTHANC_OVERRIDE;
 
   virtual IWriter* GetWriterForObject(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled) ORTHANC_OVERRIDE;
   virtual IReader* GetReaderForObject(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled) ORTHANC_OVERRIDE;
@@ -136,10 +136,6 @@ public:
   {
   }
 
-  virtual ~DirectWriter()
-  {
-  }
-
   virtual void Write(const char* data, size_t size) ORTHANC_OVERRIDE
   {
     Aws::S3::Model::PutObjectRequest putObjectRequest;
@@ -190,16 +186,11 @@ public:
   {
   }
 
-  virtual ~DirectReader()
-  {
-
-  }
-
   virtual size_t GetSize() ORTHANC_OVERRIDE
   {
     std::string firstExceptionMessage;
 
-    for (auto& path: paths_)
+    for (const std::string& path: paths_)
     {
       try
       {
@@ -263,7 +254,7 @@ private:
   {
     std::string firstExceptionMessage;
 
-    for (auto& path: paths_)
+    for (const std::string& path: paths_)
     {
       try
       {
@@ -341,10 +332,6 @@ public:
   {
   }
 
-  virtual ~TransferWriter()
-  {
-  }
-
   virtual void Write(const char* data, size_t size) ORTHANC_OVERRIDE
   {
     boost::interprocess::bufferstream buffer(const_cast<char*>(static_cast<const char*>(data)), static_cast<size_t>(size));
@@ -372,11 +359,6 @@ public:
     : DirectReader(client, bucketName, paths, uuid),
       transferManager_(transferManager)
   {
-  }
-
-  virtual ~TransferReader()
-  {
-
   }
 
   virtual void ReadWhole(char* data, size_t size) ORTHANC_OVERRIDE
@@ -454,8 +436,6 @@ static std::unique_ptr<Aws::SDKOptions>  sdkOptions_;
 class AwsOrthancLogger : public Aws::Utils::Logging::LogSystemInterface
 {
 public:
-    virtual ~AwsOrthancLogger() {}
-
     /**
      * Gets the currently configured log level for this logger.
      */
@@ -794,7 +774,7 @@ void AwsS3StoragePlugin::DeleteObject(const char* uuid, OrthancPluginContentType
   }
 
   // DeleteObject succeeds even if the file does not exist -> we need to try to delete every path
-  for (auto& path: paths)
+  for (const std::string& path: paths)
   {
     Aws::S3::Model::DeleteObjectRequest deleteObjectRequest;
     deleteObjectRequest.SetBucket(bucketName_.c_str());

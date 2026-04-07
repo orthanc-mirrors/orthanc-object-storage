@@ -66,7 +66,7 @@ public:
   // since the memory used during encryption/decryption can grow up to a bit more than 2 times the input,
   // we want to limit the number of threads doing concurrent processing according to the available memory
   // instead of the number of concurrent threads
-  EncryptionHelpers(size_t maxConcurrentInputSize = 1024*1024*1024);
+  explicit EncryptionHelpers(size_t maxConcurrentInputSize = 1024*1024*1024);
 
   void SetCurrentMasterKey(uint32_t id, const std::string& path);
 
@@ -92,11 +92,11 @@ private:
 
   void EncryptInternal(std::string& output, const char* data, size_t size, const CryptoPP::SecByteBlock& masterKey);
 
-  void DecryptInternal(char* output, const char* data, size_t size, const CryptoPP::SecByteBlock& masterKey);
+  static void DecryptInternal(char* output, const char* data, size_t size, const CryptoPP::SecByteBlock& masterKey);
 
-  void EncryptPrefixSecBlock(std::string& output, const CryptoPP::SecByteBlock& input, const CryptoPP::SecByteBlock& masterKey);
+  static void EncryptPrefixSecBlock(std::string& output, const CryptoPP::SecByteBlock& input, const CryptoPP::SecByteBlock& masterKey);
 
-  void DecryptPrefixSecBlock(CryptoPP::SecByteBlock& output, const std::string& input, const CryptoPP::SecByteBlock& masterKey);
+  static void DecryptPrefixSecBlock(CryptoPP::SecByteBlock& output, const std::string& input, const CryptoPP::SecByteBlock& masterKey);
 
   std::string GetMasterKeyIdentifier(const CryptoPP::SecByteBlock& masterKey);
 

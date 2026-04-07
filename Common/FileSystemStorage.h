@@ -40,7 +40,6 @@ public:
       fsync_(fsync)
     {}
 
-    virtual ~FileSystemWriter() {}
     virtual void Write(const char* data, size_t size) ORTHANC_OVERRIDE;
   };
 
@@ -52,7 +51,6 @@ public:
     : path_(path)
     {}
 
-    virtual ~FileSystemReader() {}
     virtual size_t GetSize() ORTHANC_OVERRIDE;
     virtual void ReadWhole(char* data, size_t size) ORTHANC_OVERRIDE;
     virtual void ReadRange(char* data, size_t size, size_t fromOffset) ORTHANC_OVERRIDE;

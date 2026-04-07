@@ -251,7 +251,7 @@ void EncryptionHelpers::DecryptPrefixSecBlock(CryptoPP::SecByteBlock& output, co
         ) // StreamTransformationFilter
     ); // StringSource
 
-    output.Assign((const byte*)outputString.data(), outputString.size());
+    output.Assign(reinterpret_cast<const byte*>(outputString.data()), outputString.size());
   }
   catch (CryptoPP::Exception& e)
   {
@@ -303,13 +303,13 @@ void EncryptionHelpers::EncryptInternal(std::string& output, const char* data, s
     //  defines two channels: "" (empty) and "AAD"
     //   channel "" is encrypted and authenticated
     //   channel "AAD" is authenticated
-    ef.ChannelPut("AAD", (const byte*)prefix.data(), prefix.size());
+    ef.ChannelPut("AAD", reinterpret_cast<const byte*>(prefix.data()), prefix.size());
     ef.ChannelMessageEnd("AAD");
 
     // Authenticated data *must* be pushed before
     //  Confidential/Authenticated data. Otherwise
     //  we must catch the BadState exception
-    ef.ChannelPut("", (const byte*)data, size);
+    ef.ChannelPut("", reinterpret_cast<const byte*>(data), size);
     ef.ChannelMessageEnd("");
   }
   catch(CryptoPP::Exception& e)
@@ -354,9 +354,9 @@ void EncryptionHelpers::DecryptInternal(char* output, const char* data, size_t s
                                       AuthenticatedDecryptionFilter::THROW_EXCEPTION, INTEGRITY_CHECK_TAG_SIZE);
 
     // The order of the following calls are important
-    df.ChannelPut("", (const byte*)mac.data(), mac.size());
-    df.ChannelPut("AAD", (const byte*)prefix.data(), prefix.size());
-    df.ChannelPut("", (const byte*)(data) + prefixSize, size - INTEGRITY_CHECK_TAG_SIZE - prefixSize);
+    df.ChannelPut("", reinterpret_cast<const byte*>(mac.data()), mac.size());
+    df.ChannelPut("AAD", reinterpret_cast<const byte*>(prefix.data()), prefix.size());
+    df.ChannelPut("", reinterpret_cast<const byte*>(data) + prefixSize, size - INTEGRITY_CHECK_TAG_SIZE - prefixSize);
 
     // If the object throws, it will most likely occur
     //  during ChannelMessageEnd()
@@ -381,7 +381,7 @@ void EncryptionHelpers::DecryptInternal(char* output, const char* data, size_t s
     {
       assert(n == size - OVERHEAD_SIZE);
 
-      df.Get((byte*)output, n);
+      df.Get(reinterpret_cast<byte*>(output), n);
     }
   }
   catch (CryptoPP::Exception& ex)
