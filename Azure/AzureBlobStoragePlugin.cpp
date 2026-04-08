@@ -37,14 +37,16 @@ class AzureBlobStoragePlugin : public BaseStorage
 public:
 
   as::BlobContainerClient       blobClient_;
-  bool                        storageContainsUnknownFiles_;
+  bool                          storageContainsUnknownFiles_;
+  as::Models::AccessTier        accessTier_;
 
 public:
 
   AzureBlobStoragePlugin(const std::string& nameForLogs,  
                          const as::BlobContainerClient& blobClient, 
                          bool enableLegacyStorageStructure,
-                         bool storageContainsUnknownFiles
+                         bool storageContainsUnknownFiles,
+                         as::Models::AccessTier accessTier
                          );
 
   virtual IWriter* GetWriterForObject(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled) ORTHANC_OVERRIDE;
@@ -56,13 +58,15 @@ public:
 
 class Writer : public IStorage::IWriter
 {
-  std::string   path_;
+  std::string             path_;
   as::BlobContainerClient client_;
+  as::Models::AccessTier  accessTier_;
 
 public:
-  Writer(const std::string& path, const as::BlobContainerClient& client)
+  Writer(const std::string& path, const as::BlobContainerClient& client, const as::Models::AccessTier& accessTier)
     : path_(path),
-      client_(client)
+      client_(client),
+      accessTier_(accessTier)
   {
   }
 
@@ -75,7 +79,11 @@ public:
     try
     {
       as::BlockBlobClient blobClient = client_.GetBlockBlobClient(path_);
-      blobClient.UploadFrom(reinterpret_cast<const uint8_t*>(data), size);
+      
+      Azure::Storage::Blobs::UploadBlockBlobFromOptions uploadOptions;
+      uploadOptions.AccessTier = accessTier_;
+
+      blobClient.UploadFrom(reinterpret_cast<const uint8_t*>(data), size, uploadOptions);
     }
     catch (std::exception& ex)
     {
@@ -210,9 +218,10 @@ IStorage* AzureBlobStoragePluginFactory::CreateStorage(const std::string& nameFo
 {
   std::string connectionString;
   std::string containerName;
-  bool enableLegacyStorageStructure;
-  bool storageContainsUnknownFiles;
-  bool createContainerIfNotExists;
+  bool enableLegacyStorageStructure = false;
+  bool storageContainsUnknownFiles = false;
+  bool createContainerIfNotExists = true;
+  as::Models::AccessTier accessTier; // no need to initialize, this is a Nullable type
 
   if (orthancConfig.IsSection(GetConfigurationSectionName()))
   {
@@ -240,6 +249,37 @@ IStorage* AzureBlobStoragePluginFactory::CreateStorage(const std::string& nameFo
     boost::trim(containerName);
 
     createContainerIfNotExists = pluginSection.GetBooleanValue("CreateContainerIfNotExists", true);
+
+    std::string strAccessTier;
+    if (pluginSection.LookupStringValue(strAccessTier, "AccessTier"))
+    {
+      if (strAccessTier == "Hot")
+      {
+        accessTier = as::Models::AccessTier::Hot;
+      }
+      else if (strAccessTier == "Cool")
+      {
+        accessTier = as::Models::AccessTier::Cool;
+      }
+      else if (strAccessTier == "Archive")
+      {
+        accessTier = as::Models::AccessTier::Archive;
+      }
+      else if (strAccessTier == "Premium")
+      {
+        accessTier = as::Models::AccessTier::Premium;
+      }
+      else if (strAccessTier == "Cold")
+      {
+        accessTier = as::Models::AccessTier::Cold;
+      }
+      else
+      {
+        LOG(ERROR) << "Azure Storage plugin: unrecognized value for \"AccessTier\": " << strAccessTier;
+        return nullptr;
+      }
+    }
+
   }
   else if (orthancConfig.IsSection("BlobStorage")) // backward compatibility with the old plugin:
   {
@@ -308,7 +348,7 @@ IStorage* AzureBlobStoragePluginFactory::CreateStorage(const std::string& nameFo
 
     LOG(INFO) << "Blob storage initialized";
 
-    return new AzureBlobStoragePlugin(nameForLogs, client, enableLegacyStorageStructure, storageContainsUnknownFiles);
+    return new AzureBlobStoragePlugin(nameForLogs, client, enableLegacyStorageStructure, storageContainsUnknownFiles, accessTier);
   }
   catch (const std::exception& e)
   {
@@ -318,17 +358,17 @@ IStorage* AzureBlobStoragePluginFactory::CreateStorage(const std::string& nameFo
 
 }
 
-AzureBlobStoragePlugin::AzureBlobStoragePlugin(const std::string& nameForLogs, const as::BlobContainerClient& blobClient, bool enableLegacyStorageStructure, bool storageContainsUnknownFiles)
+AzureBlobStoragePlugin::AzureBlobStoragePlugin(const std::string& nameForLogs, const as::BlobContainerClient& blobClient, bool enableLegacyStorageStructure, bool storageContainsUnknownFiles, as::Models::AccessTier accessTier)
   : BaseStorage(nameForLogs, enableLegacyStorageStructure),
     blobClient_(blobClient),
-    storageContainsUnknownFiles_(storageContainsUnknownFiles)
+    storageContainsUnknownFiles_(storageContainsUnknownFiles),
+    accessTier_(accessTier)
 {
-
 }
 
 IStorage::IWriter* AzureBlobStoragePlugin::GetWriterForObject(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled)
 {
-  return new Writer(GetPath(uuid, type, encryptionEnabled), blobClient_);
+  return new Writer(GetPath(uuid, type, encryptionEnabled), blobClient_, accessTier_);
 }
 
 IStorage::IReader* AzureBlobStoragePlugin::GetReaderForObject(const char* uuid, OrthancPluginContentType type, bool encryptionEnabled)

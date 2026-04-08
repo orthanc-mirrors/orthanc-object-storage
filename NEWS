@@ -6,6 +6,12 @@ Pending changes in the mainline
     Both names are still accepted.
   * New configuration "Tags" (dictionary) to add tags to the objects after they
     have been written to the bucket.
+* Azure plugin:
+  * New configuration "AccessTier" to set the Access tier of the uploaded files.
+    Allowed values are "Hot", "Cool", "Archive", "Premium", "Cold". 
+    If the configuration is not set, Orthanc won't force any value and the default value
+    defined by Azure will be used (the "Hot" class at the time of this release or a class
+    defined at the container level).
 
 
 2025-03-28 - v 2.5.1
