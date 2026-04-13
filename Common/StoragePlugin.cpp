@@ -168,7 +168,7 @@ static OrthancPluginErrorCode StorageReadRange(IStorage* storage,
   }
   catch (StoragePluginException& ex)
   {
-    logErrorFunction(std::string(StoragePluginFactory::GetStoragePluginName()) + ": error while reading object " + std::string(uuid) + ": " + std::string(ex.what()));
+    logErrorFunction(storage->GetNameForLogs() + ": failed to read object " + std::string(uuid) + ": " + std::string(ex.what()));
     return OrthancPluginErrorCode_StorageAreaPlugin;
   }
 }
@@ -261,7 +261,7 @@ static OrthancPluginErrorCode StorageReadWhole(IStorage* storage,
   }
   catch (StoragePluginException& ex)
   {
-    logErrorFunction(storage->GetNameForLogs() + ": error while reading object " + std::string(uuid) + ": " + ex.what());
+    logErrorFunction(storage->GetNameForLogs() + ": failed to read object " + std::string(uuid) + ": " + ex.what());
     return OrthancPluginErrorCode_StorageAreaPlugin;
   }
 
@@ -327,7 +327,7 @@ static OrthancPluginErrorCode StorageRemove(IStorage* storage,
   }
   catch (StoragePluginException& ex)
   {
-    logErrorFunction(std::string(StoragePluginFactory::GetStoragePluginName()) + ": error while deleting object " + std::string(uuid) + ": " + std::string(ex.what()));
+    logErrorFunction(storage->GetNameForLogs() + ": failed to delete object " + std::string(uuid) + ": " + std::string(ex.what()));
     return OrthancPluginErrorCode_StorageAreaPlugin;
   }
 }

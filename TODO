@@ -1,4 +1,4 @@
-- Remove false Error log when working in hybrid mode
+- Remove false Error log when working in hybrid mode (note: at least for S3, it now appears as a warning with the correct 'primary' or 'secondary' storage name)
   https://discourse.orthanc-server.org/t/object-storage-hybrid-mode/5218
 
 - Investigate use of soft-delete with Google Cloud Storage
