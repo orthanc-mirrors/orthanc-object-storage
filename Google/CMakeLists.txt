@@ -21,13 +21,13 @@ cmake_minimum_required(VERSION 3.3)
 
 project(OrthancGoogleCloudStorage)
 
-set(PLUGIN_VERSION "mainline")
+set(PLUGIN_VERSION "2.5.2")
 
 if (PLUGIN_VERSION STREQUAL "mainline")
   set(ORTHANC_FRAMEWORK_DEFAULT_VERSION "mainline")
   set(ORTHANC_FRAMEWORK_DEFAULT_SOURCE "hg")
 else()
-  set(ORTHANC_FRAMEWORK_DEFAULT_VERSION "1.12.4")
+  set(ORTHANC_FRAMEWORK_DEFAULT_VERSION "1.12.10")
   set(ORTHANC_FRAMEWORK_DEFAULT_SOURCE "web")
 endif()
 
