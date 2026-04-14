@@ -40,15 +40,19 @@
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
 
-#include "EncryptionHelpers.h"
 #include "EncryptionConfigurator.h"
+#include "EncryptionHelpers.h"
 #include "FileSystemStorage.h"
+#include "MoveStorageJob.h"
+#include "StoragePlugin.h"
 
 #include <Logging.h>
 #include <SystemToolbox.h>
-#include "MoveStorageJob.h"
-#include "StoragePlugin.h"
 #include <Toolbox.h>
+
+#if ORTHANC_FRAMEWORK_VERSION_IS_ABOVE(1, 12, 11)
+#  include <ElapsedTimer.h>
+#endif
 
 #ifdef _WIN32
 // This is a hotfix for: https://orthanc.uclouvain.be/hg/orthanc/rev/e4d9a872998f
@@ -106,7 +110,12 @@ static OrthancPluginErrorCode StorageCreate(const char* uuid,
 {
   try
   {
+#if ORTHANC_FRAMEWORK_VERSION_IS_ABOVE(1, 12, 11)
+    Orthanc::ElapsedTimer timer;
+#else
     Orthanc::Toolbox::ElapsedTimer timer;
+#endif
+
     LOG(INFO) << primaryStorage->GetNameForLogs() << ": creating attachment " << uuid
               << " of type " << boost::lexical_cast<std::string>(type);
     std::unique_ptr<IStorage::IWriter> writer(primaryStorage->GetWriterForObject(uuid, type, cryptoEnabled));
@@ -155,7 +164,12 @@ static OrthancPluginErrorCode StorageReadRange(IStorage* storage,
 
   try
   {
+#if ORTHANC_FRAMEWORK_VERSION_IS_ABOVE(1, 12, 11)
+    Orthanc::ElapsedTimer timer;
+#else
     Orthanc::Toolbox::ElapsedTimer timer;
+#endif
+
     LOG(INFO) << storage->GetNameForLogs() << ": reading range of attachment " << uuid
               << " of type " << boost::lexical_cast<std::string>(type);
     
@@ -207,7 +221,12 @@ static OrthancPluginErrorCode StorageReadWhole(IStorage* storage,
 {
   try
   {
+#if ORTHANC_FRAMEWORK_VERSION_IS_ABOVE(1, 12, 11)
+    Orthanc::ElapsedTimer timer;
+#else
     Orthanc::Toolbox::ElapsedTimer timer;
+#endif
+
     LOG(INFO) << storage->GetNameForLogs() << ": reading whole attachment " << uuid
               << " of type " << boost::lexical_cast<std::string>(type);
     std::unique_ptr<IStorage::IReader> reader(storage->GetReaderForObject(uuid, type, cryptoEnabled));
