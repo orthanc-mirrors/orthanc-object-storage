@@ -284,28 +284,17 @@ private:
       std::string range = std::string("bytes=") + boost::lexical_cast<std::string>(fromOffset) + "-" + boost::lexical_cast<std::string>(fromOffset + size -1);
       getObjectRequest.SetRange(range.c_str());
     }
-
-    getObjectRequest.SetResponseStreamFactory(
-          [data, size]()
-    {
-      std::unique_ptr<Aws::StringStream>
-          istream(Aws::New<Aws::StringStream>(ALLOCATION_TAG));
-
-      istream->rdbuf()->pubsetbuf(static_cast<char*>(data),
-                                  size);
-
-      return istream.release();
-    });
-
     // Get the object
     auto result = client_->GetObject(getObjectRequest);
-    if (result.IsSuccess())
-    {
-    }
-    else
+    if (!result.IsSuccess())
     {
       throw StoragePluginException(std::string("error while reading file ") + path + ": response code = " + boost::lexical_cast<std::string>((int)result.GetError().GetResponseCode()) + " " + result.GetError().GetExceptionName().c_str() + " " + result.GetError().GetMessage().c_str());
     }
+    
+    auto& body = result.GetResult().GetBody();
+    body.read(data, size);
+    // it seems important to consume the HTTP stream so the connection can go back in the pool (but, it is actually already consumed !)
+    body.ignore(std::numeric_limits<std::streamsize>::max());
   }
 
 };
