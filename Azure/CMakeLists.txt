@@ -17,7 +17,7 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 
-cmake_minimum_required(VERSION 3.3)
+cmake_minimum_required(VERSION 3.3...4.0)
 
 project(OrthancAzureBlobStorage)
 
