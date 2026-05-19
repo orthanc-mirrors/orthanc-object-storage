@@ -225,11 +225,6 @@ target_link_libraries(UnitTests
   ${ORTHANC_FRAMEWORK_LIBRARIES}
   )
 
-# if (STATIC_BUILD OR NOT USE_VCPKG_PACKAGES)
-#   add_dependencies(OrthancAwsS3Storage AwsSdkCpp)
-#   add_dependencies(UnitTests AwsSdkCpp)
-# endif()
-
 if (COMMAND DefineSourceBasenameForTarget)
   DefineSourceBasenameForTarget(OrthancAwsS3Storage)
   DefineSourceBasenameForTarget(UnitTests)
