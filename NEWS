@@ -1,5 +1,5 @@
-Pending changes in the mainline
-===============================
+2026-06-22 - v 2.5.3
+====================
 
 * AWS plugin:
   * Internals: rewrote the read() function to make sure to consume the HTTP stream completely
