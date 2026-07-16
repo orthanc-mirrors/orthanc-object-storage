@@ -546,6 +546,7 @@ IStorage* AwsS3StoragePluginFactory::CreateStorage(const std::string& nameForLog
   pluginSection.GetUnsignedIntegerValue("ConnectionTimeout", connectTimeout); // from v 2.5.1+, both ConnectTimeout and ConnectionTimeout are supported
 
   const unsigned int requestTimeout = pluginSection.GetUnsignedIntegerValue("RequestTimeout", 1200);
+  const unsigned int maxConnections = pluginSection.GetUnsignedIntegerValue("MaxConnections", 25);
   const bool virtualAddressing = pluginSection.GetBooleanValue("VirtualAddressing", true);
   const bool enableAwsSdkLogs = pluginSection.GetBooleanValue("EnableAwsSdkLogs", false);
   const std::string caFile = orthancConfig.GetStringValue("HttpsCACertificates", "");
@@ -576,6 +577,7 @@ IStorage* AwsS3StoragePluginFactory::CreateStorage(const std::string& nameForLog
     configuration.connectTimeoutMs = connectTimeout * 1000;
     configuration.requestTimeoutMs  = requestTimeout * 1000;
     configuration.httpRequestTimeoutMs = requestTimeout * 1000;
+    configuration.maxConnections = maxConnections;
 
     if (!endpoint.empty())
     {

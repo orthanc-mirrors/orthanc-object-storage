@@ -131,6 +131,7 @@ make install
         "Endpoint": "",                 // optional: custom endpoint
         "ConnectionTimeout": 30,        // optional: connection timeout in seconds
         "RequestTimeout": 1200,         // optional: request timeout in seconds (max time to upload/download a file)
+        "MaxConnections": 25,           // optional: number of HTTP connections in the pool used by the AWS HTTP client.
         "RootPath": "",                 // optional: folder in which files are stored (ex: my/path/to/myfolder)
         "StorageEncryption" : {...},    // optional
         "StorageStructure" : "flat",    // optional
