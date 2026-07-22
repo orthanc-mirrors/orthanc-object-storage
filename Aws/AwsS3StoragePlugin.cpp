@@ -30,6 +30,7 @@
 #include <aws/s3/model/PutObjectTaggingRequest.h>
 #include <aws/s3/model/Tag.h>
 #include <aws/core/auth/AWSCredentialsProvider.h>
+#include <aws/core/client/DefaultRetryStrategy.h>
 #include <aws/core/utils/HashingUtils.h>
 #include <aws/core/utils/logging/DefaultLogSystem.h>
 #include <aws/core/utils/logging/DefaultCRTLogSystem.h>
@@ -547,6 +548,7 @@ IStorage* AwsS3StoragePluginFactory::CreateStorage(const std::string& nameForLog
 
   const unsigned int requestTimeout = pluginSection.GetUnsignedIntegerValue("RequestTimeout", 1200);
   const unsigned int maxConnections = pluginSection.GetUnsignedIntegerValue("MaxConnections", 25);
+  const unsigned int maxRetries = pluginSection.GetUnsignedIntegerValue("MaxRetries", 10);
   const bool virtualAddressing = pluginSection.GetBooleanValue("VirtualAddressing", true);
   const bool enableAwsSdkLogs = pluginSection.GetBooleanValue("EnableAwsSdkLogs", false);
   const std::string caFile = orthancConfig.GetStringValue("HttpsCACertificates", "");
@@ -578,6 +580,8 @@ IStorage* AwsS3StoragePluginFactory::CreateStorage(const std::string& nameForLog
     configuration.requestTimeoutMs  = requestTimeout * 1000;
     configuration.httpRequestTimeoutMs = requestTimeout * 1000;
     configuration.maxConnections = maxConnections;
+    configuration.retryStrategy = Aws::MakeShared<Aws::Client::DefaultRetryStrategy>(ALLOCATION_TAG, maxRetries);
+    
 
     if (!endpoint.empty())
     {

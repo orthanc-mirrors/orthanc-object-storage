@@ -4,6 +4,8 @@ Pending changes in the mainline
 * AWS plugin:
  * New configuration "MaxConnections" to define the size of the HTTP connection pool used
    by the AWS HTTP Client (default is 25).
+ * New configuration "MaxRetries" to define the number of retries for the AWS HTTP Client 
+  (default is 10).
    
 
 2026-06-22 - v 2.5.3
