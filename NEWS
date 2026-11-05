@@ -1,5 +1,5 @@
-Pending changes
-===============
+2026-11-05 - v 2.5.5
+====================
 
 * Google plugin:
   * New configuration "TransferStallTimeout" defines the timeout (in seconds) before retrying
