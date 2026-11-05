@@ -44,7 +44,9 @@ On Linux, with vcpkg version `2023.06.20`:
         "RootPath": "",                 // optional: folder in which files are stored (ex: my/path/to/myfolder)
         "StorageEncryption" : {...},
         "StorageStructure" : "flat",
-        "MigrationFromFileSystemEnabled" : false
+        "MigrationFromFileSystemEnabled" : false,
+        "MaxRetries": 10,
+        "TransferStallTimeout": 120
     }
 
 ```

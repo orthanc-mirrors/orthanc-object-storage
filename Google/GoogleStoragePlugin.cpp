@@ -277,6 +277,9 @@ IStorage* GoogleStoragePluginFactory::CreateStorage(const std::string& nameForLo
     return nullptr;
   }
 
+  const unsigned int transferStallTimeout = pluginSection.GetUnsignedIntegerValue("TransferStallTimeout", 120);
+  const int maxRetries = pluginSection.GetIntegerValue("MaxRetries", 10);
+
   // Use service account credentials from a JSON keyfile:
   auto creds = gcs::oauth2::CreateServiceAccountCredentialsFromJsonFilePath(pathToGoogleCredentials);
   if (!creds)
@@ -286,7 +289,11 @@ IStorage* GoogleStoragePluginFactory::CreateStorage(const std::string& nameForLo
   }
 
   // Create a client to communicate with Google Cloud Storage.
-  google::cloud::StatusOr<gcs::Client> mainClient = gcs::Client(gcs::ClientOptions(*creds));
+  google::cloud::Options options;
+  options.set<gcs::Oauth2CredentialsOption>(*creds);
+  options.set<gcs::TransferStallTimeoutOption>(std::chrono::seconds(transferStallTimeout));
+  options.set<gcs::RetryPolicyOption>(std::make_shared<gcs::LimitedErrorCountRetryPolicy>(maxRetries));
+  google::cloud::StatusOr<gcs::Client> mainClient = gcs::Client(options);
 
   if (!mainClient)
   {
